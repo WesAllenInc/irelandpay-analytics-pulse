@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
-import { createChart, ColorType, IChartApi, ISeriesApi } from 'lightweight-charts';
+import { createChart, ColorType, IChartApi, ISeriesApi, LineSeriesPartialOptions } from 'lightweight-charts';
 
 interface VolumeData {
   time: string;
@@ -41,10 +41,10 @@ export function VolumeChart({ data, title = "Volume Chart" }: VolumeChartProps) 
       },
     });
 
-    const lineSeries = chart.addLineSeries({
+    const lineSeries = chart.addSeries('Line', {
       color: '#2563eb',
       lineWidth: 2,
-    });
+    } as LineSeriesPartialOptions);
 
     chartRef.current = chart;
     seriesRef.current = lineSeries;

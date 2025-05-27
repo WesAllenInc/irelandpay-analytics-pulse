@@ -41,7 +41,7 @@ export function VolumeChart({ data, title = "Volume Chart" }: VolumeChartProps) 
       },
     });
 
-    const lineSeries = chart.addLineSeries({
+    const lineSeries = chart.addSeries('Line', {
       color: '#2563eb',
       lineWidth: 2,
     });

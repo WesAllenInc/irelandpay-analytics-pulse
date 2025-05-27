@@ -41,7 +41,7 @@ export function NetChart({ data, title = "Net Profit Chart" }: NetChartProps) {
       },
     });
 
-    const lineSeries = chart.addLineSeries({
+    const lineSeries = chart.addSeries('Line', {
       color: '#16a34a',
       lineWidth: 2,
     });

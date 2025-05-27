@@ -9,10 +9,103 @@ export type Json =
 export type Database = {
   public: {
     Tables: {
-      [_ in never]: never
+      merchant_data: {
+        Row: {
+          datasource: string | null
+          date_loaded: string | null
+          merchant_dba: string | null
+          mid: string
+          month: string | null
+          total_txns: number | null
+          total_volume: number | null
+        }
+        Insert: {
+          datasource?: string | null
+          date_loaded?: string | null
+          merchant_dba?: string | null
+          mid: string
+          month?: string | null
+          total_txns?: number | null
+          total_volume?: number | null
+        }
+        Update: {
+          datasource?: string | null
+          date_loaded?: string | null
+          merchant_dba?: string | null
+          mid?: string
+          month?: string | null
+          total_txns?: number | null
+          total_volume?: number | null
+        }
+        Relationships: []
+      }
+      residual_data: {
+        Row: {
+          agent_net: number | null
+          agent_pct: number | null
+          bps: number | null
+          date_loaded: string | null
+          expenses: number | null
+          income: number | null
+          mid: string
+          net_profit: number | null
+          payout_month: string
+          sales_amount: number | null
+          transactions: number | null
+          volume_month: string | null
+        }
+        Insert: {
+          agent_net?: number | null
+          agent_pct?: number | null
+          bps?: number | null
+          date_loaded?: string | null
+          expenses?: number | null
+          income?: number | null
+          mid: string
+          net_profit?: number | null
+          payout_month: string
+          sales_amount?: number | null
+          transactions?: number | null
+          volume_month?: string | null
+        }
+        Update: {
+          agent_net?: number | null
+          agent_pct?: number | null
+          bps?: number | null
+          date_loaded?: string | null
+          expenses?: number | null
+          income?: number | null
+          mid?: string
+          net_profit?: number | null
+          payout_month?: string
+          sales_amount?: number | null
+          transactions?: number | null
+          volume_month?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
-      [_ in never]: never
+      master_data: {
+        Row: {
+          agent_net: number | null
+          agent_pct: number | null
+          bps: number | null
+          datasource: string | null
+          expenses: number | null
+          income: number | null
+          merchant_dba: string | null
+          merchant_transactions: number | null
+          merchant_volume: number | null
+          mid: string | null
+          net_profit: number | null
+          payout_month: string | null
+          payout_transactions: number | null
+          sales_amount: number | null
+          volume_month: string | null
+        }
+        Relationships: []
+      }
     }
     Functions: {
       [_ in never]: never

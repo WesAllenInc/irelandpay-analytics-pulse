@@ -1,6 +1,6 @@
 
 import React, { useEffect, useRef } from 'react';
-import { createChart, ColorType, IChartApi, ISeriesApi, LineSeriesPartialOptions } from 'lightweight-charts';
+import { createChart, ColorType, IChartApi, ISeriesApi } from 'lightweight-charts';
 
 interface NetData {
   time: string;
@@ -41,7 +41,7 @@ export function NetChart({ data, title = "Net Profit Chart" }: NetChartProps) {
       },
     });
 
-    const lineSeries = chart.addSeries('Line', {
+    const lineSeries = chart.addLineSeries({
       color: '#16a34a',
       lineWidth: 2,
     });

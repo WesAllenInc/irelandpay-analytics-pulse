@@ -44,7 +44,7 @@ export function VolumeChart({ data, title = "Volume Chart" }: VolumeChartProps) 
     const lineSeries = chart.addSeries('Line', {
       color: '#2563eb',
       lineWidth: 2,
-    } as LineSeriesPartialOptions);
+    });
 
     chartRef.current = chart;
     seriesRef.current = lineSeries;

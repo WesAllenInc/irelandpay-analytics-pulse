@@ -1,6 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import type { Database } from '@/integrations/supabase/types';
 
 interface Merchant {
   mid: string;
@@ -13,6 +14,8 @@ interface MetricsData {
   netProfit: number;
   transactions: number;
 }
+
+type MasterDataRow = Database['public']['Views']['master_data']['Row'];
 
 export function useDashboardData(selectedMerchant: Merchant | null, dateRange: { from: string; to: string }) {
   const [volumeData, setVolumeData] = useState<{ time: string; value: number }[]>([]);
@@ -31,10 +34,10 @@ export function useDashboardData(selectedMerchant: Merchant | null, dateRange: {
     try {
       let query = supabase
         .from('master_data')
-        .select('payout_month, merchant_volume, net_profit, payout_transactions')
-        .gte('payout_month', dateRange.from)
-        .lte('payout_month', dateRange.to)
-        .order('payout_month');
+        .select('volume_month, merchant_volume, net_profit, payout_transactions')
+        .gte('volume_month', dateRange.from)
+        .lte('volume_month', dateRange.to)
+        .order('volume_month');
 
       if (selectedMerchant) {
         query = query.eq('mid', selectedMerchant.mid);
@@ -46,8 +49,8 @@ export function useDashboardData(selectedMerchant: Merchant | null, dateRange: {
 
       if (data) {
         // Group by month and sum values
-        const monthlyData = data.reduce((acc: { [key: string]: { volume: number; netProfit: number; transactions: number } }, row) => {
-          const month = row.payout_month;
+        const monthlyData = data.reduce((acc: { [key: string]: { volume: number; netProfit: number; transactions: number } }, row: MasterDataRow) => {
+          const month = row.volume_month;
           if (!acc[month]) {
             acc[month] = { volume: 0, netProfit: 0, transactions: 0 };
           }
@@ -57,14 +60,14 @@ export function useDashboardData(selectedMerchant: Merchant | null, dateRange: {
           return acc;
         }, {});
 
-        const volumeChartData = Object.entries(monthlyData).map(([time, data]) => ({
+        const volumeChartData = Object.entries(monthlyData).map(([time, metrics]) => ({
           time,
-          value: data.volume,
+          value: metrics.volume,
         }));
 
-        const netChartData = Object.entries(monthlyData).map(([time, data]) => ({
+        const netChartData = Object.entries(monthlyData).map(([time, metrics]) => ({
           time,
-          value: data.netProfit,
+          value: metrics.netProfit,
         }));
 
         setVolumeData(volumeChartData);

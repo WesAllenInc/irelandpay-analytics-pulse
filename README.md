@@ -1,8 +1,8 @@
-# Welcome to your Lovable project
+# IrelandPay Analytics Pulse
 
 ## Project info
 
-**URL**: https://lovable.dev/projects/4b033916-b832-4ca8-a0c9-cc8d7f2c46b7
+IrelandPay Analytics Pulse is a merchant analytics dashboard that provides insights into transaction volumes and net profits. The application integrates with Supabase for data storage and retrieval.
 
 ## How can I edit this code?
 
@@ -59,6 +59,49 @@ This project is built with:
 - React
 - shadcn-ui
 - Tailwind CSS
+- Supabase (PostgreSQL database)
+- Lightweight Charts (for data visualization)
+
+## Database Schema
+
+The application uses the following database schema:
+
+### merchant_data
+- `mid` (TEXT, Primary Key): Merchant ID
+- `datasource` (TEXT): Source of the merchant data
+- `merchant_dba` (TEXT): Merchant's doing business as name
+- `total_txns` (INT): Total number of transactions
+- `total_volume` (NUMERIC): Total transaction volume
+- `month` (DATE): Month of the data
+
+### residual_data
+- `mid` (TEXT): Merchant ID
+- `payout_month` (DATE): Month of the payout
+- `transactions` (INT): Number of transactions
+- `sales_amount` (NUMERIC): Total sales amount
+- `income` (NUMERIC): Income amount
+- `expenses` (NUMERIC): Expenses amount
+- `net_profit` (NUMERIC): Net profit
+- `bps` (NUMERIC): Basis points
+- `agent_pct` (NUMERIC): Agent percentage
+- `agent_net` (NUMERIC): Agent net amount
+- `volume_month` (DATE): Month of the volume
+- Primary Key: (mid, payout_month)
+
+### master_data (Materialized View)
+Joins merchant_data and residual_data on mid and month/volume_month to provide a comprehensive view of merchant performance.
+
+## API Endpoints
+
+- `getMerchants()`: Fetches all merchants with their mid and merchant_dba
+- `getMetrics(params)`: Fetches metrics data based on date range and optional merchant ID
+
+## Environment Variables
+
+The application requires the following environment variables:
+
+- `NEXT_PUBLIC_SUPABASE_URL`: URL of your Supabase project
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Anonymous key for Supabase authentication
 
 ## How can I deploy this project?
 

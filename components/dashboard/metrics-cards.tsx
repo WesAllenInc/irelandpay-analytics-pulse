@@ -1,106 +1,90 @@
-"use client";
-
-import React from 'react';
-import { Card, CardContent } from '@/components/ui/card';
-import { ArrowUpIcon, ArrowDownIcon, CreditCard, Users, TrendingUp, BarChart } from 'lucide-react';
-
-interface MetricCardProps {
-  title: string;
-  value: string | number;
-  change: number;
-  changeLabel: string;
-  icon?: React.ReactNode;
-}
-
-const MetricCard = ({ title, value, change, changeLabel, icon }: MetricCardProps) => {
-  const isPositive = change >= 0;
-  
-  return (
-    <Card>
-      <CardContent className="p-6">
-        <div className="flex justify-between items-start">
-          <div>
-            <p className="text-sm font-medium text-muted-foreground">{title}</p>
-            <h3 className="text-3xl font-semibold mt-2">{value}</h3>
-            <div className="flex items-center mt-2">
-              <span className={`inline-flex items-center text-sm ${isPositive ? 'text-green-600' : 'text-red-600'}`}>
-                {isPositive ? (
-                  <ArrowUpIcon className="w-3 h-3 mr-1" />
-                ) : (
-                  <ArrowDownIcon className="w-3 h-3 mr-1" />
-                )}
-                {Math.abs(change)}%
-              </span>
-              <span className="text-sm text-muted-foreground ml-2">{changeLabel}</span>
-            </div>
-          </div>
-          {icon && (
-            <div className="p-2 bg-primary/10 rounded-full">
-              {icon}
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  );
-};
-
-interface DashboardMetrics {
-  totalVolume: number;
-  volumeChange: number;
-  totalTransactions: number;
-  transactionsChange: number;
-  activeMerchants: number;
-  avgTransactionValue: number;
-}
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { ArrowUpIcon, ArrowDownIcon, DollarSign, CreditCard, Users, TrendingUp } from 'lucide-react'
 
 interface MetricsCardsProps {
-  metrics: DashboardMetrics;
+  metrics: {
+    totalVolume: number
+    volumeChange: number
+    totalTransactions: number
+    transactionsChange: number
+    activeMerchants: number
+    avgTransactionValue: number
+  }
 }
 
 export function MetricsCards({ metrics }: MetricsCardsProps) {
   const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-IE', {
+    return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'EUR',
-      minimumFractionDigits: 2,
-      maximumFractionDigits: 2
-    }).format(value);
-  };
+      currency: 'USD',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(value)
+  }
+
+  const formatNumber = (value: number) => {
+    return new Intl.NumberFormat('en-US').format(value)
+  }
+
+  const cards = [
+    {
+      title: 'Total Volume',
+      value: formatCurrency(metrics.totalVolume),
+      change: metrics.volumeChange,
+      icon: DollarSign,
+      color: 'text-blue-500',
+    },
+    {
+      title: 'Transactions',
+      value: formatNumber(metrics.totalTransactions),
+      change: metrics.transactionsChange,
+      icon: CreditCard,
+      color: 'text-green-500',
+    },
+    {
+      title: 'Active Merchants',
+      value: formatNumber(metrics.activeMerchants),
+      change: 0,
+      icon: Users,
+      color: 'text-purple-500',
+    },
+    {
+      title: 'Avg Transaction',
+      value: formatCurrency(metrics.avgTransactionValue),
+      change: 0,
+      icon: TrendingUp,
+      color: 'text-orange-500',
+    },
+  ]
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      <MetricCard
-        title="Total Volume"
-        value={formatCurrency(metrics.totalVolume)}
-        change={metrics.volumeChange}
-        changeLabel="from last month"
-        icon={<BarChart className="h-5 w-5 text-primary" />}
-      />
-      
-      <MetricCard
-        title="Total Transactions"
-        value={metrics.totalTransactions.toLocaleString()}
-        change={metrics.transactionsChange}
-        changeLabel="from last month"
-        icon={<CreditCard className="h-5 w-5 text-primary" />}
-      />
-      
-      <MetricCard
-        title="Active Merchants"
-        value={metrics.activeMerchants.toLocaleString()}
-        change={0} // No change data provided for active merchants
-        changeLabel="total count"
-        icon={<Users className="h-5 w-5 text-primary" />}
-      />
-      
-      <MetricCard
-        title="Avg. Transaction Value"
-        value={formatCurrency(metrics.avgTransactionValue)}
-        change={0} // No change data provided for avg transaction value
-        changeLabel="per transaction"
-        icon={<TrendingUp className="h-5 w-5 text-primary" />}
-      />
+    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      {cards.map((card) => (
+        <Card key={card.title} className="bg-gray-900 border-gray-800">
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-sm font-medium text-gray-400">
+              {card.title}
+            </CardTitle>
+            <card.icon className={`h-4 w-4 ${card.color}`} />
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold text-white">{card.value}</div>
+            {card.change !== 0 && (
+              <p className="text-xs text-gray-400 flex items-center mt-1">
+                {card.change > 0 ? (
+                  <ArrowUpIcon className="h-3 w-3 text-green-500 mr-1" />
+                ) : (
+                  <ArrowDownIcon className="h-3 w-3 text-red-500 mr-1" />
+                )}
+                <span className={card.change > 0 ? 'text-green-500' : 'text-red-500'}>
+                  {Math.abs(card.change).toFixed(1)}%
+                </span>
+                <span className="ml-1">from last month</span>
+              </p>
+            )}
+          </CardContent>
+        </Card>
+      ))}
     </div>
-  );
+  )
 }

@@ -101,7 +101,7 @@ function TradingViewWidgetComponent({
     })
 
     // Create main series based on type
-    let series: ISeriesApi<SeriesType>
+    let series: ISeriesApi<SeriesType> | null = null
     
     if (type === 'area') {
       // @ts-ignore - Type definitions in lightweight-charts may be outdated
@@ -153,7 +153,10 @@ function TradingViewWidgetComponent({
       })
     }
     
-    series.setData(formattedData)
+    // At this point, series is guaranteed to be non-null
+    if (series) {
+      series.setData(formattedData)
+    }
 
     // Add volume if requested
     if (showVolume && data.some(d => d.volume !== undefined)) {

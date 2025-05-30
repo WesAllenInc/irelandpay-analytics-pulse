@@ -1,5 +1,6 @@
 import React from 'react';
 import MetricsCards from '@/components/dashboard/metrics-cards';
+import MerchantSummary from '@/components/dashboard/merchant-summary';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import TradingViewWidget from '@/components/charts/trading-view-widget';
 
@@ -101,6 +102,11 @@ export default function DashboardPage() {
             />
           </CardContent>
         </Card>
+      </div>
+      
+      {/* Merchant Data from Supabase */}
+      <div className="mt-6">
+        <MerchantSummary />
       </div>
       
       {/* Recent Transactions */}

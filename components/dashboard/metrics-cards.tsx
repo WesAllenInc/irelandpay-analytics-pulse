@@ -2,7 +2,7 @@
 
 import React from 'react';
 import { Card, CardContent } from '@/components/ui/card';
-import { ArrowUpIcon, ArrowDownIcon } from 'lucide-react';
+import { ArrowUpIcon, ArrowDownIcon, CreditCard, Users, TrendingUp, BarChart } from 'lucide-react';
 
 interface MetricCardProps {
   title: string;
@@ -45,56 +45,61 @@ const MetricCard = ({ title, value, change, changeLabel, icon }: MetricCardProps
   );
 };
 
-interface MetricsCardsProps {
-  data: {
-    totalTransactions: {
-      value: string;
-      change: number;
-    };
-    activeMerchants: {
-      value: number;
-      change: number;
-    };
-    avgTransactionValue: {
-      value: string;
-      change: number;
-    };
-    conversionRate: {
-      value: string;
-      change: number;
-    };
-  };
+interface DashboardMetrics {
+  totalVolume: number;
+  volumeChange: number;
+  totalTransactions: number;
+  transactionsChange: number;
+  activeMerchants: number;
+  avgTransactionValue: number;
 }
 
-export default function MetricsCards({ data }: MetricsCardsProps) {
+interface MetricsCardsProps {
+  metrics: DashboardMetrics;
+}
+
+export function MetricsCards({ metrics }: MetricsCardsProps) {
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-IE', {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    }).format(value);
+  };
+
   return (
     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       <MetricCard
-        title="Total Transactions"
-        value={data.totalTransactions.value}
-        change={data.totalTransactions.change}
+        title="Total Volume"
+        value={formatCurrency(metrics.totalVolume)}
+        change={metrics.volumeChange}
         changeLabel="from last month"
+        icon={<BarChart className="h-5 w-5 text-primary" />}
+      />
+      
+      <MetricCard
+        title="Total Transactions"
+        value={metrics.totalTransactions.toLocaleString()}
+        change={metrics.transactionsChange}
+        changeLabel="from last month"
+        icon={<CreditCard className="h-5 w-5 text-primary" />}
       />
       
       <MetricCard
         title="Active Merchants"
-        value={data.activeMerchants.value}
-        change={data.activeMerchants.change}
-        changeLabel="from last month"
+        value={metrics.activeMerchants.toLocaleString()}
+        change={0} // No change data provided for active merchants
+        changeLabel="total count"
+        icon={<Users className="h-5 w-5 text-primary" />}
       />
       
       <MetricCard
         title="Avg. Transaction Value"
-        value={data.avgTransactionValue.value}
-        change={data.avgTransactionValue.change}
-        changeLabel="from last month"
-      />
-      
-      <MetricCard
-        title="Conversion Rate"
-        value={data.conversionRate.value}
-        change={data.conversionRate.change}
-        changeLabel="from last month"
+        value={formatCurrency(metrics.avgTransactionValue)}
+        change={0} // No change data provided for avg transaction value
+        changeLabel="per transaction"
+        icon={<TrendingUp className="h-5 w-5 text-primary" />}
       />
     </div>
   );

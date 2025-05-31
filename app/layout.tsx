@@ -6,7 +6,7 @@ const inter = Inter({ subsets: ['latin'] });
 
 export const metadata: Metadata = {
   title: 'Ireland Pay Analytics',
-  description: 'Analytics dashboard for Ireland Pay payment processing',
+  description: 'Real-time merchant analytics and insights dashboard',
 };
 
 export default function RootLayout({
@@ -15,8 +15,8 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+    <html lang="en" className="dark">
+      <body className={`${inter.className} bg-gray-950 text-white`}>
         {children}
       </body>
     </html>

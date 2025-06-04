@@ -8,7 +8,8 @@ import {
   TrendingUp, 
   Settings,
   BarChart3,
-  Activity
+  Activity,
+  Upload
 } from 'lucide-react'
 import { cn } from '@/lib/utils'
 
@@ -16,6 +17,7 @@ const navigation = [
   { name: 'Dashboard', href: '/dashboard', icon: LayoutDashboard },
   { name: 'Merchants', href: '/dashboard/merchants', icon: Users },
   { name: 'Analytics', href: '/dashboard/analytics', icon: TrendingUp },
+  { name: 'Upload', href: '/dashboard/upload', icon: Upload },
   { name: 'Settings', href: '/dashboard/settings', icon: Settings },
 ]
 

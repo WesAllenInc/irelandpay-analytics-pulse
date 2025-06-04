@@ -1,5 +1,5 @@
-import { serve } from "https://deno.land/std@0.177.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.23.0";
+import { serve } from "https://deno.land/std@0.208.0/http/server.ts";
+import { createClient } from "https://esm.sh/@supabase/supabase-js@2.38.0";
 import * as XLSX from "https://esm.sh/xlsx@0.18.5";
 
 // Initialize Supabase service‐role client
@@ -106,7 +106,7 @@ serve(async (req) => {
     if (metricsToUpsert.length > 0) {
       const { error: metricsError } = await supabaseAdmin
         .from("merchant_metrics")
-        .upsert(metricsToUpsert, { onConflict: ["mid", "month"], ignoreDuplicates: false });
+        .upsert(metricsToUpsert, { onConflict: "mid,month", ignoreDuplicates: false });
       if (metricsError) {
         throw new Error("Metrics upsert failed: " + metricsError.message);
       }

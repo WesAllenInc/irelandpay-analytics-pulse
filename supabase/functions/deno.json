@@ -1,0 +1,16 @@
+{
+  "tasks": {
+    "dev": "deno run --allow-net --allow-env --allow-read processExcel.ts"
+  },
+  "imports": {
+    "std/": "https://deno.land/std@0.208.0/",
+    "http/server": "https://deno.land/std@0.208.0/http/server.ts",
+    "@supabase/supabase-js": "https://esm.sh/@supabase/supabase-js@2.38.0",
+    "xlsx": "https://esm.sh/xlsx@0.18.5"
+  },
+  "compilerOptions": {
+    "allowJs": true,
+    "lib": ["deno.window"],
+    "strict": true
+  }
+}

@@ -3,31 +3,47 @@
 import { useState, useRef, ChangeEvent } from "react";
 import { supabaseClient } from "@/lib/supabaseClient";
 import { useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { useToast } from "@/components/ui/use-toast";
+import { ExcelUploadStatus } from "@/components/ExcelUploadStatus";
+import { FileSpreadsheet, Upload } from "lucide-react";
 
 interface ProcessingResult {
   success: boolean;
   message: string;
-  summary?: {
-    totalRecords: number;
-    fileName: string;
-  };
+  merchants?: number;
+  metrics?: number;
   error?: string;
 }
 
 const UploadExcel = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [statusMessage, setStatusMessage] = useState<string>("");
-  const [statusColor, setStatusColor] = useState<string>("");
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [processingResult, setProcessingResult] = useState<ProcessingResult | null>(null);
+  const [uploadProgress, setUploadProgress] = useState<number>(0);
+  const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "processing" | "success" | "error">("idle");
+  const [errorMessage, setErrorMessage] = useState<string>("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const { toast } = useToast();
 
   const onFileChange = (e: ChangeEvent<HTMLInputElement>) => {
-    setSelectedFile(e.target.files?.[0] || null);
+    const file = e.target.files?.[0] || null;
+    setSelectedFile(file);
+    
+    if (file) {
+      toast({
+        title: "File Selected",
+        description: `${file.name} (${(file.size / 1024).toFixed(2)} KB)`,
+      });
+    }
   };
 
   const resetForm = useCallback(() => {
     setSelectedFile(null);
+    setUploadProgress(0);
+    setUploadStatus("idle");
+    setErrorMessage("");
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
@@ -37,17 +53,33 @@ const UploadExcel = () => {
     e.preventDefault();
     
     if (!selectedFile) {
-      setStatusMessage("Please select a file");
-      setStatusColor("text-red-600");
-      setProcessingResult(null);
+      toast({
+        title: "Error",
+        description: "Please select a file",
+        variant: "destructive",
+      });
       return;
     }
 
     try {
       setIsProcessing(true);
       setProcessingResult(null);
-      setStatusMessage("Uploading file...");
-      setStatusColor("text-blue-600");
+      setUploadStatus("uploading");
+      setUploadProgress(0);
+      
+      // Create a custom upload with progress tracking
+      const fileExtension = selectedFile.name.split('.').pop()?.toLowerCase();
+      if (fileExtension !== 'xlsx' && fileExtension !== 'xls') {
+        throw new Error("Invalid file format. Please upload an Excel file (.xlsx or .xls)");
+      }
+
+      // Simulate upload progress (Supabase doesn't provide upload progress natively)
+      const progressInterval = setInterval(() => {
+        setUploadProgress(prev => {
+          const newProgress = prev + Math.random() * 15;
+          return newProgress >= 95 ? 95 : newProgress;
+        });
+      }, 300);
       
       // Upload file to Supabase Storage
       const { data, error } = await supabaseClient
@@ -58,15 +90,18 @@ const UploadExcel = () => {
           upsert: true,
         });
 
+      clearInterval(progressInterval);
+      setUploadProgress(100);
+
       if (error) {
-        setStatusMessage(`Upload error: ${error.message}`);
-        setStatusColor("text-red-600");
+        setUploadStatus("error");
+        setErrorMessage(`Upload error: ${error.message}`);
         setIsProcessing(false);
         return;
       }
       
       // File uploaded successfully, now process it with the API endpoint
-      setStatusMessage("Processing Excel data...");
+      setUploadStatus("processing");
       
       // Call the API endpoint to process the Excel file
       try {
@@ -77,79 +112,107 @@ const UploadExcel = () => {
         });
         
         const result = await response.json();
-        setProcessingResult(result);
         
         if (result.success) {
-          setStatusMessage(`Processed ${result.inserted} rows from ${selectedFile.name}`);
-          setStatusColor('text-green-600');
-          resetForm();
+          setProcessingResult({
+            success: true,
+            message: "File processed successfully",
+            merchants: result.merchants || 0,
+            metrics: result.metrics || 0
+          });
+          setUploadStatus("success");
         } else {
-          setStatusMessage(`Processing error: ${result.error}`);
-          setStatusColor('text-red-600');
+          setProcessingResult({
+            success: false,
+            message: `Processing error: ${result.error}`,
+            error: result.error
+          });
+          setErrorMessage(result.error || "Unknown processing error");
+          setUploadStatus("error");
         }
       } catch (apiError) {
         console.error("API error:", apiError);
-        setStatusMessage(`API error: ${apiError instanceof Error ? apiError.message : 'Unknown error'}`);
-        setStatusColor("text-red-600");
+        const errorMsg = apiError instanceof Error ? apiError.message : 'Unknown error';
         setProcessingResult({
           success: false,
-          message: `API error: ${apiError instanceof Error ? apiError.message : 'Unknown error'}`,
-          error: apiError instanceof Error ? apiError.message : 'Unknown error'
+          message: `API error: ${errorMsg}`,
+          error: errorMsg
         });
+        setErrorMessage(`API error: ${errorMsg}`);
+        setUploadStatus("error");
       }
       
       setIsProcessing(false);
     } catch (error) {
       console.error("Error uploading file:", error);
-      setStatusMessage(`Upload error: ${(error as Error).message}`);
-      setStatusColor("text-red-600");
+      setErrorMessage((error as Error).message);
+      setUploadStatus("error");
+      setIsProcessing(false);
+    }
+  };
+
+  const handleStatusClose = () => {
+    if (uploadStatus === "success") {
+      resetForm();
+    } else {
+      setUploadStatus("idle");
     }
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-md p-6">
-      <h2 className="text-xl font-semibold mb-4">Upload Merchant Excel</h2>
-      
-      <form onSubmit={handleFileUpload}>
-        <div className="mb-4">
-          <input
-            type="file"
-            accept=".xlsx,.xls"
-            className="block w-full text-sm text-slate-500
-              file:mr-4 file:py-2 file:px-4
-              file:rounded file:border-0
-              file:text-sm file:font-semibold
-              file:bg-slate-100 file:text-slate-700
-              hover:file:bg-slate-200"
-            ref={fileInputRef}
-            onChange={onFileChange}
-            disabled={isProcessing}
-          />
-        </div>
-        
-        <button
-          type="submit"
-          className={`${isProcessing ? 'bg-gray-400 cursor-not-allowed' : 'bg-teal-600 hover:bg-teal-700'} text-white rounded px-4 py-2 font-medium`}
-          disabled={isProcessing || !selectedFile}
-        >
-          {isProcessing ? 'Processing...' : 'Upload'}
-        </button>
-      </form>
-      
-      {statusMessage && (
-        <div className={`mt-4 p-3 rounded ${statusColor === "text-green-600" ? "bg-green-100" : statusColor === "text-blue-600" ? "bg-blue-100" : "bg-red-100"}`}>
-          <p className={statusColor}>{statusMessage}</p>
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2">
+          <FileSpreadsheet className="h-5 w-5" />
+          Upload Merchant Excel
+        </CardTitle>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleFileUpload} className="space-y-4">
+          <div className="grid w-full max-w-sm items-center gap-1.5">
+            <input
+              type="file"
+              accept=".xlsx,.xls"
+              className="block w-full text-sm text-slate-500
+                file:mr-4 file:py-2 file:px-4
+                file:rounded file:border-0
+                file:text-sm file:font-semibold
+                file:bg-slate-100 file:text-slate-700
+                hover:file:bg-slate-200"
+              ref={fileInputRef}
+              onChange={onFileChange}
+              disabled={isProcessing}
+            />
+          </div>
           
-          {processingResult?.success && processingResult.summary && (
-            <div className="mt-2 text-sm text-gray-700">
-              <p><span className="font-semibold">File:</span> {processingResult.summary.fileName}</p>
-              <p><span className="font-semibold">Records processed:</span> {processingResult.summary.totalRecords}</p>
-              <p className="mt-2 text-xs text-gray-500">Data has been stored in your database.</p>
-            </div>
-          )}
-        </div>
-      )}
-    </div>
+          <Button
+            type="submit"
+            disabled={isProcessing || !selectedFile}
+            className="flex items-center gap-2"
+          >
+            <Upload className="h-4 w-4" />
+            {isProcessing ? 'Processing...' : 'Upload'}
+          </Button>
+        </form>
+        
+        {uploadStatus !== "idle" && (
+          <div className="mt-6">
+            <ExcelUploadStatus
+              fileName={selectedFile?.name}
+              fileSize={selectedFile?.size}
+              uploadProgress={uploadProgress}
+              status={uploadStatus}
+              processingResult={processingResult?.success ? {
+                merchants: processingResult.merchants,
+                metrics: processingResult.metrics
+              } : undefined}
+              error={errorMessage}
+              onClose={handleStatusClose}
+            />
+          </div>
+        )}
+      </CardContent>
+    </Card>
   );
 };
 

@@ -4,6 +4,8 @@ import { MetricsCards } from '@/components/dashboard/metrics-cards'
 import { MerchantTable } from '@/components/dashboard/merchant-table'
 import { RealtimeIndicator } from '@/components/dashboard/realtime-indicator'
 
+export const dynamic = 'force-dynamic'
+
 export default async function DashboardPage() {
   const supabase = await createClient()
   

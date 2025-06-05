@@ -6,6 +6,7 @@ import { useMerchantData } from '@/hooks/use-merchant-data'
 import { useStore } from '@/lib/store'
 import { useEffect } from 'react'
 import type { Database } from '@/types/database'
+import { StagewiseToolbarWrapper } from '@/components/ui/stagewise-toolbar'
 
 type MasterData = Database['public']['Tables']['master_data_mv']['Row']
 
@@ -48,6 +49,7 @@ export default function DashboardLayout({
           )}
         </div>
       </main>
+      <StagewiseToolbarWrapper />
     </div>
   )
 }

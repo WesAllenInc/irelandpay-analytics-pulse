@@ -5,6 +5,7 @@ import { MainNav } from "@/components/layout/main-nav"
 import { GlobalSearch } from "@/components/ui/global-search"
 import { PageWrapper } from "@/components/layout/page-wrapper"
 import { Toaster } from "@/components/ui/toaster"
+import { StagewiseToolbarWrapper } from "@/components/ui/stagewise-toolbar"
 
 interface DashboardLayoutProps {
   children: React.ReactNode
@@ -30,6 +31,7 @@ export function DashboardLayout({
       </PageWrapper>
       
       <Toaster />
+      <StagewiseToolbarWrapper />
     </div>
   )
 }

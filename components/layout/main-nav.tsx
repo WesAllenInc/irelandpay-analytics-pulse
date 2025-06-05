@@ -68,6 +68,12 @@ export function MainNav({ className, children }: MainNavProps) {
       active: pathname?.includes("/dashboard/upload"),
     },
     {
+      href: "/upload-residuals",
+      label: "Residuals",
+      icon: Upload,
+      active: pathname === "/upload-residuals",
+    },
+    {
       href: "/dashboard/settings",
       label: "Settings",
       icon: Settings,

@@ -41,24 +41,24 @@ function TradingViewWidgetComponent({
     const initChart = async () => {
       try {
         // Import the library dynamically
-        const LightweightCharts = await import('lightweight-charts')
+        const { createChart } = await import('lightweight-charts')
         
         // Create chart instance
-        chart = LightweightCharts.createChart(chartContainerRef.current!, {
+        chart = createChart(chartContainerRef.current!, {
           width: chartContainerRef.current!.clientWidth,
           height: height,
           layout: {
-            background: { type: LightweightCharts.ColorType.Solid, color: '#0a0a0a' },
+            background: { color: '#0a0a0a' },
             textColor: '#d1d4dc',
           },
           grid: {
             vertLines: { 
               color: '#1e1e1e',
-              style: LightweightCharts.LineStyle.Solid,
+              style: 0, // Solid line style
             },
             horzLines: { 
               color: '#1e1e1e',
-              style: LightweightCharts.LineStyle.Solid,
+              style: 0, // Solid line style
             },
           },
           timeScale: {
@@ -74,13 +74,12 @@ function TradingViewWidgetComponent({
             },
           },
           crosshair: {
-            mode: LightweightCharts.CrosshairMode.Normal,
+            mode: 1, // Normal crosshair mode
           },
         })
         
         // Create series based on type
         if (type === 'area') {
-          // @ts-ignore - Type definitions in lightweight-charts may be outdated
           series = chart.addAreaSeries({
             lineColor: color,
             topColor: color,
@@ -88,19 +87,24 @@ function TradingViewWidgetComponent({
             lineWidth: 2,
           })
         } else if (type === 'line') {
-          // @ts-ignore - Type definitions in lightweight-charts may be outdated
           series = chart.addLineSeries({
             color: color,
             lineWidth: 2,
           })
         } else if (type === 'histogram') {
-          // @ts-ignore - Type definitions in lightweight-charts may be outdated
           series = chart.addHistogramSeries({
             color: color,
           })
+        } else if (type === 'candlestick') {
+          series = chart.addCandlestickSeries({
+            upColor: '#26a69a',
+            downColor: '#ef5350',
+            borderVisible: false,
+            wickUpColor: '#26a69a',
+            wickDownColor: '#ef5350',
+          })
         } else {
           // Default to area
-          // @ts-ignore - Type definitions in lightweight-charts may be outdated
           series = chart.addAreaSeries({
             lineColor: color,
             topColor: color,
@@ -119,7 +123,6 @@ function TradingViewWidgetComponent({
         
         // Add volume if requested
         if (showVolume && data.some(d => d.volume !== undefined)) {
-          // @ts-ignore - Type definitions in lightweight-charts may be outdated
           volumeSeries = chart.addHistogramSeries({
             color: '#26a69a',
             priceFormat: {

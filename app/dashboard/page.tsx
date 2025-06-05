@@ -1,5 +1,5 @@
 import { createClient } from '@/lib/supabase/server'
-import { TradingViewWidget } from '@/components/charts/trading-view-widget'
+import { TradingViewWidget } from '@/components/charts/trading-view-widget-final'
 import { MetricsCards } from '@/components/dashboard/metrics-cards'
 import { MerchantTable } from '@/components/dashboard/merchant-table'
 import { RealtimeIndicator } from '@/components/dashboard/realtime-indicator'

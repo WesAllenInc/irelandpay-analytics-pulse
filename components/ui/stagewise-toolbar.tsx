@@ -1,8 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { createRoot } from 'react-dom/client';
-import { StagewiseToolbar } from '@stagewise/toolbar-react';
 
 // Add type declaration for the global window object
 declare global {
@@ -10,6 +10,12 @@ declare global {
     retryStagewiseConnection?: () => void;
   }
 }
+
+// Import the Stagewise toolbar dynamically with SSR disabled
+const StagewiseToolbar = dynamic(
+  () => import('@stagewise/toolbar-react').then((mod) => mod.StagewiseToolbar),
+  { ssr: false }
+);
 
 // Configuration for the Stagewise toolbar
 const toolbarConfig = {

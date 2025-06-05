@@ -1,13 +1,11 @@
 'use client'
 
 import { useEffect, useRef, memo } from 'react'
-import { 
-  createChart, 
-  ColorType, 
+
+// Only import types from lightweight-charts for TypeScript
+import type { 
   IChartApi, 
   ISeriesApi,
-  LineStyle,
-  CrosshairMode,
   Time,
   SeriesType
 } from 'lightweight-charts'
@@ -44,61 +42,65 @@ function TradingViewWidgetComponent({
 
   useEffect(() => {
     if (!chartContainerRef.current || data.length === 0) return
-
-    const chart = createChart(chartContainerRef.current, {
-      layout: {
-        background: { type: ColorType.Solid, color: '#0a0a0a' },
-        textColor: '#d1d4dc',
-      },
-      grid: {
-        vertLines: { 
-          color: '#1e1e1e',
-          style: LineStyle.Solid,
-          visible: true,
+    
+    // Dynamically import lightweight-charts to avoid SSR issues
+    import('lightweight-charts').then((module) => {
+      const { createChart, ColorType, LineStyle, CrosshairMode } = module;
+      
+      const chart = createChart(chartContainerRef.current!, {
+        layout: {
+          background: { type: ColorType.Solid, color: '#0a0a0a' },
+          textColor: '#d1d4dc',
         },
-        horzLines: { 
-          color: '#1e1e1e',
-          style: LineStyle.Solid,
-          visible: true,
+        grid: {
+          vertLines: { 
+            color: '#1e1e1e',
+            style: LineStyle.Solid,
+            visible: true,
+          },
+          horzLines: { 
+            color: '#1e1e1e',
+            style: LineStyle.Solid,
+            visible: true,
+          },
         },
-      },
-      width: chartContainerRef.current.clientWidth,
-      height: height,
-      timeScale: {
-        borderColor: '#2a2a2a',
-        timeVisible: true,
-        secondsVisible: false,
-        tickMarkFormatter: (time: Time) => {
-          const date = new Date(time as string)
-          return date.toLocaleDateString('en-US', { 
-            month: 'short', 
-            day: 'numeric' 
-          })
+        width: chartContainerRef.current!.clientWidth,
+        height: height,
+        timeScale: {
+          borderColor: '#2a2a2a',
+          timeVisible: true,
+          secondsVisible: false,
+          tickMarkFormatter: (time: Time) => {
+            const date = new Date(time as string)
+            return date.toLocaleDateString('en-US', { 
+              month: 'short', 
+              day: 'numeric' 
+            })
+          },
         },
-      },
-      rightPriceScale: {
-        borderColor: '#2a2a2a',
-        scaleMargins: {
-          top: 0.1,
-          bottom: showVolume ? 0.3 : 0.1,
+        rightPriceScale: {
+          borderColor: '#2a2a2a',
+          scaleMargins: {
+            top: 0.1,
+            bottom: showVolume ? 0.3 : 0.1,
+          },
         },
-      },
-      crosshair: {
-        mode: CrosshairMode.Normal,
-        vertLine: {
-          color: '#758696',
-          width: 1,
-          style: LineStyle.Solid,
-          labelBackgroundColor: '#2a2a2a',
+        crosshair: {
+          mode: CrosshairMode.Normal,
+          vertLine: {
+            color: '#758696',
+            width: 1,
+            style: LineStyle.Solid,
+            labelBackgroundColor: '#2a2a2a',
+          },
+          horzLine: {
+            color: '#758696',
+            width: 1,
+            style: LineStyle.Solid,
+            labelBackgroundColor: '#2a2a2a',
+          },
         },
-        horzLine: {
-          color: '#758696',
-          width: 1,
-          style: LineStyle.Solid,
-          labelBackgroundColor: '#2a2a2a',
-        },
-      },
-    })
+      })
 
     // Create main series based on type
     let series: ISeriesApi<SeriesType> | null = null

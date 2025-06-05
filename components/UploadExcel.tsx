@@ -4,10 +4,14 @@ import { useState, useRef, ChangeEvent } from "react";
 import { supabaseClient } from "@/lib/supabaseClient";
 import { useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { useToast } from "@/components/ui/use-toast";
 import { ExcelUploadStatus } from "@/components/ExcelUploadStatus";
-import { FileSpreadsheet, Upload } from "lucide-react";
+import { FileSpreadsheet, Upload, AlertCircle } from "lucide-react";
+import { Label } from "@/components/ui/label";
+import { DropdownMenu, DropdownMenuTrigger, DropdownMenuContent, DropdownMenuItem } from "@/components/ui/dropdown-menu";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { Skeleton } from "@/components/ui/skeleton";
 
 interface ProcessingResult {
   success: boolean;
@@ -17,6 +21,8 @@ interface ProcessingResult {
   error?: string;
 }
 
+type DatasetType = "merchants" | "residuals";
+
 const UploadExcel = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
@@ -24,6 +30,7 @@ const UploadExcel = () => {
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "processing" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [datasetType, setDatasetType] = useState<DatasetType>("merchants");
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -160,38 +167,91 @@ const UploadExcel = () => {
   };
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle className="flex items-center gap-2">
-          <FileSpreadsheet className="h-5 w-5" />
-          Upload Merchant Excel
+    <Card className="w-full max-w-xl mx-auto shadow-lg">
+      <CardHeader className="pb-3">
+        <CardTitle className="flex items-center gap-2 text-2xl md:text-3xl">
+          <FileSpreadsheet className="h-6 w-6" />
+          Upload Excel
         </CardTitle>
+        <CardDescription className="text-muted-foreground">
+          Upload merchant or residual data from Excel files
+        </CardDescription>
       </CardHeader>
-      <CardContent>
-        <form onSubmit={handleFileUpload} className="space-y-4">
-          <div className="grid w-full max-w-sm items-center gap-1.5">
-            <input
-              type="file"
-              accept=".xlsx,.xls"
-              className="block w-full text-sm text-slate-500
-                file:mr-4 file:py-2 file:px-4
-                file:rounded file:border-0
-                file:text-sm file:font-semibold
-                file:bg-slate-100 file:text-slate-700
-                hover:file:bg-slate-200"
-              ref={fileInputRef}
-              onChange={onFileChange}
-              disabled={isProcessing}
-            />
+      <CardContent className="space-y-6">
+        <div className="flex flex-col space-y-1.5">
+          <Label htmlFor="dataset-type" className="text-sm font-medium">Dataset Type</Label>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="outline" className="w-full justify-between">
+                {datasetType === "merchants" ? "Merchant Data" : "Residual Data"}
+                <span className="sr-only">Select dataset type</span>
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent className="w-full">
+              <DropdownMenuItem onClick={() => setDatasetType("merchants")}>
+                Merchant Data
+              </DropdownMenuItem>
+              <DropdownMenuItem onClick={() => setDatasetType("residuals")}>
+                Residual Data
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
+        
+        <form onSubmit={handleFileUpload} className="space-y-6">
+          <div className="grid w-full items-center gap-1.5">
+            <Label htmlFor="excel-file" className="text-sm font-medium">Excel File</Label>
+            <div className="flex flex-col gap-2">
+              <input
+                id="excel-file"
+                type="file"
+                accept=".xlsx,.xls"
+                className="block w-full text-sm text-muted-foreground
+                  file:mr-4 file:py-2 file:px-4
+                  file:rounded-md file:border-0
+                  file:text-sm file:font-medium
+                  file:bg-primary file:text-primary-foreground
+                  hover:file:bg-primary/90
+                  focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                ref={fileInputRef}
+                onChange={onFileChange}
+                disabled={isProcessing}
+                aria-describedby="file-format-info"
+              />
+              <p id="file-format-info" className="text-xs text-muted-foreground">
+                Accepted formats: .xlsx, .xls
+              </p>
+            </div>
           </div>
+          
+          {selectedFile && (
+            <Alert className="bg-muted/50 border">
+              <FileSpreadsheet className="h-4 w-4" />
+              <AlertDescription className="flex justify-between items-center">
+                <span className="font-medium truncate max-w-[70%]">{selectedFile.name}</span>
+                <span className="text-muted-foreground text-xs">
+                  {(selectedFile.size / 1024).toFixed(2)} KB
+                </span>
+              </AlertDescription>
+            </Alert>
+          )}
           
           <Button
             type="submit"
             disabled={isProcessing || !selectedFile}
-            className="flex items-center gap-2"
+            className="w-full sm:w-auto flex items-center gap-2"
           >
-            <Upload className="h-4 w-4" />
-            {isProcessing ? 'Processing...' : 'Upload'}
+            {isProcessing ? (
+              <>
+                <Skeleton className="h-4 w-4 rounded-full animate-spin" />
+                Processing...
+              </>
+            ) : (
+              <>
+                <Upload className="h-4 w-4" />
+                Upload {datasetType === "merchants" ? "Merchant" : "Residual"} Data
+              </>
+            )}
           </Button>
         </form>
         

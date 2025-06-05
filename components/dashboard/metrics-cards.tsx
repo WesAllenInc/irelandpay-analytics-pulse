@@ -1,5 +1,8 @@
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
-import { ArrowUpIcon, ArrowDownIcon, DollarSign, CreditCard, Users, TrendingUp } from 'lucide-react'
+import { Card, CardContent, CardHeader, CardTitle, CardDescription, CardFooter } from '@/components/ui/card'
+import { ArrowUpIcon, ArrowDownIcon, DollarSign, CreditCard, Users, TrendingUp, HelpCircle } from 'lucide-react'
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip'
+import { Skeleton } from '@/components/ui/skeleton'
+import { cn } from '@/lib/utils'
 
 interface MetricsCardsProps {
   metrics: {
@@ -29,6 +32,8 @@ export function MetricsCards({ metrics }: MetricsCardsProps) {
   const cards = [
     {
       title: 'Total Volume',
+      description: 'Monthly processing volume',
+      tooltip: 'Total dollar volume processed this month',
       value: formatCurrency(metrics.totalVolume),
       change: metrics.volumeChange,
       icon: DollarSign,
@@ -36,6 +41,8 @@ export function MetricsCards({ metrics }: MetricsCardsProps) {
     },
     {
       title: 'Transactions',
+      description: 'Total transaction count',
+      tooltip: 'Number of transactions processed',
       value: formatNumber(metrics.totalTransactions),
       change: metrics.transactionsChange,
       icon: CreditCard,
@@ -43,6 +50,8 @@ export function MetricsCards({ metrics }: MetricsCardsProps) {
     },
     {
       title: 'Active Merchants',
+      description: 'Merchants with activity',
+      tooltip: 'Number of merchants with transactions',
       value: formatNumber(metrics.activeMerchants),
       change: 0,
       icon: Users,
@@ -50,6 +59,8 @@ export function MetricsCards({ metrics }: MetricsCardsProps) {
     },
     {
       title: 'Avg Transaction',
+      description: 'Average ticket size',
+      tooltip: 'Average value per transaction',
       value: formatCurrency(metrics.avgTransactionValue),
       change: 0,
       icon: TrendingUp,
@@ -58,19 +69,43 @@ export function MetricsCards({ metrics }: MetricsCardsProps) {
   ]
 
   return (
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
       {cards.map((card) => (
-        <Card key={card.title} className="bg-gray-900 border-gray-800">
+        <Card key={card.title} className="border shadow-sm overflow-hidden transition-all hover:shadow-md">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium text-gray-400">
-              {card.title}
-            </CardTitle>
-            <card.icon className={`h-4 w-4 ${card.color}`} />
+            <div className="space-y-1">
+              <CardTitle className="text-sm font-medium">
+                {card.title}
+              </CardTitle>
+              <CardDescription className="text-xs hidden sm:block">
+                {card.description || 'Monthly aggregate'}
+              </CardDescription>
+            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger asChild>
+                  <div className={cn(
+                    "p-2 rounded-full",
+                    card.color === 'text-blue-500' ? 'bg-blue-100' : '',
+                    card.color === 'text-green-500' ? 'bg-green-100' : '',
+                    card.color === 'text-purple-500' ? 'bg-purple-100' : '',
+                    card.color === 'text-orange-500' ? 'bg-orange-100' : ''
+                  )}>
+                    <card.icon className={cn("h-4 w-4", card.color)} />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent>
+                  <p>{card.tooltip || `View ${card.title.toLowerCase()} details`}</p>
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold text-white">{card.value}</div>
-            {card.change !== 0 && (
-              <p className="text-xs text-gray-400 flex items-center mt-1">
+          <CardContent className="pb-2">
+            <div className="text-2xl font-bold">{card.value}</div>
+          </CardContent>
+          <CardFooter className="pt-0 px-4 pb-4">
+            {card.change !== 0 ? (
+              <p className="text-xs text-muted-foreground flex items-center">
                 {card.change > 0 ? (
                   <ArrowUpIcon className="h-3 w-3 text-green-500 mr-1" />
                 ) : (
@@ -81,8 +116,12 @@ export function MetricsCards({ metrics }: MetricsCardsProps) {
                 </span>
                 <span className="ml-1">from last month</span>
               </p>
+            ) : (
+              <p className="text-xs text-muted-foreground flex items-center">
+                <span>Updated today</span>
+              </p>
             )}
-          </CardContent>
+          </CardFooter>
         </Card>
       ))}
     </div>

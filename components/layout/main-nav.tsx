@@ -74,6 +74,12 @@ export function MainNav({ className, children }: MainNavProps) {
       active: pathname === "/upload-residuals",
     },
     {
+      href: "/upload-merchants",
+      label: "Merchants Data",
+      icon: Upload,
+      active: pathname === "/upload-merchants",
+    },
+    {
       href: "/dashboard/settings",
       label: "Settings",
       icon: Settings,

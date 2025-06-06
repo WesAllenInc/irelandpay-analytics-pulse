@@ -1,5 +1,5 @@
 /**
- * Batch Upload Script
+ * Simplified Batch Upload Script for IrelandPay Analytics
  * 
  * This script uploads multiple Excel files from local directories to Supabase Storage buckets.
  * After uploading, you can process them via the web UI.
@@ -8,7 +8,7 @@
  * 1. Place Excel files in the appropriate directories:
  *    - Residual payouts: data/residuals/
  *    - Merchant data: data/merchants/
- * 2. Run the script: node batch-upload.js
+ * 2. Run the script: node batch-upload-simplified.js
  */
 
 const fs = require('fs');
@@ -23,13 +23,14 @@ const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const supabase = createClient(supabaseUrl, serviceRoleKey || supabaseKey);
 
 // File paths configuration
+const RESIDUALS_DIR = path.join(__dirname, '../data/residuals');
 const MERCHANTS_DIR = path.join(__dirname, '../data/merchants');
 
 // Helper function to list files in a directory
 function listExcelFiles(directory) {
   try {
     const files = fs.readdirSync(directory);
-    return files.filter(file => file.toLowerCase().endsWith('.xlsx'));
+    return files.filter(file => file.toLowerCase().endsWith('.xlsx') || file.toLowerCase().endsWith('.xls'));
   } catch (err) {
     console.error(`Error reading directory ${directory}:`, err);
     return [];
@@ -37,63 +38,36 @@ function listExcelFiles(directory) {
 }
 
 // Upload a file to the appropriate storage bucket
-async function uploadFile(filePath, fileName, fileType) {
-  console.log(`Uploading ${fileName} to ${fileType} bucket...`);
+async function uploadFile(filePath, fileName, bucketName) {
+  console.log(`Uploading ${fileName} to ${bucketName} bucket...`);
   
   try {
     // Upload the file to storage
     const { error: uploadError } = await supabase
       .storage
-      .from(fileType)
-      .upload(`${fileName}`, fs.readFileSync(filePath), {
+      .from(bucketName)
+      .upload(fileName, fs.readFileSync(filePath), {
         contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         upsert: true
       });
     
     if (uploadError) {
       console.error(`Upload error for ${fileName}:`, uploadError);
-    
-    console.log(`Calling API endpoint: ${apiEndpoint}`);
-    
-    // Make the API call
-    const response = await fetch(apiEndpoint, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        // Use anonymous authentication since we're relying on Next.js API routes
-        // to handle authorization via RLS policies
-      },
-      body: JSON.stringify({ path: `${fileType}/${fileName}` })
-    });
-    
-    if (!response.ok) {
-      let errorText;
-      try {
-        const errorJson = await response.json();
-        errorText = JSON.stringify(errorJson);
-      } catch (e) {
-        errorText = await response.text() || `Status ${response.status}`;
-      }
-      throw new Error(`API error: ${errorText}`);
-    }
-    
-    const result = await response.json();
-    
-    if (!result.success) {
-      console.error(`Processing failed for ${fileName}:`, result.error || 'Unknown error');
       return false;
     }
     
-    console.log(`✅ Successfully processed ${fileName}`);
+    console.log(`✅ Successfully uploaded ${fileName}`);
     return true;
   } catch (err) {
-    console.error(`Processing failed for ${fileName}:`, err);
+    console.error(`Error uploading ${fileName}:`, err);
     return false;
   }
 }
 
-// Process all files in a directory
-async function processDirectory(directory, bucketName, fileType) {
+// Process a directory of Excel files
+async function processDirectory(directory, bucketName) {
+  console.log(`\n==== Processing ${bucketName} Files ====\n`);
+  
   const files = listExcelFiles(directory);
   
   if (files.length === 0) {
@@ -101,39 +75,32 @@ async function processDirectory(directory, bucketName, fileType) {
     return;
   }
   
-  console.log(`\n📂 Found ${files.length} Excel files in ${directory}`);
+  console.log(`📂 Found ${files.length} Excel files in ${directory}`);
   
-  // Process files sequentially to avoid overwhelming the server
   let successCount = 0;
   let failureCount = 0;
   
   for (const file of files) {
     const filePath = path.join(directory, file);
     
-    // Upload the file to storage
-    const uploadedPath = await uploadFile(filePath, file, bucketName);
+    // Upload the file
+    const uploadSuccess = await uploadFile(filePath, file, bucketName);
     
-    if (uploadedPath) {
-      // Process the file with Edge Function
-      const processed = await processFile(file, fileType);
-      
-      if (processed) {
-        successCount++;
-      } else {
-        failureCount++;
-      }
-      
-      // Add a small delay between files to avoid rate limiting
-      await new Promise(resolve => setTimeout(resolve, 2000));
+    // Count success/failure
+    if (uploadSuccess) {
+      successCount++;
     } else {
       failureCount++;
     }
+    
+    // Add a short delay between uploads to avoid rate limiting
+    await new Promise(resolve => setTimeout(resolve, 1000));
   }
   
-  console.log(`\n📊 ${fileType} processing summary: ${successCount} succeeded, ${failureCount} failed`);
+  console.log(`\n📊 ${bucketName} upload summary: ${successCount} succeeded, ${failureCount} failed`);
 }
 
-// Verify credentials are available
+// Verify Supabase credentials
 async function verifyCredentials() {
   console.log('Verifying Supabase credentials...');
   
@@ -142,18 +109,30 @@ async function verifyCredentials() {
     return false;
   }
   
-  if (!serviceRoleKey) {
-    console.error('SUPABASE_SERVICE_ROLE_KEY is not set in .env file');
+  if (!supabaseKey && !serviceRoleKey) {
+    console.error('Neither NEXT_PUBLIC_SUPABASE_ANON_KEY nor SUPABASE_SERVICE_ROLE_KEY is set in .env file');
     return false;
   }
   
   // Test the connection with a simple query
   try {
-    const { data, error } = await supabase.from('merchants').select('mid').limit(1);
+    const { data, error } = await supabase.storage.listBuckets();
     
     if (error) {
       console.error('Supabase connection test failed:', error);
       return false;
+    }
+    
+    // Check if required buckets exist
+    const buckets = data || [];
+    const hasMerchantsBucket = buckets.some(bucket => bucket.name === 'merchants');
+    const hasResidualsBucket = buckets.some(bucket => bucket.name === 'residuals');
+    
+    if (!hasMerchantsBucket || !hasResidualsBucket) {
+      console.warn('Warning: One or more required storage buckets do not exist.');
+      console.warn('- merchants bucket exists:', hasMerchantsBucket);
+      console.warn('- residuals bucket exists:', hasResidualsBucket);
+      console.warn('Make sure to create these buckets in your Supabase project.');
     }
     
     console.log('✅ Supabase credentials verified successfully');
@@ -175,19 +154,17 @@ async function main() {
     return;
   }
   
-  // Process residual files
-  console.log('\n==== Processing Residual Payout Files ====');
-  await processDirectory(RESIDUALS_DIR, 'residuals', 'residuals');
+  // Process residual payout files
+  await processDirectory(RESIDUALS_DIR, 'residuals');
   
-  // Process merchant files
-  console.log('\n==== Processing Merchant Data Files ====');
-  await processDirectory(MERCHANTS_DIR, 'merchants', 'merchants');
+  // Process merchant data files
+  await processDirectory(MERCHANTS_DIR, 'merchants');
   
-  console.log('\n✨ All batch processing complete!');
+  console.log('\n✨ Batch upload completed.');
 }
 
-// Run the script
+// Run the main function
 main().catch(err => {
-  console.error('Script execution failed:', err);
+  console.error('Unhandled error:', err);
   process.exit(1);
 });

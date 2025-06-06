@@ -65,23 +65,25 @@ async function uploadFile(filePath, fileName, bucket) {
   }
 }
 
-// Process a file with the appropriate Edge Function via API
+// Process a file with the appropriate API route
 async function processFile(fileName, fileType) {
   console.log(`Processing ${fileName} with ${fileType} API...`);
   
   try {
-    // Call the Edge Function directly
-    const functionName = fileType === 'residuals' ? 'processResidualExcel' : 'processMerchantExcel';
-    const functionUrl = `${supabaseUrl}/functions/v1/${functionName}`;
+    // Call the Next.js API route
+    const apiEndpoint = fileType === 'residuals' 
+      ? `${API_BASE_URL}/process-residual-excel` 
+      : `${API_BASE_URL}/process-merchant-excel`;
     
-    console.log(`Calling Edge Function: ${functionName}`);
+    console.log(`Calling API endpoint: ${apiEndpoint}`);
     
-    // Make the API call using service role key for authorization
-    const response = await fetch(functionUrl, {
+    // Make the API call
+    const response = await fetch(apiEndpoint, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${serviceRoleKey}`
+        // Use anonymous authentication since we're relying on Next.js API routes
+        // to handle authorization via RLS policies
       },
       body: JSON.stringify({ path: `${fileType}/${fileName}` })
     });

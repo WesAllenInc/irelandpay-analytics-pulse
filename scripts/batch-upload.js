@@ -169,7 +169,7 @@ async function verifyCredentials() {
   
   // Test the connection with a simple query
   try {
-    const { data, error } = await supabase.from('merchants').select('id').limit(1);
+    const { data, error } = await supabase.from('merchants').select('mid').limit(1);
     
     if (error) {
       console.error('Supabase connection test failed:', error);

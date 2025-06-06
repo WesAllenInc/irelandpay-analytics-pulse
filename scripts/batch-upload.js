@@ -20,7 +20,8 @@ require('dotenv').config();
 // Initialize Supabase client
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-const supabase = createClient(supabaseUrl, supabaseKey);
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+const supabase = createClient(supabaseUrl, serviceRoleKey || supabaseKey);
 
 // File paths configuration
 const RESIDUALS_DIR = path.join(__dirname, '../data/residuals');
@@ -69,30 +70,31 @@ async function processFile(fileName, fileType) {
   console.log(`Processing ${fileName} with ${fileType} API...`);
   
   try {
-    // Get the user session for authentication
-    const { data: { session } } = await supabase.auth.getSession();
-    if (!session) {
-      throw new Error('User not authenticated. Please sign in first.');
-    }
+    // Call the Edge Function directly
+    const functionName = fileType === 'residuals' ? 'processResidualExcel' : 'processMerchantExcel';
+    const functionUrl = `${supabaseUrl}/functions/v1/${functionName}`;
     
-    // Determine which API endpoint to use
-    const endpoint = fileType === 'residuals' 
-      ? `${API_BASE_URL}/process-residual-excel` 
-      : `${API_BASE_URL}/process-merchant-excel`;
+    console.log(`Calling Edge Function: ${functionName}`);
     
-    // Make the API call
-    const response = await fetch(endpoint, {
+    // Make the API call using service role key for authorization
+    const response = await fetch(functionUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`
+        'Authorization': `Bearer ${serviceRoleKey}`
       },
-      body: JSON.stringify({ path: fileName })
+      body: JSON.stringify({ path: `${fileType}/${fileName}` })
     });
     
     if (!response.ok) {
-      const errorText = await response.text();
-      throw new Error(`API error (${response.status}): ${errorText}`);
+      let errorText;
+      try {
+        const errorJson = await response.json();
+        errorText = JSON.stringify(errorJson);
+      } catch (e) {
+        errorText = await response.text() || `Status ${response.status}`;
+      }
+      throw new Error(`API error: ${errorText}`);
     }
     
     const result = await response.json();
@@ -151,36 +153,33 @@ async function processDirectory(directory, bucketName, fileType) {
   console.log(`\n📊 ${fileType} processing summary: ${successCount} succeeded, ${failureCount} failed`);
 }
 
-// Create a client session token
-async function createClientSession() {
-  console.log('Creating client session token...');
+// Verify credentials are available
+async function verifyCredentials() {
+  console.log('Verifying Supabase credentials...');
   
+  if (!supabaseUrl) {
+    console.error('NEXT_PUBLIC_SUPABASE_URL is not set in .env file');
+    return false;
+  }
+  
+  if (!serviceRoleKey) {
+    console.error('SUPABASE_SERVICE_ROLE_KEY is not set in .env file');
+    return false;
+  }
+  
+  // Test the connection with a simple query
   try {
-    // Create a session using the anon key (this creates a new anonymous session)
-    const { data, error } = await supabase.auth.getSession();
+    const { data, error } = await supabase.from('merchants').select('id').limit(1);
     
     if (error) {
-      console.error('Session creation failed:', error);
+      console.error('Supabase connection test failed:', error);
       return false;
     }
     
-    if (!data.session) {
-      // Try to create an anonymous session
-      const { data: signInData, error: signInError } = await supabase.auth.signInAnonymously();
-      
-      if (signInError) {
-        console.error('Anonymous sign-in failed:', signInError);
-        return false;
-      }
-      
-      console.log('✅ Anonymous session created successfully');
-      return true;
-    }
-    
-    console.log('✅ Using existing session');
+    console.log('✅ Supabase credentials verified successfully');
     return true;
   } catch (err) {
-    console.error('Session creation failed with exception:', err);
+    console.error('Supabase connection test failed with exception:', err);
     return false;
   }
 }
@@ -189,15 +188,10 @@ async function createClientSession() {
 async function main() {
   console.log('🚀 Starting batch upload process...');
   
-  // Verify required environment variables
-  if (!supabaseUrl || !supabaseKey) {
-    console.error('NEXT_PUBLIC_SUPABASE_URL and NEXT_PUBLIC_SUPABASE_ANON_KEY must be set in .env file');
-    return;
-  }
-  
-  // Log in
-  const authenticated = await login();
-  if (!authenticated) {
+  // Verify credentials
+  const credentialsValid = await verifyCredentials();
+  if (!credentialsValid) {
+    console.error('Failed to verify Supabase credentials. Please check your .env file.');
     return;
   }
   

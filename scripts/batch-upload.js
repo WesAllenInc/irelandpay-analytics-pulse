@@ -151,30 +151,38 @@ async function processDirectory(directory, bucketName, fileType) {
   console.log(`\n📊 ${fileType} processing summary: ${successCount} succeeded, ${failureCount} failed`);
 }
 
-// Login function
-async function login() {
-  const email = process.env.SUPABASE_USER_EMAIL;
-  const password = process.env.SUPABASE_USER_PASSWORD;
+// Create a client session token
+async function createClientSession() {
+  console.log('Creating client session token...');
   
-  if (!email || !password) {
-    console.error('SUPABASE_USER_EMAIL and SUPABASE_USER_PASSWORD must be set in .env file');
+  try {
+    // Create a session using the anon key (this creates a new anonymous session)
+    const { data, error } = await supabase.auth.getSession();
+    
+    if (error) {
+      console.error('Session creation failed:', error);
+      return false;
+    }
+    
+    if (!data.session) {
+      // Try to create an anonymous session
+      const { data: signInData, error: signInError } = await supabase.auth.signInAnonymously();
+      
+      if (signInError) {
+        console.error('Anonymous sign-in failed:', signInError);
+        return false;
+      }
+      
+      console.log('✅ Anonymous session created successfully');
+      return true;
+    }
+    
+    console.log('✅ Using existing session');
+    return true;
+  } catch (err) {
+    console.error('Session creation failed with exception:', err);
     return false;
   }
-  
-  console.log(`Logging in as ${email}...`);
-  
-  const { data, error } = await supabase.auth.signInWithPassword({
-    email,
-    password
-  });
-  
-  if (error) {
-    console.error('Authentication failed:', error);
-    return false;
-  }
-  
-  console.log('✅ Authentication successful');
-  return true;
 }
 
 // Main function

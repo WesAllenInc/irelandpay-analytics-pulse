@@ -14,6 +14,7 @@
 const fs = require('fs');
 const path = require('path');
 const { createClient } = require('@supabase/supabase-js');
+const fetch = require('node-fetch');
 require('dotenv').config();
 
 // Initialize Supabase client

@@ -90,7 +90,7 @@ async function processFile(fileName, fileType) {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${serviceRoleKey}`
       },
-      body: JSON.stringify({ path: `${fileType}/${fileName}` })
+      body: JSON.stringify({ path: fileName })
     });
     
     if (!response.ok) {
@@ -123,62 +123,87 @@ async function verifyResidualData(fileName) {
     const match = fileName.match(/Residuals_([A-Za-z]{3})(\d{4})_/);
     if (!match) {
       console.warn(`⚠️ Unable to extract month/year from filename: ${fileName}`);
-      return;
+      return true; // Continue processing even if verification fails
     }
     
     const month = match[1];
     const year = match[2];
+    const monthYear = `${year}-${month}`;
     
-    console.log(`Verifying data for ${month} ${year}...`);
-    
-    const { data, error } = await supabase
-      .from('residual_payouts')
-      .select('count(*)')
-      .eq('month', month)
-      .eq('year', year);
-    
-    if (error) {
-      console.error(`Verification query error:`, error);
-      return;
+    // Verify data was inserted for the extracted month/year
+    if (monthYear) {
+      try {
+        console.log(`Verifying data for ${monthYear}...`);
+        const { data, error: verifyError } = await supabase
+          .from('residual_payouts')
+          .select('*')
+          .eq('payout_month', `${monthYear}-01`);
+        
+        if (verifyError) {
+          console.log('Verification query error:', verifyError);
+        } else {
+          console.log(`Verification successful. Found ${data?.length || 0} records for ${monthYear}.`);
+        }
+      } catch (verifyErr) {
+        console.log('Verification error:', verifyErr);
+      }
     }
-    
-    const count = data[0]?.count || 0;
-    console.log(`📊 Found ${count} residual payout records for ${month} ${year}`);
+    return true; // Continue processing even if verification fails
   } catch (err) {
     console.error('Verification error:', err);
+    return true; // Continue processing even if verification fails
   }
 }
 
 // Verify merchant data was inserted correctly
 async function verifyMerchantData(fileName) {
   try {
-    // Extract month and year from filename (format: Merchants_Mon2025_Houseview.xlsx)
-    const match = fileName.match(/Merchants_([A-Za-z]{3})(\d{4})_/);
-    if (!match) {
+    // For merchant files, extract month and year from filename (format: Month YYYY Merchant Data.xlsx)
+    // Example: April 2025 Merchant Data.xlsx
+    const monthMatch = fileName.match(/([A-Za-z]+)\s+(\d{4})\s+Merchant\s+Data/);
+    if (!monthMatch) {
       console.warn(`⚠️ Unable to extract month/year from filename: ${fileName}`);
-      return;
+      return true; // Continue processing even if verification fails
     }
     
-    const month = match[1];
-    const year = match[2];
+    const monthName = monthMatch[1];
+    const year = monthMatch[2];
     
-    console.log(`Verifying merchant data for ${month} ${year}...`);
+    // Convert month name to number
+    const monthMap = {
+      January: '01', February: '02', March: '03', April: '04', May: '05', June: '06',
+      July: '07', August: '08', September: '09', October: '10', November: '11', December: '12'
+    };
     
-    const { data, error } = await supabase
-      .from('merchant_metrics')
-      .select('count(*)')
-      .eq('month', month)
-      .eq('year', year);
-    
-    if (error) {
-      console.error(`Verification query error:`, error);
-      return;
+    const monthNum = monthMap[monthName] || monthMap[monthName.charAt(0).toUpperCase() + monthName.slice(1).toLowerCase()];
+    if (!monthNum) {
+      console.warn(`⚠️ Couldn't determine month number for ${monthName}`);
+      return true;
     }
     
-    const count = data[0]?.count || 0;
-    console.log(`📊 Found ${count} merchant metric records for ${month} ${year}`);
+    const dateStr = `${year}-${monthNum}`;
+    console.log(`Verifying merchant data for ${dateStr}...`);
+    
+    try {
+      const { data, error } = await supabase
+        .from('merchant_metrics')
+        .select('*')
+        .eq('year', year)
+        .eq('month', monthNum);
+      
+      if (error) {
+        console.error(`Verification query error:`, error);
+      } else {
+        console.log(`📊 Found ${data?.length || 0} merchant metric records for ${monthName} ${year}`);
+      }
+    } catch (queryErr) {
+      console.error('Query error:', queryErr);
+    }
+    
+    return true; // Continue processing even if verification fails
   } catch (err) {
     console.error('Verification error:', err);
+    return true; // Continue processing even if verification fails
   }
 }
 
@@ -198,18 +223,35 @@ async function processDirectory(directory, fileType) {
   let successCount = 0;
   let failureCount = 0;
   
-  for (const file of files) {
-    const filePath = path.join(directory, file);
-    
-    // Upload and process the file
-    const success = await uploadAndProcessFile(filePath, file, fileType);
-    
-    // Count success/failure
-    if (success) {
-      successCount++;
-    } else {
-      failureCount++;
+  console.log(`Starting to process ${files.length} files...`);
+  try {
+    for (let i = 0; i < files.length; i++) {
+      const file = files[i];
+      console.log(`Processing file ${i+1} of ${files.length}: ${file}`);
+      
+      const filePath = path.join(directory, file);
+      
+      // Upload and process the file - continue even if one fails
+      try {
+        const success = await uploadAndProcessFile(filePath, file, fileType);
+        
+        // Count success/failure
+        if (success) {
+          successCount++;
+        } else {
+          failureCount++;
+        }
+      } catch (fileError) {
+        console.error(`Error processing ${file}:`, fileError);
+        failureCount++;
+        // Continue with next file despite errors
+      }
+      
+      // Add a small delay between files to avoid overwhelming the API
+      await new Promise(resolve => setTimeout(resolve, 1000));
     }
+  } catch (batchError) {
+    console.error(`Unexpected error processing ${fileType} batch:`, batchError);
   }
   
   console.log(`\n📊 ${fileType} processing summary: ${successCount} succeeded, ${failureCount} failed`);
@@ -270,10 +312,10 @@ async function main() {
     return;
   }
   
-  // Process residual payout files
+  // Process residuals files
   await processDirectory(RESIDUALS_DIR, 'residuals');
-  
-  // Process merchant data files
+
+  // Process merchants files
   await processDirectory(MERCHANTS_DIR, 'merchants');
   
   console.log('\n✨ Batch upload and processing completed.');

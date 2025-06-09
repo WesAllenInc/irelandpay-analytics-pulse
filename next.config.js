@@ -8,10 +8,7 @@ const nextConfig = {
     serverActions: {
       bodySizeLimit: '2mb',
     },
-  },
-  // For GitHub Pages deployment
-  basePath: process.env.NODE_ENV === 'production' ? '/irelandpay-analytics-pulse' : '',
-  assetPrefix: process.env.NODE_ENV === 'production' ? '/irelandpay-analytics-pulse/' : '',
+  }
 };
 
 module.exports = nextConfig;

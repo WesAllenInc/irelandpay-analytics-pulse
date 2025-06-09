@@ -67,13 +67,14 @@ export function MerchantTable({ merchants }: MerchantTableProps) {
               <TableHead className="text-right hidden md:table-cell">Transactions</TableHead>
               <TableHead className="text-right hidden lg:table-cell">Net Profit</TableHead>
               <TableHead className="text-right">Status</TableHead>
+              <TableHead>Analytics</TableHead>
               <TableHead className="w-[80px]">Actions</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {merchants.length === 0 ? (
               <TableRow key="no-merchants">
-                <TableCell colSpan={7} className="h-24 text-center">
+                <TableCell colSpan={8} className="h-24 text-center">
                   No merchants found
                 </TableCell>
               </TableRow>
@@ -83,7 +84,9 @@ export function MerchantTable({ merchants }: MerchantTableProps) {
                 return (
                   <TableRow key={merchant.mid}>
                     <TableCell className="font-medium">
-                      {merchant.merchant_dba}
+                      <Link href={`/dashboard/merchants/${merchant.mid}`} className="hover:text-primary hover:underline cursor-pointer">
+                        {merchant.merchant_dba}
+                      </Link>
                     </TableCell>
                     <TableCell className="font-mono text-xs text-muted-foreground">
                       {merchant.mid}
@@ -101,6 +104,14 @@ export function MerchantTable({ merchants }: MerchantTableProps) {
                       <Badge variant={status.variant}>
                         {status.label}
                       </Badge>
+                    </TableCell>
+                    <TableCell className="whitespace-nowrap">
+                      <Button variant="outline" size="sm" asChild className="mr-2">
+                        <Link href={`/dashboard/merchants/${merchant.mid}`} className="flex items-center">
+                          <BarChart className="mr-1 h-3 w-3" /> 
+                          <span>Analytics</span>
+                        </Link>
+                      </Button>
                     </TableCell>
                     <TableCell>
                       <DropdownMenu>

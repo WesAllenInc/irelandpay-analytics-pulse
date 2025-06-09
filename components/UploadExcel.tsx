@@ -18,6 +18,7 @@ interface ProcessingResult {
   message: string;
   merchants?: number;
   metrics?: number;
+  residuals?: number;
   error?: string;
 }
 
@@ -88,11 +89,15 @@ const UploadExcel = () => {
         });
       }, 300);
       
-      // Upload file to Supabase Storage
+      // Upload file to Supabase Storage - use the appropriate bucket based on dataset type
+      const bucketName = "uploads";
+      const folderPath = datasetType === "merchants" ? "merchant" : "residual";
+      const filePath = `${folderPath}/${selectedFile.name}`;
+      
       const { data, error } = await supabaseClient
         .storage
-        .from("uploads")
-        .upload(`merchant/${selectedFile.name}`, selectedFile, {
+        .from(bucketName)
+        .upload(filePath, selectedFile, {
           cacheControl: "3600",
           upsert: true,
         });
@@ -112,10 +117,14 @@ const UploadExcel = () => {
       
       // Call the API endpoint to process the Excel file
       try {
+        const folderPath = datasetType === "merchants" ? "merchant" : "residual";
         const response = await fetch('/api/process-excel', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ path: `merchant/${selectedFile.name}` }),
+          body: JSON.stringify({ 
+            path: `${folderPath}/${selectedFile.name}`,
+            datasetType
+          }),
         });
         
         const result = await response.json();
@@ -217,6 +226,8 @@ const UploadExcel = () => {
                 onChange={onFileChange}
                 disabled={isProcessing}
                 aria-describedby="file-format-info"
+                aria-label="Select Excel file"
+                title="Select an Excel file (.xlsx or .xls) to upload"
               />
               <p id="file-format-info" className="text-xs text-muted-foreground">
                 Accepted formats: .xlsx, .xls
@@ -262,9 +273,11 @@ const UploadExcel = () => {
               fileSize={selectedFile?.size}
               uploadProgress={uploadProgress}
               status={uploadStatus}
+              datasetType={datasetType}
               processingResult={processingResult?.success ? {
                 merchants: processingResult.merchants,
-                metrics: processingResult.metrics
+                metrics: processingResult.metrics,
+                residuals: processingResult.residuals
               } : undefined}
               error={errorMessage}
               onClose={handleStatusClose}

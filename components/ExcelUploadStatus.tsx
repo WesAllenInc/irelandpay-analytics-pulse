@@ -16,7 +16,9 @@ interface ExcelUploadStatusProps {
   processingResult?: {
     merchants?: number
     metrics?: number
+    residuals?: number
   }
+  datasetType?: "merchants" | "residuals"
   error?: string
   onClose: () => void
 }
@@ -27,6 +29,7 @@ export function ExcelUploadStatus({
   uploadProgress = 0,
   status,
   processingResult,
+  datasetType = "merchants",
   error,
   onClose,
 }: ExcelUploadStatusProps) {
@@ -36,9 +39,16 @@ export function ExcelUploadStatus({
   useEffect(() => {
     // Show toast notification when upload completes
     if (status === "success") {
+      let description = "";
+      if (datasetType === "residuals") {
+        description = `Successfully processed ${processingResult?.merchants || 0} merchants and ${processingResult?.residuals || 0} residual records.`;
+      } else {
+        description = `Successfully processed ${processingResult?.merchants || 0} merchants and ${processingResult?.metrics || 0} metrics.`;
+      }
+      
       toast({
         title: "Upload Complete",
-        description: `Successfully processed ${processingResult?.merchants} merchants and ${processingResult?.metrics} metrics.`,
+        description,
         variant: "success",
       })
     } else if (status === "error") {
@@ -48,7 +58,7 @@ export function ExcelUploadStatus({
         variant: "destructive",
       })
     }
-  }, [status, processingResult, error, toast])
+  }, [status, processingResult, error, toast, datasetType])
 
   const handleClose = () => {
     setShowCard(false)
@@ -107,7 +117,11 @@ export function ExcelUploadStatus({
               <p>Successfully processed:</p>
               <ul className="list-disc pl-5 mt-2">
                 <li>{processingResult.merchants} merchants</li>
-                <li>{processingResult.metrics} transaction metrics</li>
+                {datasetType === "residuals" ? (
+                  <li>{processingResult.residuals} residual records</li>
+                ) : (
+                  <li>{processingResult.metrics} transaction metrics</li>
+                )}
               </ul>
             </AlertDescription>
           </Alert>

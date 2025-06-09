@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useStore } from '@/lib/store'
-import { createClientComponentClient } from '@supabase/auth-helpers-nextjs'
+import { createBrowserClient } from '@supabase/ssr'
 import { Database } from '@/types/database'
 import Link from 'next/link'
 
@@ -15,8 +15,12 @@ type ChartData = { time: string; value: number; [key: string]: any }
 
 export default function MerchantComparisonPage() {
   const searchParams = useSearchParams()
-  const merchantIds = searchParams.get('ids')?.split(',') || []
-  const supabase = createClientComponentClient<Database>()
+  const ids = searchParams?.get('ids')
+  const merchantIds = ids ? ids.split(',') : []
+  const supabase = createBrowserClient<Database>(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+  )
   
   const { selectedMerchants, comparisonMode, toggleComparisonMode } = useStore()
   const [merchants, setMerchants] = useState<MasterData[]>([])

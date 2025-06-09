@@ -1,0 +1,30 @@
+# Development files
+.git
+.github
+.vscode
+node_modules
+
+# Testing files
+__tests__
+test
+tests
+*.test.js
+*.spec.js
+
+# Local environment files
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Build artifacts
+.next
+.vercel
+dist
+
+# Log files
+*.log
+npm-debug.log*
+
+# Test scripts
+test-*.js

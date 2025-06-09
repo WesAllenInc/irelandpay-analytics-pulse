@@ -72,69 +72,71 @@ export function MerchantTable({ merchants }: MerchantTableProps) {
           </TableHeader>
           <TableBody>
             {merchants.length === 0 ? (
-              <TableRow>
+              <TableRow key="no-merchants">
                 <TableCell colSpan={7} className="h-24 text-center">
                   No merchants found
                 </TableCell>
               </TableRow>
-            ) : merchants.map((merchant) => {
-              const status = getMerchantStatusBadge(merchant);
-              return (
-                <TableRow key={merchant.mid}>
-                  <TableCell className="font-medium">
-                    {merchant.merchant_dba}
-                  </TableCell>
-                  <TableCell className="font-mono text-xs text-muted-foreground">
-                    {merchant.mid}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    {formatCurrency(merchant.merchant_volume)}
-                  </TableCell>
-                  <TableCell className="text-right hidden md:table-cell text-muted-foreground">
-                    {formatNumber(merchant.total_txns)}
-                  </TableCell>
-                  <TableCell className="text-right hidden lg:table-cell">
-                    {merchant.net_profit ? formatCurrency(merchant.net_profit) : '-'}
-                  </TableCell>
-                  <TableCell className="text-right">
-                    <Badge variant={status.variant}>
-                      {status.label}
-                    </Badge>
-                  </TableCell>
-                  <TableCell>
-                    <DropdownMenu>
-                      <DropdownMenuTrigger asChild>
-                        <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
-                          <span className="sr-only">Open menu</span>
-                          <MoreHorizontal className="h-4 w-4" />
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <DropdownMenuItem asChild>
-                          <Link href={`/dashboard/merchants/${merchant.mid}`} className="flex items-center">
-                            <Eye className="mr-2 h-4 w-4" />
-                            <span>View Details</span>
-                          </Link>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <Edit className="mr-2 h-4 w-4" />
-                          <span>Edit</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuItem>
-                          <BarChart className="mr-2 h-4 w-4" />
-                          <span>View Metrics</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                        <DropdownMenuItem className="text-destructive">
-                          <AlertCircle className="mr-2 h-4 w-4" />
-                          <span>Flag Issues</span>
-                        </DropdownMenuItem>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                  </TableCell>
-                </TableRow>
-              );
-            })}
+            ) : (
+              merchants.map((merchant) => {
+                const status = getMerchantStatusBadge(merchant);
+                return (
+                  <TableRow key={merchant.mid}>
+                    <TableCell className="font-medium">
+                      {merchant.merchant_dba}
+                    </TableCell>
+                    <TableCell className="font-mono text-xs text-muted-foreground">
+                      {merchant.mid}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      {formatCurrency(merchant.merchant_volume)}
+                    </TableCell>
+                    <TableCell className="text-right hidden md:table-cell text-muted-foreground">
+                      {formatNumber(merchant.total_txns)}
+                    </TableCell>
+                    <TableCell className="text-right hidden lg:table-cell">
+                      {merchant.net_profit ? formatCurrency(merchant.net_profit) : '-'}
+                    </TableCell>
+                    <TableCell className="text-right">
+                      <Badge variant={status.variant}>
+                        {status.label}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <DropdownMenu>
+                        <DropdownMenuTrigger asChild>
+                          <Button variant="ghost" size="icon" className="h-8 w-8 p-0">
+                            <span className="sr-only">Open menu</span>
+                            <MoreHorizontal className="h-4 w-4" />
+                          </Button>
+                        </DropdownMenuTrigger>
+                        <DropdownMenuContent align="end">
+                          <DropdownMenuItem asChild>
+                            <Link href={`/dashboard/merchants/${merchant.mid}`} className="flex items-center">
+                              <Eye className="mr-2 h-4 w-4" />
+                              <span>View Details</span>
+                            </Link>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <Edit className="mr-2 h-4 w-4" />
+                            <span>Edit</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuItem>
+                            <BarChart className="mr-2 h-4 w-4" />
+                            <span>View Metrics</span>
+                          </DropdownMenuItem>
+                          <DropdownMenuSeparator />
+                          <DropdownMenuItem className="text-destructive">
+                            <AlertCircle className="mr-2 h-4 w-4" />
+                            <span>Flag Issues</span>
+                          </DropdownMenuItem>
+                        </DropdownMenuContent>
+                      </DropdownMenu>
+                    </TableCell>
+                  </TableRow>
+                );
+              })
+            )}
           </TableBody>
         </Table>
       </CardContent>

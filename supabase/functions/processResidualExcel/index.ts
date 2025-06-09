@@ -2,6 +2,22 @@ import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2.43.1";
 import * as XLSX from "https://cdn.jsdelivr.net/npm/xlsx@0.18.5/+esm";
 
+// Interface definitions for consistent data structures
+interface ResidualRecord {
+  mid: string;
+  merchant_dba: string;
+  payout_month: string;
+  transactions: number;
+  sales_amount: number;
+  income: number;
+  expenses: number;
+  net_profit: number;
+  bps: number;
+  commission_pct: number;
+  agent_net: number;
+  source_file: string;
+}
+
 // Initialize Supabase client with service role key for admin access
 const supabaseAdmin = createClient(
   Deno.env.get("SUPABASE_URL") ?? "",
@@ -23,7 +39,7 @@ serve(async (req) => {
     // Download the Excel file from storage
     const { data: fileData, error: downloadError } = await supabaseAdmin
       .storage
-      .from("residuals")
+      .from("uploads")
       .download(path);
 
     if (downloadError || !fileData) {
@@ -223,12 +239,14 @@ serve(async (req) => {
       }
     }
 
-    // Return success response
+    // Return success response formatted the same as API route
     return new Response(
       JSON.stringify({ 
         success: true, 
-        inserted: residualRowsArray.length,
-        merchants_updated: merchantUpserts.length
+        message: `Successfully processed residual Excel data`,
+        merchants: merchantUpserts.length,
+        residuals: residualRowsArray.length,
+        fileName: path.split('/').pop()
       }),
       { 
         status: 200, 

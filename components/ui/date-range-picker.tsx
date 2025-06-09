@@ -25,6 +25,35 @@ interface DateRangePickerProps {
   }[]
 }
 
+interface DatePickerWithRangeProps {
+  className?: string
+  dateRange?: DateRange
+  onDateRangeChange?: (date: DateRange | undefined) => void
+  placeholder?: string
+  presets?: {
+    label: string
+    value: DateRange
+  }[]
+}
+
+export function DatePickerWithRange({
+  className,
+  dateRange,
+  onDateRangeChange,
+  placeholder = "Select date range",
+  presets,
+}: DatePickerWithRangeProps) {
+  return (
+    <DateRangePicker
+      className={className}
+      value={dateRange}
+      onChange={onDateRangeChange}
+      placeholder={placeholder}
+      presets={presets}
+    />
+  );
+}
+
 export function DateRangePicker({
   className,
   value,

@@ -6,7 +6,12 @@
   "rewrites": [
     {
       "source": "/api/functions/:path*",
-      "destination": "https://*.functions.supabase.co/:path*"
+      "destination": "https://${NEXT_PUBLIC_SUPABASE_PROJECT_ID}.functions.supabase.co/:path*"
     }
-  ]
+  ],
+  "env": {
+    "NEXT_PUBLIC_SUPABASE_URL": "@supabase_url",
+    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@supabase_anon_key",
+    "NEXT_PUBLIC_SUPABASE_PROJECT_ID": "@supabase_project_id"
+  }
 }

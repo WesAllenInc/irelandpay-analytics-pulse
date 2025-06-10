@@ -4,6 +4,7 @@ import {
   MetricCard,
 } from 'react-bits';
 import Chart from 'react-apexcharts';
+import { Card as CustomCard } from '@/components/ui';
 
 const DashboardPage = () => {
   const metrics = [
@@ -32,14 +33,14 @@ const DashboardPage = () => {
           <MetricCard key={metric.label} title={metric.label} value={metric.value} change={metric.change} />
         ))}
       </div>
-      <Card>
+      <CustomCard>
         <Title level={3}>Monthly Processing Volume</Title>
         <Chart options={chartOptions} series={volumeSeries} type="bar" height={300} />
-      </Card>
-      <Card>
+      </CustomCard>
+      <CustomCard>
         <Title level={3}>Net Residuals Trend</Title>
         <Chart options={chartOptions} series={residualSeries} type="line" height={300} />
-      </Card>
+      </CustomCard>
     </div>
   );
 };

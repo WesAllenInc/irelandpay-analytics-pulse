@@ -9,7 +9,6 @@
     "lint": "next lint"
   },
   "dependencies": {
-    "@supabase/auth-helpers-nextjs": "npm:@supabase/ssr@latest",
     "@hookform/resolvers": "^3.9.0",
     "@radix-ui/react-accordion": "^1.2.0",
     "@radix-ui/react-alert-dialog": "^1.1.1",
@@ -39,9 +38,11 @@
     "@radix-ui/react-toggle-group": "^1.1.0",
     "@radix-ui/react-tooltip": "^1.1.4",
     "@stagewise/toolbar-react": "^0.2.1",
+    "@supabase/auth-helpers-nextjs": "npm:@supabase/ssr@latest",
     "@supabase/ssr": "^0.6.1",
     "@supabase/supabase-js": "^2.49.8",
     "@tanstack/react-table": "^8.21.3",
+    "apexcharts": "^4.7.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "cmdk": "^1.0.0",
@@ -56,6 +57,8 @@
     "next-themes": "^0.3.0",
     "node-fetch": "^2.7.0",
     "react": "^18.3.1",
+    "react-apexcharts": "^1.7.0",
+    "react-bits": "github:DavidHDev/react-bits",
     "react-day-picker": "^8.10.1",
     "react-dom": "^18.3.1",
     "react-hook-form": "^7.53.0",

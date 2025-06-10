@@ -195,8 +195,8 @@ export default async function DashboardPage() {
         <MetricsCards metrics={metrics} />
       </motion.div>
       
-      <motion.div 
-        className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+      <motion.div
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4, duration: 0.5 }}
@@ -215,7 +215,7 @@ export default async function DashboardPage() {
       </motion.div>
       
       <motion.div 
-        className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+        className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.5, duration: 0.5 }}
@@ -237,7 +237,7 @@ export default async function DashboardPage() {
       </motion.div>
       
       <motion.div 
-        className="bg-gray-900 rounded-lg border border-gray-800 p-6 hover:shadow-lg hover:shadow-blue-900/20 transition-all duration-300"
+        className="bg-gray-900 rounded-lg border border-gray-800 p-6 hover:shadow-lg hover:shadow-blue-900/20 transition-all duration-300 overflow-x-auto"
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.6, duration: 0.5 }}
@@ -248,7 +248,9 @@ export default async function DashboardPage() {
             Updated {new Date().toLocaleDateString()}
           </div>
         </div>
-        <MerchantTable merchants={topMerchants || []} />
+        <div className="w-full min-w-[400px]">
+          <MerchantTable merchants={topMerchants || []} />
+        </div>
       </motion.div>
     </motion.div>
   )

@@ -18,6 +18,20 @@ export default {
 			}
 		},
 		extend: {
+  colors: {
+    primary: {
+      DEFAULT: '#169B62', // Ireland Green
+      foreground: '#ffffff',
+    },
+    success: '#10b981', // Emerald
+    danger: '#ef4444', // Red
+    warning: '#f59e0b', // Amber
+    // Add dark mode CSS variables
+    'primary-dark': 'var(--primary-dark, #169B62)',
+    'success-dark': 'var(--success-dark, #10b981)',
+    'danger-dark': 'var(--danger-dark, #ef4444)',
+    'warning-dark': 'var(--warning-dark, #f59e0b)',
+  },
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',

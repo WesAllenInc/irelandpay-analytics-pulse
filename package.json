@@ -49,6 +49,7 @@
     "date-fns": "^3.6.0",
     "dotenv": "^16.5.0",
     "embla-carousel-react": "^8.3.0",
+    "framer-motion": "^12.16.0",
     "input-otp": "^1.2.4",
     "isomorphic-fetch": "^3.0.0",
     "lightweight-charts": "^3.8.0",

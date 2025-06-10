@@ -14,6 +14,11 @@ import {
   formatDateToYYYYMMDD
 } from '@/lib/utils/date-utils'
 
+// Animation-related imports
+import { motion } from 'framer-motion'
+import { Sparkles } from 'lucide-react'
+import { Badge } from '@/components/ui/badge'
+
 export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
@@ -158,15 +163,44 @@ export default async function DashboardPage() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-white">Analytics Dashboard</h1>
+    <motion.div 
+      className="space-y-6"
+      initial={{ opacity: 0, y: 20 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ duration: 0.5 }}
+    >
+      <motion.div 
+        className="flex items-center justify-between"
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.2, duration: 0.5 }}
+      >
+        <div className="flex items-center gap-2 group">  
+          <h1 className="text-3xl font-bold text-white">Analytics Dashboard</h1>
+          <span className="inline-flex transition-all duration-300 group-hover:rotate-12">
+            <Sparkles className="h-6 w-6 text-yellow-500 opacity-70 group-hover:opacity-100" />
+          </span>
+          <Badge variant="outline" className="ml-2 bg-gradient-to-r from-blue-600 to-indigo-700 text-white border-none p-1 px-2">
+            {new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
+          </Badge>
+        </div>
         <RealtimeIndicator />
-      </div>
+      </motion.div>
       
-      <MetricsCards metrics={metrics} />
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.3, duration: 0.5 }}
+      >
+        <MetricsCards metrics={metrics} />
+      </motion.div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <motion.div 
+        className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.4, duration: 0.5 }}
+      >
         <TotalSalesChart
           data={salesChartData}
           mtdTotal={mtdTotal}
@@ -178,9 +212,14 @@ export default async function DashboardPage() {
           merchants={merchants}
           totalEstimatedProfit={totalEstimatedProfit}
         />
-      </div>
+      </motion.div>
       
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+      <motion.div 
+        className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.5, duration: 0.5 }}
+      >
         <TradingViewWidget 
           data={aggregatedVolumeData} 
           title="Transaction Volume (Historical)" 
@@ -195,12 +234,22 @@ export default async function DashboardPage() {
           type="line"
           color="#00E676"
         />
-      </div>
+      </motion.div>
       
-      <div className="bg-gray-900 rounded-lg border border-gray-800 p-6">
-        <h2 className="text-xl font-semibold text-white mb-4">Top Merchants</h2>
+      <motion.div 
+        className="bg-gray-900 rounded-lg border border-gray-800 p-6 hover:shadow-lg hover:shadow-blue-900/20 transition-all duration-300"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: 0.6, duration: 0.5 }}
+      >
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-xl font-semibold text-white">Top Merchants</h2>
+          <div className="px-2 py-1 bg-blue-600/20 rounded-md border border-blue-800 text-blue-400 text-xs font-medium">
+            Updated {new Date().toLocaleDateString()}
+          </div>
+        </div>
         <MerchantTable merchants={topMerchants || []} />
-      </div>
-    </div>
+      </motion.div>
+    </motion.div>
   )
 }

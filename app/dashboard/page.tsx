@@ -15,9 +15,11 @@ import {
 } from '@/lib/utils/date-utils'
 
 // Animation-related imports
-import { motion } from 'framer-motion'
 import { Sparkles } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
+
+// Import DashboardWrapper for animations
+import { DashboardAnimationWrapper, DashboardHeader, DashboardSection } from '../../src/components/dashboard/dashboard-animation-wrapper'
 
 export const dynamic = 'force-dynamic'
 
@@ -163,18 +165,8 @@ export default async function DashboardPage() {
   }
 
   return (
-    <motion.div 
-      className="space-y-6"
-      initial={{ opacity: 0, y: 20 }}
-      animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.5 }}
-    >
-      <motion.div 
-        className="flex items-center justify-between"
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ delay: 0.2, duration: 0.5 }}
-      >
+    <DashboardAnimationWrapper>
+      <DashboardHeader>
         <div className="flex items-center gap-2 group">  
           <h1 className="text-3xl font-bold text-white">Analytics Dashboard</h1>
           <span className="inline-flex transition-all duration-300 group-hover:rotate-12">
@@ -185,21 +177,15 @@ export default async function DashboardPage() {
           </Badge>
         </div>
         <RealtimeIndicator />
-      </motion.div>
+      </DashboardHeader>
       
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3, duration: 0.5 }}
-      >
+      <DashboardSection delay={0.3}>
         <MetricsCards metrics={metrics} />
-      </motion.div>
+      </DashboardSection>
       
-      <motion.div
+      <DashboardSection 
         className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4, duration: 0.5 }}
+        delay={0.4}
       >
         <TotalSalesChart
           data={salesChartData}
@@ -212,19 +198,16 @@ export default async function DashboardPage() {
           merchants={merchants}
           totalEstimatedProfit={totalEstimatedProfit}
         />
-      </motion.div>
+      </DashboardSection>
       
-      <motion.div 
-        className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5, duration: 0.5 }}
+      <DashboardSection 
+        className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+        delay={0.5}
       >
         <TradingViewWidget 
           data={aggregatedVolumeData} 
           title="Transaction Volume (Historical)" 
           height={400}
-          type="area"
           color="#2962FF"
         />
         <TradingViewWidget 
@@ -234,13 +217,11 @@ export default async function DashboardPage() {
           type="line"
           color="#00E676"
         />
-      </motion.div>
+      </DashboardSection>
       
-      <motion.div 
+      <DashboardSection 
         className="bg-gray-900 rounded-lg border border-gray-800 p-6 hover:shadow-lg hover:shadow-blue-900/20 transition-all duration-300 overflow-x-auto"
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.6, duration: 0.5 }}
+        delay={0.6}
       >
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-xl font-semibold text-white">Top Merchants</h2>
@@ -251,7 +232,7 @@ export default async function DashboardPage() {
         <div className="w-full min-w-[400px]">
           <MerchantTable merchants={topMerchants || []} />
         </div>
-      </motion.div>
-    </motion.div>
+      </DashboardSection>
+    </DashboardAnimationWrapper>
   )
 }

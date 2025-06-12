@@ -1,6 +1,8 @@
 import { Inter } from 'next/font/google'
 import '../index.css'
 import { Toaster } from '@/components/ui/toaster'
+import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 
 const inter = Inter({ subsets: ['latin'] })
 
@@ -14,6 +16,7 @@ export default function RootLayout({
 }: {
   children: React.ReactNode
 }) {
+  const pathname = usePathname();
   return (
     <html lang="en">
       <body className={inter.className}>
@@ -25,29 +28,29 @@ export default function RootLayout({
             <nav className="p-2">
               <ul className="space-y-1">
                 <li>
-                  <a href="/" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sidebar-accent">
+                  <Link href="/" className={`sidebar-nav-link ${pathname === '/' ? 'active' : ''}`}>
                     Dashboard
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="/uploads" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sidebar-accent">
+                  <Link href="/uploads" className={`sidebar-nav-link ${pathname.startsWith('/uploads') ? 'active' : ''}`}>
                     Data Uploads
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="/merchants" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sidebar-accent">
+                  <Link href="/merchants" className={`sidebar-nav-link ${pathname.startsWith('/merchants') ? 'active' : ''}`}>
                     Merchants
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="/analytics" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sidebar-accent">
+                  <Link href="/analytics" className={`sidebar-nav-link ${pathname.startsWith('/analytics') ? 'active' : ''}`}>
                     Analytics
-                  </a>
+                  </Link>
                 </li>
                 <li>
-                  <a href="/residuals" className="flex items-center px-3 py-2 text-sm rounded-md hover:bg-sidebar-accent">
+                  <Link href="/residuals" className={`sidebar-nav-link ${pathname.startsWith('/residuals') ? 'active' : ''}`}>
                     Residuals
-                  </a>
+                  </Link>
                 </li>
               </ul>
             </nav>

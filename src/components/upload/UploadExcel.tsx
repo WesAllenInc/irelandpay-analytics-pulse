@@ -1,30 +1,40 @@
-import React, { useState, useRef, ChangeEvent } from "react";
-import { 
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-  CardDescription,
-} from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Progress } from "@/components/ui/progress";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { Label } from "@/components/ui/label";
-import { useToast } from "@/components/ui/use-toast";
-import { supabase } from "../../utils/supabaseClient";
-import { ExcelUploadStatus } from "./ExcelUploadStatus";
+import React, { useState, useRef, ChangeEvent } from 'react';
+import { createClient } from '@supabase/supabase-js';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
+import { Input } from '@/components/ui/input';
+import { useToast } from '@/components/ui/use-toast';
+import { Label } from '@/components/ui/label';
+import { Upload, FileSpreadsheet, BarChart3, RefreshCw } from 'lucide-react';
+import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { ExcelUploadStatus } from './ExcelUploadStatus';
+
+// Initialize Supabase client
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseKey);
+
+// Types
+type DatasetType = 'merchants' | 'residuals';
 
 interface ProcessingResult {
   success: boolean;
-  message: string;
+  message?: string;
+  error?: string;
   merchants?: number;
   metrics?: number;
   residuals?: number;
-  error?: string;
 }
 
-type DatasetType = "merchants" | "residuals";
+// Utility function
+const formatFileSize = (bytes: number): string => {
+  if (bytes === 0) return '0 Bytes';
+  const k = 1024;
+  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+  const i = Math.floor(Math.log(bytes) / Math.log(k));
+  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+}
 
 export const UploadExcel: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -167,20 +177,30 @@ export const UploadExcel: React.FC = () => {
   };
 
   return (
-    <Card className="shadow-md">
-      <CardHeader className="pb-0">
-        <CardTitle>Upload Excel Data</CardTitle>
-        <CardDescription>Upload merchant or residual data for analysis</CardDescription>
+    <Card className="shadow-md border border-card-border overflow-hidden">
+      <CardHeader className="pb-2 bg-muted/30 border-b border-border">
+        <div className="flex items-center">
+          <div className="mr-2 bg-primary/10 p-2 rounded-lg">
+            <FileSpreadsheet className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <CardTitle className="text-lg font-semibold">Upload Excel Data</CardTitle>
+            <CardDescription>Upload merchant or residual data for analysis</CardDescription>
+          </div>
+        </div>
       </CardHeader>
       
       <CardContent className="pt-6">
         <div className="space-y-6">
-          <div className="space-y-2">
-            <Label htmlFor="dataset-type">Dataset Type</Label>
+          <div className="space-y-3">
+            <div className="flex items-center">
+              <BarChart3 className="h-4 w-4 mr-2 text-muted-foreground" />
+              <Label htmlFor="dataset-type" className="font-medium">Dataset Type</Label>
+            </div>
             <RadioGroup
               value={datasetType}
               onValueChange={(value) => setDatasetType(value as DatasetType)}
-              className="flex flex-col space-y-1"
+              className="flex space-x-4"
               id="dataset-type"
             >
               <div className="flex items-center space-x-2">

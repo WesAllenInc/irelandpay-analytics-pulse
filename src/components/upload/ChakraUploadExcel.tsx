@@ -1,4 +1,5 @@
 import React, { useState, useRef, ChangeEvent } from "react";
+// Import standard Chakra components
 import { 
   Box, 
   Button, 
@@ -8,16 +9,14 @@ import {
   Flex,
   Progress,
 } from "@chakra-ui/react";
-// Import Toast from Chakra UI
-import { useToast } from "@chakra-ui/toast";
-// Import Card components
-import { Card, CardBody, CardHeader } from "@chakra-ui/card";
-// Import Form components
-import { FormControl, FormLabel } from "@chakra-ui/form-control";
-// Import Alert components
-import { Alert, AlertIcon } from "@chakra-ui/alert";
-// Import Menu components
-import { Menu, MenuButton, MenuList, MenuItem } from "@chakra-ui/menu";
+
+// Use the exact same import pattern as in ChakraExcelUploadStatus.tsx
+import { useToast } from "@chakra-ui/react";
+
+// Add useToast type declaration to fix TypeScript errors
+declare module "@chakra-ui/react" {
+  export const useToast: () => any;
+}
 
 import { supabase } from "../../utils/supabaseClient";
 // Import the ExcelUploadStatus component
@@ -176,33 +175,30 @@ const ChakraUploadExcel: React.FC = () => {
   };
 
   return (
-    <Card borderRadius="1rem" boxShadow="0 4px 6px rgba(0,0,0,0.1)" bg="white">
-      <CardHeader pb={0}>
+    <Box borderRadius="1rem" boxShadow="0 4px 6px rgba(0,0,0,0.1)" bg="white">
+      <Box p={4} pb={0}>
         <Heading size="md">Upload Excel Data</Heading>
         <Text color="gray.600" mt={1}>Upload merchant or residual data for analysis</Text>
-      </CardHeader>
+      </Box>
       
-      <CardBody pt={6}>
+      <Box p={4} pt={6}>
         <Box mb={4}>
-          <FormLabel htmlFor="dataset-type" fontSize="sm" fontWeight="medium">Dataset Type</FormLabel>
-          <Menu>
-            <MenuButton as={Button} variant="outline" w="100%" justifyContent="space-between">
+          <Text fontSize="sm" fontWeight="medium">Dataset Type</Text>
+          <Box position="relative">
+            <Button 
+              variant="outline" 
+              w="100%" 
+              justifyContent="space-between"
+              onClick={() => setDatasetType(datasetType === "merchants" ? "residuals" : "merchants")}
+            >
               {datasetType === "merchants" ? "Merchant Data" : "Residual Data"}
-            </MenuButton>
-            <MenuList>
-              <MenuItem onClick={() => setDatasetType("merchants")}>
-                Merchant Data
-              </MenuItem>
-              <MenuItem onClick={() => setDatasetType("residuals")}>
-                Residual Data
-              </MenuItem>
-            </MenuList>
-          </Menu>
+            </Button>
+          </Box>
         </Box>
         
         <Box as="form" onSubmit={handleFileUpload} gap={6} display="flex" flexDirection="column">
-          <FormControl mb={4}>
-            <FormLabel htmlFor="excel-file" fontSize="sm" fontWeight="medium">Excel File</FormLabel>
+          <Box mb={4}>
+            <Text fontSize="sm" fontWeight="medium">Excel File</Text>
             <Input
               id="excel-file"
               type="file"
@@ -218,18 +214,17 @@ const ChakraUploadExcel: React.FC = () => {
             <Text id="file-format-info" fontSize="xs" color="gray.500" mt={1}>
               Accepted formats: .xlsx, .xls
             </Text>
-          </FormControl>
+          </Box>
           
           {selectedFile && (
-            <Alert status="info" borderRadius="md" mb={4}>
-              <AlertIcon />
+            <Box borderRadius="md" mb={4} p={3} bg="blue.50">
               <Flex justifyContent="space-between" w="100%" alignItems="center">
                 <Text fontWeight="medium" overflow="hidden" textOverflow="ellipsis" whiteSpace="nowrap" maxW="70%">{selectedFile.name}</Text>
                 <Text fontSize="xs" color="gray.500">
                   {(selectedFile.size / 1024).toFixed(2)} KB
                 </Text>
               </Flex>
-            </Alert>
+            </Box>
           )}
           
           <Button
@@ -260,8 +255,8 @@ const ChakraUploadExcel: React.FC = () => {
             />
           </Box>
         )}
-      </CardBody>
-    </Card>
+      </Box>
+    </Box>
   );
 };
 

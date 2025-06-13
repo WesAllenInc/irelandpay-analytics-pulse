@@ -1,60 +1,51 @@
-import { NextResponse } from 'next/server';
-import { createSupabaseServerClient } from '@/lib/supabase';
-import { cookies } from 'next/headers';
+import { NextResponse } from 'next/server'
+import { createClient } from '@supabase/supabase-js'
 
 export async function POST(request: Request) {
   try {
-    const { path } = await request.json();
-    
+    const { path } = await request.json()
+
     if (!path) {
       return NextResponse.json(
-        { error: "Path is required" },
+        { success: false, error: 'Path is required' },
         { status: 400 }
-      );
+      )
     }
 
-    // Create Supabase client directly for server-side API route
-    const supabase = createSupabaseServerClient();
-    const { data: { session } } = await supabase.auth.getSession();
-    
-    if (!session) {
-      return NextResponse.json(
-        { error: "Unauthorized" },
-        { status: 401 }
-      );
-    }
-    
-    // Forward to Supabase Edge Function
-    // Replace with your actual project reference
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-    const projectRef = supabaseUrl.match(/https:\/\/([^.]+).supabase.co/)?.[1];
-    
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL!
+    const projectRef = supabaseUrl.match(/https:\/\/([^.]+)/)?.[1]
+
     if (!projectRef) {
-      return NextResponse.json(
-        { error: "Invalid Supabase URL configuration" },
-        { status: 500 }
-      );
+      throw new Error('Invalid Supabase URL configuration')
     }
 
-    const functionUrl = `https://${projectRef}.functions.supabase.co/processResidualExcel`;
-    
+    const functionUrl = `https://${projectRef}.supabase.co/functions/v1/processResidualExcel`
+
     const response = await fetch(functionUrl, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`
+        'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
       },
       body: JSON.stringify({ path })
-    });
+    })
 
-    const data = await response.json();
-    return NextResponse.json(data, { status: response.status });
-    
-  } catch (error) {
-    console.error('API route error:', error);
+    const data = await response.json()
+
+    if (!response.ok) {
+      return NextResponse.json(
+        { success: false, error: data.error || 'Edge function error' },
+        { status: response.status }
+      )
+    }
+
+    return NextResponse.json(data)
+
+  } catch (error: any) {
+    console.error('API route error:', error)
     return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Unknown error' },
+      { success: false, error: error.message || 'Internal server error' },
       { status: 500 }
-    );
+    )
   }
 }

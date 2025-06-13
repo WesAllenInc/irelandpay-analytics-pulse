@@ -4,6 +4,11 @@ import { createServerClient } from '@supabase/ssr';
 
 export async function middleware(req: NextRequest) {
   const res = NextResponse.next();
+  const pathname = req.nextUrl.pathname;
+  // Skip middleware for API routes
+  if (pathname.startsWith('/api')) {
+    return res;
+  }
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
@@ -32,10 +37,12 @@ export async function middleware(req: NextRequest) {
     data: { session },
   } = await supabase.auth.getSession();
 
-  // Check auth condition - if no session and trying to access protected routes
+  // Check auth condition - if no session and trying to access protected site pages
   const isAuthRoute = req.nextUrl.pathname.startsWith('/auth');
-  const isProtectedRoute = req.nextUrl.pathname.startsWith('/dashboard') || 
-                          req.nextUrl.pathname.startsWith('/api');
+  const isProtectedRoute =
+    req.nextUrl.pathname.startsWith('/dashboard') ||
+    req.nextUrl.pathname.startsWith('/upload-merchants') ||
+    req.nextUrl.pathname.startsWith('/upload-residuals');
   
   // Redirect to login if accessing protected route without session
   if (!session && isProtectedRoute) {
@@ -54,8 +61,8 @@ export async function middleware(req: NextRequest) {
 
 // Specify which routes this middleware should run on
 export const config = {
+  // Exclude API routes and static assets from this middleware
   matcher: [
-    // Apply to all routes except static files, api routes that don't require auth, etc.
-    '/((?!_next/static|_next/image|favicon.ico).*)',
+    '/((?!_next/static|_next/image|favicon.ico|api).*)',
   ],
 };

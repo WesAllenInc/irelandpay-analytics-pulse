@@ -1,5 +1,7 @@
+'use client';
+
 import React, { useState, useRef, ChangeEvent } from 'react';
-import { createClient } from '@supabase/supabase-js';
+import { createSupabaseBrowserClient } from '@/lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Progress } from '@/components/ui/progress';
@@ -7,13 +9,11 @@ import { Input } from '@/components/ui/input';
 import { useToast } from '@/components/ui/use-toast';
 import { Label } from '@/components/ui/label';
 import { Upload, FileSpreadsheet, BarChart3, RefreshCw } from 'lucide-react';
-import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
+import { Root as RadioGroup, Item as RadioGroupItem } from '@radix-ui/react-radio-group';
 import { ExcelUploadStatus } from './ExcelUploadStatus';
 
 // Initialize Supabase client
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
-const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
-const supabase = createClient(supabaseUrl, supabaseKey);
+const supabase = createSupabaseBrowserClient();
 
 // Types
 type DatasetType = 'merchants' | 'residuals';
@@ -199,7 +199,7 @@ export const UploadExcel: React.FC = () => {
             </div>
             <RadioGroup
               value={datasetType}
-              onValueChange={(value) => setDatasetType(value as DatasetType)}
+              onValueChange={(value: string) => setDatasetType(value as DatasetType)}
               className="flex space-x-4"
               id="dataset-type"
             >

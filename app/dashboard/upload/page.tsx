@@ -1,58 +1,63 @@
-"use client";
+import {
+  Card,
+  DateRangePicker,
+  Select,
+  Button,
+  TablePro,
+  Title,
+} from 'react-bits';
+import { useState } from 'react';
+import Chart from 'react-apexcharts';
 
-import { useState } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import UploadExcel from "@/components/UploadExcel";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { FileSpreadsheet } from "lucide-react";
+const ResidualsPage = () => {
+  const [dateRange, setDateRange] = useState({ from: null, to: null });
+  const [selectedMID, setSelectedMID] = useState('all');
 
-export default function UploadPage() {
+  const chartOptions = {
+    chart: { id: 'residual-line' },
+    xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May'] },
+  };
+
+  const chartSeries = [
+    { name: 'Residuals', data: [4500, 5200, 4800, 6100, 7000] },
+  ];
+
+  const tableData = [
+    { mid: '123456', name: 'Merchant A', volume: '$25,000', residual: '$500' },
+    { mid: '789012', name: 'Merchant B', volume: '$30,000', residual: '$600' },
+  ];
+
+  const tableColumns = [
+    { label: 'MID', accessor: 'mid' },
+    { label: 'Name', accessor: 'name' },
+    { label: 'Volume', accessor: 'volume' },
+    { label: 'Residual', accessor: 'residual' },
+  ];
+
   return (
-    <div className="flex flex-col items-center justify-center py-8">
-      <div className="w-full max-w-xl">
-        <h1 className="text-2xl font-bold mb-6 text-center">Upload Excel Data</h1>
-        
-        <Tabs defaultValue="merchants" className="w-full">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="merchants">Merchant Data</TabsTrigger>
-            <TabsTrigger value="residuals">Residual Payouts</TabsTrigger>
-          </TabsList>
-          
-          <TabsContent value="merchants">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileSpreadsheet className="h-5 w-5" />
-                  Merchant Transactions
-                </CardTitle>
-                <CardDescription>
-                  Upload merchant transaction data Excel files for processing.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <UploadExcel datasetType="merchants" />
-              </CardContent>
-            </Card>
-          </TabsContent>
-          
-          <TabsContent value="residuals">
-            <Card>
-              <CardHeader>
-                <CardTitle className="flex items-center gap-2">
-                  <FileSpreadsheet className="h-5 w-5" />
-                  Residual Payouts
-                </CardTitle>
-                <CardDescription>
-                  Upload residual payout data Excel files for processing.
-                </CardDescription>
-              </CardHeader>
-              <CardContent>
-                <UploadExcel datasetType="residuals" />
-              </CardContent>
-            </Card>
-          </TabsContent>
-        </Tabs>
-      </div>
+    <div className="p-6 grid gap-6">
+      <Card>
+        <div className="flex flex-wrap gap-4 items-center">
+          <DateRangePicker value={dateRange} onChange={setDateRange} className="w-full md:w-auto" />
+          <Select
+            label="Filter by MID"
+            value={selectedMID}
+            onChange={setSelectedMID}
+            options={[{ label: 'All', value: 'all' }, { label: '123456', value: '123456' }]}
+          />
+          <Button onClick={() => console.log('Apply filters')}>Apply Filters</Button>
+        </div>
+      </Card>
+      <Card>
+        <Title level={3}>Monthly Residual Trends</Title>
+        <Chart options={chartOptions} series={chartSeries} type="line" height={300} />
+      </Card>
+      <Card>
+        <Title level={3}>Merchant Residual Breakdown</Title>
+        <TablePro columns={tableColumns} data={tableData} />
+      </Card>
     </div>
   );
-}
+};
+
+export default ResidualsPage;

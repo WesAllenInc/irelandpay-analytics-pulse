@@ -101,17 +101,17 @@ The application uses the following database schema:
 ## API Endpoints
 
 ### Next.js API Routes
+
 - `/api/process-excel`: Processes Excel files for both merchant and residual data
 - `/api/process-merchant-excel`: Processes merchant Excel files specifically
 - `/api/process-residual-excel`: Processes residual Excel files specifically
 
 ### Supabase Edge Functions
+
 - `processMerchantExcel`: Processes merchant Excel files uploaded to Supabase Storage
 - `processResidualExcel`: Processes residual Excel files uploaded to Supabase Storage
 
 ## Environment Variables
-
-The application requires the following environment variables:
 
 - `NEXT_PUBLIC_SUPABASE_URL`: URL of your Supabase project
 - `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Anonymous key for Supabase authentication
@@ -120,7 +120,43 @@ The application requires the following environment variables:
 
 ## How can I deploy this project?
 
-Simply open [Lovable](https://lovable.dev/projects/4b033916-b832-4ca8-a0c9-cc8d7f2c46b7) and click on Share -> Publish.
+### Local Setup & Development
+
+1. Copy `.env.example` to `.env.local` and populate all variables:
+   - `NEXT_PUBLIC_SUPABASE_URL`
+   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+   - `SUPABASE_SERVICE_ROLE_KEY`
+   - `NEXT_PUBLIC_APP_URL`
+   - `NEXT_PUBLIC_SUPABASE_PROJECT_ID`
+
+1. Deploy Supabase Edge Functions:
+
+   
+```bash
+npx supabase functions deploy processMerchantExcel
+npx supabase functions deploy processResidualExcel
+```
+
+
+1. Install dependencies and start the app:
+
+   
+```bash
+npm install
+npm run dev
+```
+
+
+### Production Deployment (Vercel)
+
+1. Push your code to a Git repository.
+1. In Vercel dashboard, import the project and set environment variables (match `.env.example`).
+1. Vercel will run `npm run build` and `npm start` automatically.
+1. Ensure `SUPABASE_SERVICE_ROLE_KEY` and `NEXT_PUBLIC_APP_URL` are configured in Vercel settings.
+
+### Alternative: Lovable
+
+Simply open [Lovable](https://lovable.dev/projects/4b033916-b832-4ca8-a0c9-cc8d7f2c46b7) and click Share → Publish.
 
 ## Can I connect a custom domain to my Lovable project?
 

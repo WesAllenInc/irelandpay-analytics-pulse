@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, ChangeEvent } from "react";
-import { supabaseClient } from "@/lib/supabaseClient";
+import { createSupabaseBrowserClient } from "@/lib/supabase";
 import { useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
@@ -24,14 +24,18 @@ interface ProcessingResult {
 
 type DatasetType = "merchants" | "residuals";
 
-const UploadExcel = () => {
+interface UploadExcelProps {
+  datasetType?: DatasetType;
+}
+
+const UploadExcel = ({ datasetType: initialDatasetType = "merchants" }: UploadExcelProps) => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isProcessing, setIsProcessing] = useState<boolean>(false);
   const [processingResult, setProcessingResult] = useState<ProcessingResult | null>(null);
   const [uploadProgress, setUploadProgress] = useState<number>(0);
   const [uploadStatus, setUploadStatus] = useState<"idle" | "uploading" | "processing" | "success" | "error">("idle");
   const [errorMessage, setErrorMessage] = useState<string>("");
-  const [datasetType, setDatasetType] = useState<DatasetType>("merchants");
+  const [datasetType, setDatasetType] = useState<DatasetType>(initialDatasetType);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
 
@@ -94,7 +98,8 @@ const UploadExcel = () => {
       const folderPath = datasetType === "merchants" ? "merchant" : "residual";
       const filePath = `${folderPath}/${selectedFile.name}`;
       
-      const { data, error } = await supabaseClient
+      const supabase = createSupabaseBrowserClient();
+      const { data, error } = await supabase
         .storage
         .from(bucketName)
         .upload(filePath, selectedFile, {

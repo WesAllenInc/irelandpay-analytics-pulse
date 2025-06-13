@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server'
+import { createSupabaseServerClient } from '@/lib/supabase'
 import { TradingViewWidget } from '@/components/charts/trading-view-widget-final'
 import { TotalSalesChart } from '@/components/charts/total-sales-chart'
 import { EstimatedProfitChart } from '@/components/charts/estimated-profit-chart'
@@ -24,7 +24,7 @@ import { DashboardAnimationWrapper, DashboardHeader, DashboardSection } from '..
 export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {
-  const supabase = await createClient()
+  const supabase = createSupabaseServerClient()
   
   // Fetch current month data for metrics
   const currentMonth = new Date().toISOString().slice(0, 7) + '-01'

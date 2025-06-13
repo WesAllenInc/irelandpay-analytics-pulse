@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { supabaseClient } from '@/lib/supabaseClient';
+import { createSupabaseServerClient } from '@/lib/supabase';
 import * as XLSX from 'xlsx';
 
 export async function POST(request: Request) {
@@ -23,7 +23,8 @@ export async function POST(request: Request) {
       console.log("Using test data for API route test:", testData);
     } else {
       // Download the file from Supabase Storage
-      const { data: fileData, error: downloadError } = await supabaseClient
+      const supabase = createSupabaseServerClient();
+      const { data: fileData, error: downloadError } = await supabase
         .storage
         .from('uploads')
         .download(path);
@@ -135,7 +136,8 @@ async function processMerchantData(path: string, rows: Record<string, any>[]) {
         datasource: md.datasource,
       }));
       
-      const { error: merchantError } = await supabaseClient
+      const supabase = createSupabaseServerClient();
+      const { error: merchantError } = await supabase
         .from("merchants")
         .upsert(merchantsPayload, { onConflict: "mid", ignoreDuplicates: false });
         
@@ -152,7 +154,8 @@ async function processMerchantData(path: string, rows: Record<string, any>[]) {
     // Upsert metrics (batch)
     let metricsInserted = 0;
     if (metricsToUpsert.length > 0) {
-      const { error: metricsError } = await supabaseClient
+      const supabase = createSupabaseServerClient();
+      const { error: metricsError } = await supabase
         .from("merchant_metrics")
         .upsert(metricsToUpsert, { onConflict: "mid,month", ignoreDuplicates: false });
         
@@ -322,7 +325,8 @@ async function processResidualData(path: string, rows: Record<string, any>[]) {
     // Upsert merchants data first
     let merchantsInserted = 0;
     if (merchantUpserts.length > 0) {
-      const { error: merchantError } = await supabaseClient
+      const supabase = createSupabaseServerClient();
+      const { error: merchantError } = await supabase
         .from("merchants")
         .upsert(merchantUpserts, { 
           onConflict: "mid",
@@ -342,7 +346,8 @@ async function processResidualData(path: string, rows: Record<string, any>[]) {
     // Upsert residual payouts data
     let residualsInserted = 0;
     if (residualRows.length > 0) {
-      const { error: residualError } = await supabaseClient
+      const supabase = createSupabaseServerClient();
+      const { error: residualError } = await supabase
         .from("residual_payouts")
         .upsert(residualRows, {
           onConflict: "mid,payout_month",

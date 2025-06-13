@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createClient } from '@supabase/supabase-js';
+import { createSupabaseServerClient } from '@/lib/supabase';
 import { cookies } from 'next/headers';
 
 export async function POST(request: Request) {
@@ -14,10 +14,7 @@ export async function POST(request: Request) {
     }
 
     // Create Supabase client directly for server-side API route
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    );
+    const supabase = createSupabaseServerClient();
     const { data: { session } } = await supabase.auth.getSession();
     
     if (!session) {

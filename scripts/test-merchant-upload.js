@@ -1,8 +1,8 @@
 /**
- * Test Residual Upload Pipeline
+ * Test Merchant Upload Pipeline
  * 
- * This script tests the residual upload pipeline by:
- * 1. Generating a sample residual Excel file
+ * This script tests the merchant upload pipeline by:
+ * 1. Generating a sample merchant Excel file
  * 2. Uploading it to Supabase Storage
  * 3. Processing it with the API endpoint
  * 4. Verifying the data was saved correctly in the database
@@ -25,10 +25,10 @@ function createSupabaseClient() {
 const supabase = createSupabaseClient();
 
 // Test data generation
-function generateSampleResidualExcel() {
-  console.log('🔧 Generating sample residual Excel file...');
+function generateSampleMerchantExcel() {
+  console.log('🔧 Generating sample merchant Excel file...');
   const currentDate = new Date();
-  const fileName = `Residuals_${currentDate.getFullYear()}${String(currentDate.getMonth() + 1).padStart(2, '0')}.xlsx`;
+  const fileName = `Merchants_${currentDate.getFullYear()}${String(currentDate.getMonth() + 1).padStart(2, '0')}.xlsx`;
   const filePath = path.join(__dirname, '../test-data', fileName);
   
   // Create test-data directory if it doesn't exist
@@ -37,31 +37,26 @@ function generateSampleResidualExcel() {
     fs.mkdirSync(testDataDir, { recursive: true });
   }
 
-  // Generate sample data - 5 merchants with residual data
+  // Generate sample data - 5 merchants with transaction data
   const testData = [];
   for (let i = 1; i <= 5; i++) {
     const mid = `TEST${String(i).padStart(6, '0')}`;
     const dba = `Test Merchant ${i}`;
     
     testData.push({
-      'Merchant ID': mid,
-      'Merchant': dba,
-      'Transactions': 100 * i,
-      'Sales Amount': 10000 * i,
-      'Income': 300 * i,
-      'Expenses': 100 * i,
-      'Net': 200 * i,
-      'BPS': 30,
-      '%': 50,
-      'Agent Net': 100 * i,
-      'Payout Date': `${currentDate.getMonth() + 1}/01/${currentDate.getFullYear()}`
+      'MID': mid,
+      'Merchant DBA': dba,
+      'Datasource': 'Test',
+      'Total Transactions': 100 * i,
+      'Total Volume': 10000 * i,
+      'Last Batch Date': `${currentDate.getMonth() + 1}/01/${currentDate.getFullYear()}`
     });
   }
 
   // Create workbook and add worksheet
   const wb = XLSX.utils.book_new();
   const ws = XLSX.utils.json_to_sheet(testData);
-  XLSX.utils.book_append_sheet(wb, ws, 'Residuals');
+  XLSX.utils.book_append_sheet(wb, ws, 'Merchants');
   
   // Write to file
   XLSX.writeFile(wb, filePath);
@@ -71,7 +66,7 @@ function generateSampleResidualExcel() {
 }
 
 // Upload file to Supabase Storage
-async function uploadResidualFile(filePath, fileName) {
+async function uploadMerchantFile(filePath, fileName) {
   console.log('📤 Uploading file to Supabase Storage...');
   
   try {
@@ -79,7 +74,7 @@ async function uploadResidualFile(filePath, fileName) {
     const { data, error } = await supabase
       .storage
       .from('uploads')
-      .upload(`residual/${fileName}`, fileBuffer, {
+      .upload(`merchant/${fileName}`, fileBuffer, {
         contentType: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
         upsert: true,
       });
@@ -89,7 +84,7 @@ async function uploadResidualFile(filePath, fileName) {
     }
     
     console.log('✅ File uploaded successfully');
-    return `residual/${fileName}`;
+    return `merchant/${fileName}`;
   } catch (error) {
     console.error('❌ Upload error:', error);
     throw error;
@@ -97,21 +92,19 @@ async function uploadResidualFile(filePath, fileName) {
 }
 
 // Process Excel file using API
-async function processResidualFile(filePath) {
+async function processMerchantFile(filePath) {
   console.log('🔄 Processing Excel file...');
   
   try {
-    // Call API endpoint directly with fetch
+    // Call the API endpoint directly
     const fetch = require('node-fetch');
-    const apiUrl = `${process.env.NEXT_PUBLIC_SUPABASE_URL}/functions/v1/processResidualExcel`;
-    
-    const response = await fetch(apiUrl, {
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/process-excel`, {
       method: 'POST',
-      headers: { 
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY}`
-      },
-      body: JSON.stringify({ path: filePath })
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ 
+        path: filePath,
+        datasetType: 'merchants'
+      })
     });
     
     const result = await response.json();
@@ -121,7 +114,7 @@ async function processResidualFile(filePath) {
     }
     
     console.log('✅ File processed successfully');
-    console.log(`📊 Results: ${result.inserted} residual records processed`);
+    console.log(`📊 Results: ${result.merchants} merchants and ${result.metrics} metrics processed`);
     return result;
   } catch (error) {
     console.error('❌ Processing error:', error);
@@ -130,7 +123,7 @@ async function processResidualFile(filePath) {
 }
 
 // Verify data in database
-async function verifyResidualData() {
+async function verifyMerchantData() {
   console.log('🔍 Verifying data in database...');
   
   try {
@@ -146,19 +139,19 @@ async function verifyResidualData() {
     
     console.log(`✅ Found ${merchants.length} test merchants in database`);
     
-    // Check residual_payouts table
-    const { data: residuals, error: residualError } = await supabase
-      .from('residual_payouts')
+    // Check merchant_metrics table
+    const { data: metrics, error: metricsError } = await supabase
+      .from('merchant_metrics')
       .select()
       .like('mid', 'TEST%');
       
-    if (residualError) {
-      throw new Error(`Query failed: ${residualError.message}`);
+    if (metricsError) {
+      throw new Error(`Query failed: ${metricsError.message}`);
     }
     
-    console.log(`✅ Found ${residuals.length} test residual records in database`);
+    console.log(`✅ Found ${metrics.length} test metrics records in database`);
     
-    return { merchants, residuals };
+    return { merchants, metrics };
   } catch (error) {
     console.error('❌ Verification error:', error);
     throw error;
@@ -170,14 +163,14 @@ async function cleanupTestData() {
   console.log('🧹 Cleaning up test data...');
   
   try {
-    // Delete from residual_payouts table
-    const { error: deleteResidualError } = await supabase
-      .from('residual_payouts')
+    // Delete from merchant_metrics table
+    const { error: deleteMetricsError } = await supabase
+      .from('merchant_metrics')
       .delete()
       .like('mid', 'TEST%');
       
-    if (deleteResidualError) {
-      throw new Error(`Delete failed: ${deleteResidualError.message}`);
+    if (deleteMetricsError) {
+      throw new Error(`Delete failed: ${deleteMetricsError.message}`);
     }
     
     // Delete from merchants table
@@ -200,19 +193,19 @@ async function cleanupTestData() {
 // Run the full test
 async function runTest() {
   try {
-    console.log('🚀 Starting residual upload pipeline test...');
+    console.log('🚀 Starting merchant upload pipeline test...');
     
     // Generate test file
-    const { filePath, fileName } = generateSampleResidualExcel();
+    const { filePath, fileName } = generateSampleMerchantExcel();
     
     // Upload file
-    const storagePath = await uploadResidualFile(filePath, fileName);
+    const storagePath = await uploadMerchantFile(filePath, fileName);
     
     // Process file
-    await processResidualFile(storagePath);
+    await processMerchantFile(storagePath);
     
     // Verify data
-    await verifyResidualData();
+    await verifyMerchantData();
     
     // Ask if user wants to clean up
     const readline = require('readline').createInterface({

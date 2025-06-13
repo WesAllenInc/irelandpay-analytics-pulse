@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { createSupabaseServerClient } from '@/lib/supabase';
 import { Inter } from 'next/font/google';
 import Link from 'next/link';
 import './globals.css';
@@ -15,6 +16,8 @@ export const metadata: Metadata = {
   description: 'Real-time merchant analytics and insights dashboard',
 };
 
+// This layout is used for the public-facing parts of the site
+// Dashboard has its own layout with sidebar navigation
 export default function RootLayout({
   children,
 }: {

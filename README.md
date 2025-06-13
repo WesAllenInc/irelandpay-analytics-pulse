@@ -8,15 +8,9 @@ IrelandPay Analytics Pulse is a merchant analytics dashboard that provides insig
 
 There are several ways of editing your application.
 
-### Use Lovable
-
-Simply visit the [Lovable Project](https://lovable.dev/projects/4b033916-b832-4ca8-a0c9-cc8d7f2c46b7) and start prompting.
-
-Changes made via Lovable will be committed automatically to this repo.
-
 ### Use your preferred IDE
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+If you want to work locally using your own IDE, you can clone this repo and push changes.
 
 The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
 
@@ -56,12 +50,13 @@ This project is built with:
 
 - Next.js 15+ with App Router
 - TypeScript
-- React
+- React 18
 - shadcn/ui and Radix UI components
 - Tailwind CSS
 - Supabase (PostgreSQL database, Storage, Edge Functions, and Authentication)
-- Lightweight Charts and Recharts (for data visualization)
+- Lightweight Charts v3.8.0 and Recharts (for data visualization)
 - Zustand (for state management)
+- XLSX (for Excel file processing)
 
 ## Database Schema
 
@@ -137,15 +132,12 @@ npx supabase functions deploy processMerchantExcel
 npx supabase functions deploy processResidualExcel
 ```
 
-
 1. Install dependencies and start the app:
 
-   
 ```bash
 npm install
 npm run dev
 ```
-
 
 ### Production Deployment (Vercel)
 
@@ -154,14 +146,12 @@ npm run dev
 1. Vercel will run `npm run build` and `npm start` automatically.
 1. Ensure `SUPABASE_SERVICE_ROLE_KEY` and `NEXT_PUBLIC_APP_URL` are configured in Vercel settings.
 
-### Alternative: Lovable
+## Can I connect a custom domain?
 
-Simply open [Lovable](https://lovable.dev/projects/4b033916-b832-4ca8-a0c9-cc8d7f2c46b7) and click Share → Publish.
+Yes, you can connect a custom domain to your deployed application by configuring it in your hosting provider settings.
 
-## Can I connect a custom domain to my Lovable project?
+For Vercel deployments:
 
-Yes, you can!
-
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
-
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+1. Navigate to your project settings in the Vercel dashboard
+2. Go to the Domains section
+3. Add your custom domain and follow the verification steps

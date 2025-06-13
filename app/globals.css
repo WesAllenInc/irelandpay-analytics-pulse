@@ -4,34 +4,36 @@
 
 @layer base {
   :root {
-    /* Backgrounds */
-    --background: 0 0% 0%; /* Pure black #000000 */
-    --background-secondary: 0 0% 7%; /* #121212 */
-    --background-tertiary: 0 0% 10%; /* #1A1A1A */
+    /* Pure Black Background like Fey */
+    --background: 0 0% 2%; /* #050505 */
+    --background-secondary: 0 0% 5%; /* #0D0D0D */
+    --background-tertiary: 0 0% 8%; /* #141414 */
     
-    /* Cards & Surfaces */
-    --card: 0 0% 8%; /* #141414 */
-    --card-hover: 0 0% 12%; /* #1F1F1F */
-    --card-border: 0 0% 15%; /* #262626 */
+    /* Card backgrounds with subtle glow */
+    --card: 0 0% 7%; /* #121212 */
+    --card-hover: 0 0% 10%; /* #1A1A1A */
+    --card-border: 0 0% 13%; /* #212121 */
     
-    /* Brand Colors - Adapted for dark theme */
-    --primary: 158 41% 45%; /* Ireland Green adapted */
-    --primary-glow: 158 60% 55%; /* Brighter green for hover */
+    /* Fey's signature green */
+    --primary: 158 100% 42%; /* #00AA55 - Bright green like Fey */
+    --primary-dim: 158 60% 35%; /* Dimmed version */
     
-    /* Data Visualization */
-    --success: 142 76% 50%; /* #22C55E */
-    --danger: 0 84% 60%; /* #EF4444 */
-    --warning: 38 92% 50%; /* #F59E0B */
+    /* Status colors matching Fey */
+    --success: 142 100% 45%; /* #00CC66 */
+    --danger: 0 100% 65%; /* #FF4444 */
+    --warning: 38 100% 60%; /* #FFAA00 */
     
     /* Text */
-    --foreground: 0 0% 100%; /* Pure white */
-    --foreground-muted: 0 0% 60%; /* #999999 */
-    --foreground-subtle: 0 0% 40%; /* #666666 */
+    --foreground: 0 0% 100%; /* #FFFFFF - Pure white text */
+    --foreground-muted: 0 0% 60%; /* #999999 - Secondary text */
+    --foreground-subtle: 0 0% 40%; /* #666666 - Tertiary/disabled text */
     
     /* Accent Colors */
-    --accent-orange: 25 95% 53%; /* #FF6B35 */
-    --accent-blue: 217 91% 60%; /* #3B82F6 */
-    --accent-purple: 263 70% 50%; /* #8B5CF6 */
+    --accent-red: 0 100% 65%; /* #FF4444 - Red accent */
+    --accent-blue: 210 100% 50%; /* #0088FF - Blue accent */
+    --accent-green: 142 100% 45%; /* #00CC66 - Green accent */
+    --accent-orange: 38 100% 60%; /* #FFAA00 - Orange accent */
+    --accent-purple: 280 100% 60%; /* #AA44FF - Purple accent */
   }
 }
 

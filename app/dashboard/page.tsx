@@ -167,11 +167,11 @@ export default async function DashboardPage() {
     <DashboardAnimationWrapper>
       <DashboardHeader>
         <div className="flex items-center gap-2 group">  
-          <h1 className="text-3xl font-bold text-white">Analytics Dashboard</h1>
+          <h1 className="text-2xl font-medium tracking-tight text-foreground">Analytics Dashboard</h1>
           <span className="inline-flex transition-all duration-300 group-hover:rotate-12">
-            <Sparkles className="h-6 w-6 text-yellow-500 opacity-70 group-hover:opacity-100" />
+            <Sparkles className="h-5 w-5 text-accent-blue opacity-80 group-hover:opacity-100" />
           </span>
-          <Badge variant="outline" className="ml-2 bg-gradient-to-r from-blue-600 to-indigo-700 text-white border-none p-1 px-2">
+          <Badge variant="outline" className="ml-2 bg-card border-card-border text-foreground text-xs px-2.5 py-0.5">
             {new Date().toLocaleDateString('en-US', { month: 'short', year: 'numeric' })}
           </Badge>
         </div>
@@ -183,7 +183,7 @@ export default async function DashboardPage() {
       </DashboardSection>
       
       <DashboardSection 
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6"
+        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
         delay={0.4}
       >
         <TotalSalesChart
@@ -200,7 +200,7 @@ export default async function DashboardPage() {
       </DashboardSection>
       
       <DashboardSection 
-        className="grid grid-cols-1 lg:grid-cols-2 gap-6"
+        className="grid grid-cols-1 lg:grid-cols-2 gap-5"
         delay={0.5}
       >
         <TradingViewWidget 
@@ -219,12 +219,12 @@ export default async function DashboardPage() {
       </DashboardSection>
       
       <DashboardSection 
-        className="bg-gray-900 rounded-lg border border-gray-800 p-6 hover:shadow-lg hover:shadow-blue-900/20 transition-all duration-300 overflow-x-auto"
+        className="bg-card rounded-md border border-card-border p-5 shadow-card hover:shadow-elevated hover:bg-card-hover transition-all duration-200 overflow-x-auto"
         delay={0.6}
       >
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-xl font-semibold text-white">Top Merchants</h2>
-          <div className="px-2 py-1 bg-blue-600/20 rounded-md border border-blue-800 text-blue-400 text-xs font-medium">
+          <h2 className="text-base font-medium text-foreground">Top Merchants</h2>
+          <div className="px-2.5 py-1 bg-background rounded-md border border-card-border text-foreground-muted text-xs font-medium">
             Updated {new Date().toLocaleDateString()}
           </div>
         </div>

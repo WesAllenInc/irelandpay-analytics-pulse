@@ -24,50 +24,65 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
-      <body className={inter.className}>
-        <div className="flex flex-col min-h-screen bg-gray-50 dark:bg-gray-900">
-          <header className="w-full bg-white dark:bg-gray-800 shadow-sm">
-            <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between h-16">
-              {/* Logo and nav links, which collapse into a burger menu at md: */}
-              <div className="flex items-center justify-between w-full">
-                <Link href="/" className="text-xl font-bold dark:text-white">IrelandPay</Link>
-                <div className="hidden md:flex space-x-4">
-                  {/* Horizontal links for md+: */}
-                  <Link href="/" className="text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white">Dashboard</Link>
-                  <Link href="/dashboard/upload" className="text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white">Upload</Link>
-                  <Link href="/components-demo" className="text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white">Components</Link>
+    <html lang="en" className="dark">
+      <body className={`${inter.className} bg-black min-h-screen`}>
+        <div className="flex h-screen overflow-hidden">
+          {/* Collapsible Sidebar */}
+          <aside className="w-64 bg-background-secondary border-r border-card-border transition-all duration-300">
+            {/* Logo Section */}
+            <div className="p-6 border-b border-card-border">
+              <div className="flex items-center space-x-3">
+                <div className="w-10 h-10 bg-primary rounded-lg flex items-center justify-center">
+                  <span className="text-white font-bold">IP</span>
                 </div>
-                <div className="md:hidden">
-                  {/* Mobile menu */}
-                  <Sheet>
-                    <SheetTrigger asChild>
-                      <Button variant="ghost" size="icon" aria-label="Open menu">
-                        <Menu className="h-6 w-6" />
-                      </Button>
-                    </SheetTrigger>
-                    <SheetContent side="right" className="w-[240px] sm:w-[300px]">
-                      <div className="flex flex-col space-y-4 mt-6">
-                        <Link href="/" className="text-lg font-medium">Dashboard</Link>
-                        <Link href="/dashboard/upload" className="text-lg font-medium">Upload</Link>
-                        <Link href="/components-demo" className="text-lg font-medium">Components</Link>
-                      </div>
-                    </SheetContent>
-                  </Sheet>
-                </div>
+                <span className="text-white font-semibold">IrelandPay</span>
               </div>
-            </nav>
-          </header>
-          <main className="flex flex-col flex-1 px-4 sm:px-6 lg:px-8 py-6">
-            {children}
-          </main>
-          <footer className="bg-white dark:bg-gray-800 shadow-inner py-4">
-            <div className="max-w-7xl mx-auto text-center text-sm text-gray-500 dark:text-gray-400">
-              © 2025 IrelandPay Analytics
             </div>
-          </footer>
-          <Toaster />
+            {/* Navigation */}
+            <nav className="p-4">
+              {/* Navigation items with hover effects */}
+              <Link href="/" className="text-lg font-medium text-white hover:text-white">Dashboard</Link>
+              <Link href="/dashboard/upload" className="text-lg font-medium text-white hover:text-white">Upload</Link>
+              <Link href="/components-demo" className="text-lg font-medium text-white hover:text-white">Components</Link>
+            </nav>
+          </aside>
+
+          {/* Main Content */}
+          <main className="flex-1 flex flex-col overflow-hidden">
+            {/* Top Bar */}
+            <header className="h-16 bg-background-secondary border-b border-card-border px-6 flex items-center justify-between">
+              {/* Search, notifications, user menu */}
+              <div className="hidden md:flex space-x-4">
+                {/* Horizontal links for md+: */}
+                <Link href="/" className="text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white">Dashboard</Link>
+                <Link href="/dashboard/upload" className="text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white">Upload</Link>
+                <Link href="/components-demo" className="text-gray-700 dark:text-gray-200 hover:text-gray-900 dark:hover:text-white">Components</Link>
+              </div>
+              <div className="md:hidden">
+                {/* Mobile menu */}
+                <Sheet>
+                  <SheetTrigger asChild>
+                    <Button variant="ghost" size="icon" aria-label="Open menu">
+                      <Menu className="h-6 w-6" />
+                    </Button>
+                  </SheetTrigger>
+                  <SheetContent side="right" className="w-[240px] sm:w-[300px]">
+                    <div className="flex flex-col space-y-4 mt-6">
+                      <Link href="/" className="text-lg font-medium">Dashboard</Link>
+                      <Link href="/dashboard/upload" className="text-lg font-medium">Upload</Link>
+                      <Link href="/components-demo" className="text-lg font-medium">Components</Link>
+                    </div>
+                  </SheetContent>
+                </Sheet>
+              </div>
+            </header>
+            {/* Content Area */}
+            <div className="flex-1 overflow-auto bg-black">
+              {children}
+            </div>
+          </main>
         </div>
+        <Toaster />
       </body>
     </html>
   );

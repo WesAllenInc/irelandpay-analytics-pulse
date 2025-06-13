@@ -1,6 +1,6 @@
 import { createSupabaseServerClient } from '@/lib/supabase'
 import { TradingViewWidget } from '@/components/charts/trading-view-widget-final'
-import { TotalSalesChart } from '@/components/charts/total-sales-chart'
+import { TotalSalesChartLite as TotalSalesChart } from '@/components/charts/total-sales-chart-lite'
 import { EstimatedProfitChart } from '@/components/charts/estimated-profit-chart'
 import { MetricsCards } from '@/components/dashboard/metrics-cards'
 import { MerchantTable } from '@/components/dashboard/merchant-table'
@@ -19,7 +19,7 @@ import { Sparkles } from 'lucide-react'
 import { Badge } from '@/components/ui/badge'
 
 // Import DashboardWrapper for animations
-import { DashboardAnimationWrapper, DashboardHeader, DashboardSection } from '../../src/components/dashboard/dashboard-animation-wrapper'
+import { DashboardAnimationWrapper, DashboardHeader, DashboardSection } from '../../components/dashboard/dashboard-animation-wrapper'
 
 export const dynamic = 'force-dynamic'
 
@@ -129,8 +129,7 @@ export default async function DashboardPage() {
   // Generate data for the chart
   const currentMonthDates = generateCurrentMonthDates()
   const salesChartData = currentMonthDates.map(date => {
-    const dateStr = formatDateToYYYYMMDD(date)
-    const displayDate = formatDateToMMDD(date)
+    const time = formatDateToYYYYMMDD(date)
     const today = new Date()
     today.setHours(0, 0, 0, 0)
     
@@ -138,8 +137,8 @@ export default async function DashboardPage() {
     const isPast = date < today
     
     return {
-      date: displayDate,
-      actualVolume: isPast ? (dailySalesMap.get(dateStr) || 0) : 0,
+      time,
+      actualVolume: isPast ? (dailySalesMap.get(time) || 0) : 0,
       projectedVolume: isInFuture ? eomEstimate / daysInMonth : undefined
     }
   })

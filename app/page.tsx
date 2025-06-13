@@ -1,4 +1,5 @@
 
+'use client';
 import React, { useState } from 'react';
 import { MerchantSelector } from '@/components/MerchantSelector';
 import { VolumeChart } from '@/components/VolumeChart';

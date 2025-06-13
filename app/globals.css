@@ -4,48 +4,34 @@
 
 @layer base {
   :root {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+    /* Backgrounds */
+    --background: 0 0% 0%; /* Pure black #000000 */
+    --background-secondary: 0 0% 7%; /* #121212 */
+    --background-tertiary: 0 0% 10%; /* #1A1A1A */
+    
+    /* Cards & Surfaces */
+    --card: 0 0% 8%; /* #141414 */
+    --card-hover: 0 0% 12%; /* #1F1F1F */
+    --card-border: 0 0% 15%; /* #262626 */
+    
+    /* Brand Colors - Adapted for dark theme */
+    --primary: 158 41% 45%; /* Ireland Green adapted */
+    --primary-glow: 158 60% 55%; /* Brighter green for hover */
+    
+    /* Data Visualization */
+    --success: 142 76% 50%; /* #22C55E */
+    --danger: 0 84% 60%; /* #EF4444 */
+    --warning: 38 92% 50%; /* #F59E0B */
+    
+    /* Text */
+    --foreground: 0 0% 100%; /* Pure white */
+    --foreground-muted: 0 0% 60%; /* #999999 */
+    --foreground-subtle: 0 0% 40%; /* #666666 */
+    
+    /* Accent Colors */
+    --accent-orange: 25 95% 53%; /* #FF6B35 */
+    --accent-blue: 217 91% 60%; /* #3B82F6 */
+    --accent-purple: 263 70% 50%; /* #8B5CF6 */
   }
 }
 

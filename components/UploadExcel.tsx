@@ -72,6 +72,17 @@ const UploadExcel = ({ datasetType: initialDatasetType = "merchants" }: UploadEx
       });
       return;
     }
+    
+    // Validate file size (max 10 MB)
+    const maxSizeInBytes = 10 * 1024 * 1024; // 10MB
+    if (selectedFile.size > maxSizeInBytes) {
+      toast({
+        title: "File Too Large",
+        description: `File size exceeds 10MB. Please optimize your Excel file before uploading.`,
+        variant: "destructive",
+      });
+      return;
+    }
 
     try {
       setIsProcessing(true);
@@ -122,15 +133,31 @@ const UploadExcel = ({ datasetType: initialDatasetType = "merchants" }: UploadEx
       
       // Call the API endpoint to process the Excel file
       try {
-        const folderPath = datasetType === "merchants" ? "merchant" : "residual";
-        const response = await fetch('/api/process-excel', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+        const apiPath = "/api/process-excel"; // Using the unified API endpoint
+        
+        // Start timeout monitoring - set 30 sec timeout for processing
+        const timeoutId = setTimeout(() => {
+          if (uploadStatus === "processing") {
+            setUploadStatus("error");
+            setErrorMessage("Processing timed out. The file may be too large or complex. Please try again with a smaller file.");
+            setIsProcessing(false);
+          }
+        }, 30000); // 30 seconds timeout
+        
+        const response = await fetch(apiPath, {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
           body: JSON.stringify({ 
-            path: `${folderPath}/${selectedFile.name}`,
-            datasetType
+            path: filePath, 
+            datasetType,
+            requestTime: new Date().toISOString() // Add timestamp for tracking
           }),
         });
+        
+        // Clear timeout since we got a response
+        clearTimeout(timeoutId);
         
         const result = await response.json();
         
@@ -139,9 +166,20 @@ const UploadExcel = ({ datasetType: initialDatasetType = "merchants" }: UploadEx
             success: true,
             message: "File processed successfully",
             merchants: result.merchants || 0,
-            metrics: result.metrics || 0
+            metrics: result.metrics || 0,
+            residuals: result.residuals || 0
           });
           setUploadStatus("success");
+          
+          // Log success analytics
+          console.info(`Successfully processed ${datasetType} file:`, {
+            fileName: selectedFile.name,
+            fileSize: selectedFile.size,
+            merchants: result.merchants || 0,
+            metrics: datasetType === "merchants" ? (result.metrics || 0) : 0,
+            residuals: datasetType === "residuals" ? (result.residuals || 0) : 0,
+            processingTime: new Date().getTime() - new Date(JSON.parse(response.headers.get('x-request-time') || '0')).getTime()
+          });
         } else {
           setProcessingResult({
             success: false,

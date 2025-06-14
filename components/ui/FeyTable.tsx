@@ -49,34 +49,45 @@ export function FeyTable<T>({ data, columns, title }: FeyTableProps<T>) {
             </tr>
           </thead>
           <tbody>
-            {data.map((row, rowIdx) => (
-              <tr
-                key={rowIdx}
-                className="
-                  border-b border-card-border/50
-                  hover:bg-card-hover transition-colors
-                  group cursor-pointer
-                "
-              >
-                {columns.map((column) => (
-                  <td
-                    key={column.key as string}
-                    className="px-6 py-4 text-sm text-foreground"
-                  >
-                    {column.render ? column.render(row) : (row as any)[column.key]}
+            {data.length > 0 ? (
+              data.map((row, rowIdx) => (
+                <tr
+                  key={`row-${rowIdx}`}
+                  className="
+                    border-b border-card-border/50
+                    hover:bg-card-hover transition-colors
+                    group cursor-pointer
+                  "
+                >
+                  {columns.map((column) => (
+                    <td
+                      key={`${rowIdx}-${column.key as string}`}
+                      className="px-6 py-4 text-sm text-foreground"
+                    >
+                      {column.render ? column.render(row) : (row as any)[column.key]}
+                    </td>
+                  ))}
+                  <td className="px-6 py-4">
+                    <button title="Actions" className="
+                      opacity-0 group-hover:opacity-100
+                      transition-opacity text-foreground-muted
+                      hover:text-white
+                    ">
+                      <MoreVertical className="w-4 h-4" />
+                    </button>
                   </td>
-                ))}
-                <td className="px-6 py-4">
-                  <button title="Actions" className="
-                    opacity-0 group-hover:opacity-100
-                    transition-opacity text-foreground-muted
-                    hover:text-white
-                  ">
-                    <MoreVertical className="w-4 h-4" />
-                  </button>
+                </tr>
+              ))
+            ) : (
+              <tr key="no-data" className="border-b border-card-border/50">
+                <td 
+                  colSpan={columns.length + 1} 
+                  className="px-6 py-8 text-sm text-center text-muted-foreground"
+                >
+                  No data available
                 </td>
               </tr>
-            ))}
+            )}
           </tbody>
         </table>
       </div>

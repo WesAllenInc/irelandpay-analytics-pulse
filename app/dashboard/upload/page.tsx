@@ -1,16 +1,16 @@
-import {
-  Card,
-  DateRangePicker,
-  Select,
-  Button,
-  TablePro,
-  Title,
-} from 'react-bits';
+"use client";
+
 import { useState } from 'react';
 import Chart from 'react-apexcharts';
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { DateRangePicker } from "@/components/ui/date-range-picker";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { DataTable } from "@/components/ui/data-table";
+import { DateRange } from "react-day-picker";
 
 const ResidualsPage = () => {
-  const [dateRange, setDateRange] = useState({ from: null, to: null });
+  const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
   const [selectedMID, setSelectedMID] = useState('all');
 
   const chartOptions = {
@@ -28,33 +28,53 @@ const ResidualsPage = () => {
   ];
 
   const tableColumns = [
-    { label: 'MID', accessor: 'mid' },
-    { label: 'Name', accessor: 'name' },
-    { label: 'Volume', accessor: 'volume' },
-    { label: 'Residual', accessor: 'residual' },
+    { accessorKey: 'mid', header: 'MID' },
+    { accessorKey: 'name', header: 'Name' },
+    { accessorKey: 'volume', header: 'Volume' },
+    { accessorKey: 'residual', header: 'Residual' },
   ];
 
   return (
     <div className="p-6 grid gap-6">
       <Card>
-        <div className="flex flex-wrap gap-4 items-center">
-          <DateRangePicker value={dateRange} onChange={setDateRange} className="w-full md:w-auto" />
-          <Select
-            label="Filter by MID"
-            value={selectedMID}
-            onChange={setSelectedMID}
-            options={[{ label: 'All', value: 'all' }, { label: '123456', value: '123456' }]}
-          />
-          <Button onClick={() => console.log('Apply filters')}>Apply Filters</Button>
-        </div>
+        <CardContent className="pt-6">
+          <div className="flex flex-wrap gap-4 items-center">
+            <DateRangePicker 
+              value={dateRange}
+              onChange={(date) => date !== undefined ? setDateRange(date) : setDateRange({ from: undefined, to: undefined })}
+              className="w-full md:w-auto" 
+              placeholder="Select date range"
+            />
+            <div className="w-full md:w-auto">
+              <Select value={selectedMID} onValueChange={setSelectedMID}>
+                <SelectTrigger className="w-[180px]">
+                  <SelectValue placeholder="Filter by MID" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All</SelectItem>
+                  <SelectItem value="123456">123456</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <Button onClick={() => console.log('Apply filters')}>Apply Filters</Button>
+          </div>
+        </CardContent>
       </Card>
       <Card>
-        <Title level={3}>Monthly Residual Trends</Title>
-        <Chart options={chartOptions} series={chartSeries} type="line" height={300} />
+        <CardHeader>
+          <CardTitle>Monthly Residual Trends</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <Chart options={chartOptions} series={chartSeries} type="line" height={300} />
+        </CardContent>
       </Card>
       <Card>
-        <Title level={3}>Merchant Residual Breakdown</Title>
-        <TablePro columns={tableColumns} data={tableData} />
+        <CardHeader>
+          <CardTitle>Merchant Residual Breakdown</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <DataTable columns={tableColumns} data={tableData} />
+        </CardContent>
       </Card>
     </div>
   );

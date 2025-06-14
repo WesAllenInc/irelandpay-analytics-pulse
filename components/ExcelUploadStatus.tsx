@@ -78,7 +78,7 @@ export function ExcelUploadStatus({
       <CardHeader>
         <CardTitle className="flex items-center gap-2">
           <FileSpreadsheet className="h-5 w-5" />
-          Excel Upload
+          {datasetType === "merchants" ? "Merchant" : "Residual"} Data Upload
         </CardTitle>
       </CardHeader>
       <CardContent className="space-y-4">

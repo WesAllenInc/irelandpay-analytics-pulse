@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react'
 import { KPICard } from '@/components/ui/KPICard'
 import { DollarSign, CreditCard, Users, TrendingUp } from 'lucide-react'

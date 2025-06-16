@@ -40,14 +40,14 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>)
     const projectedVolume = payload[1]?.value
 
     return (
-      <div className="bg-card border-card-border p-3 rounded-md shadow-lg">
-        <p className="text-foreground-muted text-xs">{label}</p>
-        <p className="text-white font-medium">
-          <span className="text-blue-400">Actual:</span> {formatCurrency(actualVolume)}
+      <div className="bg-gruvbox-bg-1 border-gruvbox-bg-3 p-3 rounded-md shadow-lg">
+        <p className="text-gruvbox-gray text-xs">{label}</p>
+        <p className="text-gruvbox-fg font-medium">
+          <span className="text-gruvbox-blue">Actual:</span> {formatCurrency(actualVolume)}
         </p>
         {projectedVolume !== undefined && (
-          <p className="text-white font-medium">
-            <span className="text-amber-400">Projected:</span> {formatCurrency(projectedVolume)}
+          <p className="text-gruvbox-fg font-medium">
+            <span className="text-gruvbox-yellow">Projected:</span> {formatCurrency(projectedVolume)}
           </p>
         )}
       </div>
@@ -74,25 +74,25 @@ export function TotalSalesChart({
 
   return (
     <motion.div initial="hidden" animate="visible" variants={animations.fadeIn}>
-      <Card className={`bg-card border-card-border ${className}`}>
+      <Card className={`bg-gruvbox-bg border-gruvbox-bg-2 ${className}`}>
         <CardHeader className="pb-2">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-white text-xl">Total Sales Volume (MTD)</CardTitle>
-              <CardDescription className="text-foreground-muted">
+              <CardTitle className="text-gruvbox-fg text-xl">Total Sales Volume (MTD)</CardTitle>
+              <CardDescription className="text-gruvbox-gray">
                 Month-to-date sales + end-of-month projection
               </CardDescription>
             </div>
             <div className="flex flex-col items-end">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-blue-500 rounded-full" />
-                <span className="text-foreground-muted text-sm">MTD: {formatCurrency(mtdTotal)}</span>
+                <div className="w-2 h-2 bg-gruvbox-blue rounded-full" />
+                <span className="text-gruvbox-gray text-sm">MTD: {formatCurrency(mtdTotal)}</span>
               </div>
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-amber-500 rounded-full" />
-                <span className="text-foreground-muted text-sm">EOM Est: {formatCurrency(eomEstimate)}</span>
+                <div className="w-2 h-2 bg-gruvbox-yellow rounded-full" />
+                <span className="text-gruvbox-gray text-sm">EOM Est: {formatCurrency(eomEstimate)}</span>
               </div>
-              <div className="text-xs text-foreground-muted mt-1">
+              <div className="text-xs text-gruvbox-gray mt-1">
                 {daysElapsed} of {totalDaysInMonth} days • {percentTowardProjection}% of projection
               </div>
             </div>
@@ -111,45 +111,45 @@ export function TotalSalesChart({
                 }}
                 onMouseLeave={() => setHoveredBar(null)}
               >
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--card-border))" vertical={false} />
+                <CartesianGrid strokeDasharray="3 3" stroke="#504945" vertical={false} />
                 <XAxis 
                   dataKey="date" 
-                  tick={{ fill: 'hsl(var(--foreground-muted))' }} 
-                  axisLine={{ stroke: 'hsl(var(--card-border))' }}
-                  tickLine={{ stroke: 'hsl(var(--card-border))' }}
+                  tick={{ fill: '#a89984' }} 
+                  axisLine={{ stroke: '#504945' }}
+                  tickLine={{ stroke: '#504945' }}
                 />
                 <YAxis 
-                  tick={{ fill: 'hsl(var(--foreground-muted))' }} 
-                  axisLine={{ stroke: 'hsl(var(--card-border))' }}
-                  tickLine={{ stroke: 'hsl(var(--card-border))' }}
+                  tick={{ fill: '#a89984' }} 
+                  axisLine={{ stroke: '#504945' }}
+                  tickLine={{ stroke: '#504945' }}
                   tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
                 />
                 <Tooltip content={<CustomTooltip />} />
                 <Legend 
                   wrapperStyle={{ paddingTop: '10px' }}
-                  formatter={(value) => <span className="text-foreground-muted">{value}</span>}
+                  formatter={(value) => <span className="text-gruvbox-gray">{value}</span>}
                 />
                 <ReferenceLine 
                   y={eomEstimate / totalDaysInMonth} 
-                  stroke="hsl(var(--warning))" 
+                  stroke="#d79921" 
                   strokeDasharray="3 3"
                   label={{ 
                     value: 'Daily Target', 
                     position: 'right', 
-                    fill: 'hsl(var(--warning))',
+                    fill: '#d79921',
                     fontSize: 12
                   }} 
                 />
                 <Bar 
                   dataKey="actualVolume" 
                   name="Actual Volume" 
-                  fill={hoveredBar ? 'hsla(var(--accent-blue), 0.8)' : 'hsl(var(--accent-blue))'} 
+                  fill={hoveredBar ? '#458588cc' : '#458588'} 
                   radius={[4, 4, 0, 0]}
                 />
                 <Line 
                   dataKey="projectedVolume" 
                   name="Projected" 
-                  stroke="hsl(var(--warning))" 
+                  stroke="#d79921" 
                   strokeWidth={2} 
                   strokeDasharray="5 5" 
                   dot={false}

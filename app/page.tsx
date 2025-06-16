@@ -4,27 +4,27 @@ import Link from 'next/link';
 
 export default function LandingPage() {
   return (
-    <div className="min-h-screen bg-[#050505] flex items-center justify-center p-4">
-      {/* Gradient background effect */}
-      <div className="absolute inset-0 bg-gradient-to-br from-green-900/20 via-transparent to-transparent" />
+    <div className="min-h-screen bg-gruvbox-bg flex items-center justify-center p-4">
+      {/* Gradient background effect - Gruvbox Dark */}
+      <div className="absolute inset-0 bg-gradient-to-br from-gruvbox-green/20 via-transparent to-transparent" />
       
       <div className="relative z-10 w-full max-w-5xl mx-auto">
         {/* Logo and branding */}
         <div className="text-center mb-12">
           <div className="inline-flex items-center gap-3 mb-8">
-            <div className="w-16 h-16 bg-gradient-to-br from-green-500 to-green-600 rounded-2xl flex items-center justify-center shadow-lg shadow-green-500/20">
-              <span className="text-2xl font-bold text-white">IP</span>
+            <div className="w-16 h-16 bg-gradient-to-br from-gruvbox-yellow to-gruvbox-orange rounded-2xl flex items-center justify-center shadow-lg shadow-gruvbox-yellow/20">
+              <span className="text-2xl font-bold text-gruvbox-bg">IP</span>
             </div>
-            <h1 className="text-4xl font-bold text-white">IrelandPay</h1>
+            <h1 className="text-4xl font-bold text-gruvbox-fg-1">IrelandPay</h1>
           </div>
-          <p className="text-xl text-gray-400">Make better investments.</p>
+          <p className="text-xl text-gruvbox-gray">Make better investments.</p>
         </div>
 
         {/* Split screen cards */}
         <div className="grid md:grid-cols-2 gap-8">
           {/* Login Card */}
-          <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-2xl p-8 hover:border-green-900/50 transition-all duration-300">
-            <h2 className="text-2xl font-semibold text-white mb-6">Welcome back</h2>
+          <div className="bg-gruvbox-bg-1 border border-gruvbox-bg-3 rounded-2xl p-8 hover:border-gruvbox-yellow/30 transition-all duration-300">
+            <h2 className="text-2xl font-semibold text-gruvbox-fg-1 mb-6">Welcome back</h2>
             <form className="space-y-6">
               <div>
                 <input
@@ -41,7 +41,7 @@ export default function LandingPage() {
                 />
               </div>
               <Link href="/dashboard">
-                <button className="w-full py-3 bg-gradient-to-r from-green-500 to-green-600 text-white font-medium rounded-xl hover:shadow-lg hover:shadow-green-500/25 transition-all duration-300">
+                <button className="w-full py-3 bg-gradient-to-r from-gruvbox-yellow to-gruvbox-orange text-gruvbox-bg font-medium rounded-xl hover:shadow-lg hover:shadow-gruvbox-yellow/25 transition-all duration-300">
                   Sign In
                 </button>
               </Link>
@@ -49,10 +49,10 @@ export default function LandingPage() {
           </div>
 
           {/* Signup Card */}
-          <div className="bg-[#0A0A0A] border border-[#1A1A1A] rounded-2xl p-8 hover:border-green-900/50 transition-all duration-300">
-            <h2 className="text-2xl font-semibold text-white mb-6">Get started</h2>
-            <p className="text-gray-400 mb-6">Start enjoying the benefits, let's set up your account.</p>
-            <button className="w-full py-3 bg-[#141414] border border-[#242424] text-white font-medium rounded-xl hover:bg-[#1A1A1A] transition-all duration-300 flex items-center justify-center gap-3">
+          <div className="bg-gruvbox-bg-1 border border-gruvbox-bg-3 rounded-2xl p-8 hover:border-gruvbox-yellow/30 transition-all duration-300">
+            <h2 className="text-2xl font-semibold text-gruvbox-fg-1 mb-6">Get started</h2>
+            <p className="text-gruvbox-gray mb-6">Start enjoying the benefits, let's set up your account.</p>
+            <button className="w-full py-3 bg-gruvbox-bg-1 border border-gruvbox-bg-3 text-gruvbox-fg-1 font-medium rounded-xl hover:bg-gruvbox-bg-2 transition-all duration-300 flex items-center justify-center gap-3">
               <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
                 <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
                 <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
@@ -62,9 +62,9 @@ export default function LandingPage() {
               Signup with Google
             </button>
             <div className="text-center mt-4">
-              <span className="text-gray-500 text-sm">
+              <span className="text-gruvbox-gray text-sm">
                 By signing up, you agree to our{' '}
-                <a href="#" className="text-green-500 hover:underline">Terms of Service</a>
+                <a href="#" className="text-gruvbox-yellow hover:underline">Terms of Service</a>
               </span>
             </div>
           </div>

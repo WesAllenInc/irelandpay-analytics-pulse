@@ -23,7 +23,7 @@ const robotoMono = Roboto_Mono({
 export const metadata: Metadata = {
   title: 'Ireland Pay Analytics',
   description: 'Real-time merchant analytics and insights dashboard',
-  themeColor: '#080a0f',
+  themeColor: '#282828', // Updated to Gruvbox bg color
 };
 
 // This layout is used for the public-facing parts of the site
@@ -38,14 +38,14 @@ export default function RootLayout({
       <body className={`${inter.variable} ${robotoMono.variable} font-sans bg-background min-h-screen text-foreground`}>
         <div className="flex h-screen overflow-hidden">
           {/* Collapsible Sidebar - Styled like Fey inspiration */}
-          <aside className="w-64 bg-background-secondary border-r border-card-border transition-all duration-300">
+          <aside className="w-64 bg-gruvbox-bg-h border-r border-gruvbox-bg-2 transition-all duration-300">
             {/* Logo Section */}
-            <div className="p-6 border-b border-card-border">
+            <div className="p-6 border-b border-gruvbox-bg-2">
               <div className="flex items-center space-x-3">
-                <div className="w-10 h-10 bg-primary rounded-md flex items-center justify-center shadow-elevated">
+                <div className="w-10 h-10 bg-gruvbox-yellow rounded-md flex items-center justify-center shadow-elevated">
                   <span className="text-white font-bold">IP</span>
                 </div>
-                <span className="text-foreground font-semibold tracking-wide">IrelandPay</span>
+                <span className="text-gruvbox-fg-1 font-semibold tracking-wide">IrelandPay</span>
               </div>
             </div>
             {/* Navigation */}
@@ -82,14 +82,14 @@ export default function RootLayout({
           {/* Main Content */}
           <main className="flex-1 flex flex-col overflow-hidden">
             {/* Top Bar */}
-            <header className="h-16 bg-background-secondary border-b border-card-border px-6 flex items-center justify-between">
+            <header className="h-16 bg-gruvbox-bg-h/95 border-b border-gruvbox-bg-2 px-6 flex items-center justify-between">
               {/* Title and search area */}
               <div className="flex items-center space-x-4">
-                <span className="text-foreground font-medium tracking-wide hidden md:inline">Ireland Pay Analytics</span>
-                <div className="hidden md:block relative rounded-full bg-background border border-card-border px-4 py-1.5 min-w-[240px]">
+                <span className="text-gruvbox-fg-1 font-medium tracking-wide hidden md:inline">Ireland Pay Analytics</span>
+                <div className="hidden md:block relative rounded-full bg-gruvbox-bg border border-gruvbox-bg-2 px-4 py-1.5 min-w-[240px]">
                   <input 
                     type="text" 
-                    className="bg-transparent border-none focus:outline-none text-foreground text-sm w-full" 
+                    className="bg-transparent border-none focus:outline-none text-gruvbox-fg-1 text-sm w-full" 
                     placeholder="Search..."
                   />
                 </div>
@@ -97,12 +97,12 @@ export default function RootLayout({
               
               {/* Right side controls */}
               <div className="flex items-center space-x-4">
-                <Button variant="ghost" size="icon" className="text-foreground-muted hover:text-foreground rounded-full w-8 h-8">
+                <Button variant="ghost" size="icon" className="text-gruvbox-gray hover:text-gruvbox-fg-1 rounded-full w-8 h-8">
                   <span className="sr-only">Notifications</span>
                   <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg>
                 </Button>
                 
-                <div className="h-8 w-8 rounded-full bg-primary flex items-center justify-center text-white text-sm font-medium">
+                <div className="h-8 w-8 rounded-full bg-gruvbox-yellow flex items-center justify-center text-gruvbox-bg-h text-sm font-medium">
                   IP
                 </div>
                 
@@ -114,7 +114,7 @@ export default function RootLayout({
                         <Menu className="h-5 w-5" />
                       </Button>
                     </SheetTrigger>
-                    <SheetContent side="right" className="w-[280px] bg-background border-l border-card-border">
+                    <SheetContent side="right" className="w-[280px] bg-gruvbox-bg border-l border-gruvbox-bg-2">
                       <div className="flex flex-col space-y-4 mt-6 px-2">
                         <Link href="/dashboard" className="flex items-center space-x-3 px-3 py-2.5 rounded-md hover:bg-card transition-all duration-200">
                           <span>Dashboard</span>
@@ -139,7 +139,7 @@ export default function RootLayout({
             </header>
             
             {/* Content Area */}
-            <div className="flex-1 overflow-auto bg-background">
+            <div className="flex-1 overflow-auto bg-gruvbox-bg">
               {children}
             </div>
           </main>

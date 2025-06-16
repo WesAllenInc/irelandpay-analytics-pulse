@@ -4,36 +4,57 @@
 
 @layer base {
   :root {
-    /* Pure Black Background like Fey */
-    --background: 0 0% 2%; /* #050505 */
-    --background-secondary: 0 0% 5%; /* #0D0D0D */
-    --background-tertiary: 0 0% 8%; /* #141414 */
+    /* Gruvbox Dark Theme */
+    --background: 0 0% 16%; /* #282828 */
+    --background-secondary: 0 0% 11%; /* #1d2021 */
+    --background-tertiary: 0 0% 24%; /* #3c3836 */
     
-    /* Card backgrounds with subtle glow */
-    --card: 0 0% 7%; /* #121212 */
-    --card-hover: 0 0% 10%; /* #1A1A1A */
-    --card-border: 0 0% 13%; /* #212121 */
+    --card: 0 0% 20%; /* #32302f */
+    --card-hover: 0 0% 24%; /* #3c3836 */
+    --card-border: 0 0% 31%; /* #504945 */
     
-    /* Fey's signature green */
-    --primary: 158 100% 42%; /* #00AA55 - Bright green like Fey */
-    --primary-dim: 158 60% 35%; /* Dimmed version */
+    --primary: 42 87% 47%; /* #d79921 */
+    --primary-foreground: 0 0% 11%; /* #1d2021 */
     
-    /* Status colors matching Fey */
-    --success: 142 100% 45%; /* #00CC66 */
-    --danger: 0 100% 65%; /* #FF4444 */
-    --warning: 38 100% 60%; /* #FFAA00 */
+    --success: 61 43% 35%; /* #98971a */
+    --danger: 6 78% 46%; /* #cc241d */
+    --warning: 42 87% 47%; /* #d79921 */
     
-    /* Text */
-    --foreground: 0 0% 100%; /* #FFFFFF - Pure white text */
-    --foreground-muted: 0 0% 60%; /* #999999 - Secondary text */
-    --foreground-subtle: 0 0% 40%; /* #666666 - Tertiary/disabled text */
+    --foreground: 39 21% 80%; /* #ebdbb2 */
+    --foreground-muted: 24 12% 58%; /* #a89984 */
+    --foreground-subtle: 30 14% 44%; /* #928374 */
     
-    /* Accent Colors */
-    --accent-red: 0 100% 65%; /* #FF4444 - Red accent */
-    --accent-blue: 210 100% 50%; /* #0088FF - Blue accent */
-    --accent-green: 142 100% 45%; /* #00CC66 - Green accent */
-    --accent-orange: 38 100% 60%; /* #FFAA00 - Orange accent */
-    --accent-purple: 280 100% 60%; /* #AA44FF - Purple accent */
+    --accent-red: 2 86% 64%; /* #fb4934 */
+    --accent-blue: 179 26% 41%; /* #458588 */
+    --accent-green: 66 31% 50%; /* #b8bb26 */
+    --accent-orange: 26 76% 49%; /* #d65d0e */
+    --accent-purple: 333 34% 54%; /* #b16286 */
+    --accent-aqua: 162 25% 46%; /* #689d6a */
+    
+    --border: 0 0% 31%; /* #504945 */
+    --input: 0 0% 31%; /* #504945 */
+    --ring: 42 87% 47%; /* #d79921 */
+    
+    --muted: 0 0% 31%; /* #504945 */
+    --muted-foreground: 24 12% 58%; /* #a89984 */
+    
+    --popover: 0 0% 20%; /* #32302f */
+    --popover-foreground: 39 21% 80%; /* #ebdbb2 */
+    
+    --secondary: 0 0% 24%; /* #3c3836 */
+    --secondary-foreground: 39 21% 80%; /* #ebdbb2 */
+    
+    --destructive: 6 78% 46%; /* #cc241d */
+    --destructive-foreground: 39 33% 95%; /* #fbf1c7 */
+    
+    --sidebar-background: 0 0% 11%; /* #1d2021 */
+    --sidebar-foreground: 39 21% 80%; /* #ebdbb2 */
+    --sidebar-primary: 42 87% 47%; /* #d79921 */
+    --sidebar-primary-foreground: 0 0% 11%; /* #1d2021 */
+    --sidebar-accent: 0 0% 24%; /* #3c3836 */
+    --sidebar-accent-foreground: 39 21% 80%; /* #ebdbb2 */
+    --sidebar-border: 0 0% 31%; /* #504945 */
+    --sidebar-ring: 42 87% 47%; /* #d79921 */
   }
 }
 
@@ -53,16 +74,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: rgb(15 15 15);
+  background: #1d2021;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgb(64 64 64);
+  background: #504945;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgb(82 82 82);
+  background: #665c54;
 }
 
 /* Chart container styles */
@@ -82,4 +103,23 @@
 
 .animate-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Chart legend color dots */
+[class^="legend-color-"] {
+  background-color: var(--chart-series-color, #458588);
+}
+
+/* Apply color from data attribute */
+[class^="legend-color-"]:not([style*="background-color"]) {
+  background-color: attr(data-color);
+}
+
+/* Chart tooltip positioning classes */
+.chart-tooltip.tooltip-left {
+  transform: translateX(-100%);
+}
+
+.chart-tooltip:not(.tooltip-left) {
+  transform: none;
 }

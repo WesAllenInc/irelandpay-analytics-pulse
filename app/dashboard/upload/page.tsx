@@ -1,83 +1,76 @@
 "use client";
 
 import { useState } from 'react';
-import Chart from 'react-apexcharts';
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { DateRangePicker } from "@/components/ui/date-range-picker";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { DataTable } from "@/components/ui/data-table";
-import { DateRange } from "react-day-picker";
+import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import UploadExcel from "@/components/UploadExcel";
 
-const ResidualsPage = () => {
-  const [dateRange, setDateRange] = useState<DateRange>({ from: undefined, to: undefined });
-  const [selectedMID, setSelectedMID] = useState('all');
-
-  const chartOptions = {
-    chart: { id: 'residual-line' },
-    xaxis: { categories: ['Jan', 'Feb', 'Mar', 'Apr', 'May'] },
-  };
-
-  const chartSeries = [
-    { name: 'Residuals', data: [4500, 5200, 4800, 6100, 7000] },
-  ];
-
-  const tableData = [
-    { mid: '123456', name: 'Merchant A', volume: '$25,000', residual: '$500' },
-    { mid: '789012', name: 'Merchant B', volume: '$30,000', residual: '$600' },
-  ];
-
-  const tableColumns = [
-    { accessorKey: 'mid', header: 'MID' },
-    { accessorKey: 'name', header: 'Name' },
-    { accessorKey: 'volume', header: 'Volume' },
-    { accessorKey: 'residual', header: 'Residual' },
-  ];
+const UploadPage = () => {
+  const [activeTab, setActiveTab] = useState<string>("merchant-data");
 
   return (
     <div className="p-6 grid gap-6">
-      <Card>
-        <CardContent className="pt-6">
-          <div className="flex flex-wrap gap-4 items-center">
-            <DateRangePicker 
-              value={dateRange}
-              onChange={(date) => date !== undefined ? setDateRange(date) : setDateRange({ from: undefined, to: undefined })}
-              className="w-full md:w-auto" 
-              placeholder="Select date range"
-            />
-            <div className="w-full md:w-auto">
-              <Select value={selectedMID} onValueChange={setSelectedMID}>
-                <SelectTrigger className="w-[180px]">
-                  <SelectValue placeholder="Filter by MID" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">All</SelectItem>
-                  <SelectItem value="123456">123456</SelectItem>
-                </SelectContent>
-              </Select>
+      <Card className="bg-card border-card-border">
+        <CardHeader>
+          <CardTitle className="text-lg font-medium text-foreground">Upload Data</CardTitle>
+          <CardDescription className="text-foreground-muted">
+            Upload Excel files to import merchant or residual data into the system.
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <Tabs 
+            defaultValue="merchant-data" 
+            value={activeTab}
+            onValueChange={setActiveTab}
+            className="w-full"
+          >
+            <TabsList className="grid w-full grid-cols-2">
+              <TabsTrigger value="merchant-data">Merchant Data</TabsTrigger>
+              <TabsTrigger value="residual-data">Residual Data</TabsTrigger>
+            </TabsList>
+            <TabsContent value="merchant-data">
+              <div className="py-4">
+                <UploadExcel datasetType="merchants" />
+              </div>
+            </TabsContent>
+            <TabsContent value="residual-data">
+              <div className="py-4">
+                <UploadExcel datasetType="residuals" />
+              </div>
+            </TabsContent>
+          </Tabs>
+        </CardContent>
+      </Card>
+      
+      <Card className="bg-card border-card-border">
+        <CardHeader>
+          <CardTitle className="text-lg font-medium text-foreground">Upload Guidelines</CardTitle>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-4 text-foreground-muted">
+            <div>
+              <h3 className="text-base font-medium text-foreground mb-2">Merchant Data Format</h3>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>File must be in .xlsx or .xls format</li>
+                <li>Required columns: MID, Name, Address, City, State, ZIP</li>
+                <li>Maximum file size: 10MB</li>
+              </ul>
             </div>
-            <Button onClick={() => console.log('Apply filters')}>Apply Filters</Button>
+            
+            <div>
+              <h3 className="text-base font-medium text-foreground mb-2">Residual Data Format</h3>
+              <ul className="list-disc pl-5 space-y-1">
+                <li>File must be in .xlsx or .xls format</li>
+                <li>Required columns: MID, Date, Amount, Category</li>
+                <li>Dates should be in MM/DD/YYYY format</li>
+                <li>Maximum file size: 10MB</li>
+              </ul>
+            </div>
           </div>
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Monthly Residual Trends</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <Chart options={chartOptions} series={chartSeries} type="line" height={300} />
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Merchant Residual Breakdown</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <DataTable columns={tableColumns} data={tableData} />
         </CardContent>
       </Card>
     </div>
   );
 };
 
-export default ResidualsPage;
+export default UploadPage;

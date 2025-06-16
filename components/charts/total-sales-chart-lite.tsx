@@ -34,23 +34,23 @@ export function TotalSalesChartLite({ data, mtdTotal, eomEstimate, daysElapsed, 
       width: chartContainer.current.clientWidth,
       height: 300,
       layout: {
-        backgroundColor: 'hsl(var(--card))',
-        textColor: 'hsl(var(--foreground-muted))',
+        backgroundColor: '#282828', // Gruvbox bg - use hex instead of CSS vars
+        textColor: '#a89984', // Gruvbox fg4/muted
       },
       grid: {
-        vertLines: { color: 'hsl(var(--card-border))' },
-        horzLines: { color: 'hsl(var(--card-border))' },
+        vertLines: { color: '#504945' }, // Gruvbox bg2
+        horzLines: { color: '#504945' }, // Gruvbox bg2
       },
       timeScale: {
         timeVisible: true,
-        borderColor: 'hsl(var(--card-border))',
+        borderColor: '#504945', // Gruvbox bg2
       },
       rightPriceScale: {
-        borderColor: 'hsl(var(--card-border))',
+        borderColor: '#504945', // Gruvbox bg2
       },
     })
-    actualSeriesRef.current = chartRef.current.addLineSeries({ color: 'hsl(var(--accent-blue))', lineWidth: 2 })
-    projectedSeriesRef.current = chartRef.current.addLineSeries({ color: 'hsl(var(--warning))', lineWidth: 2, lineStyle: 2 })
+    actualSeriesRef.current = chartRef.current.addLineSeries({ color: '#458588', lineWidth: 2 }) // Gruvbox blue
+    projectedSeriesRef.current = chartRef.current.addLineSeries({ color: '#d79921', lineWidth: 2, lineStyle: 2 }) // Gruvbox yellow/warning
     return () => chartRef.current?.remove()
   }, [])
 

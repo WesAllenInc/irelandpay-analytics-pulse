@@ -22,3 +22,19 @@ export function formatCurrency(value: number, options?: Intl.NumberFormatOptions
   
   return formatter.format(value);
 }
+
+/**
+ * Format a number with thousands separators
+ * @param value - The number to format
+ * @param options - Intl.NumberFormat options
+ * @returns Formatted number string
+ */
+export function formatNumber(value: number, options?: Intl.NumberFormatOptions) {
+  const formatter = new Intl.NumberFormat('en-US', {
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+    ...options,
+  });
+  
+  return formatter.format(value);
+}

@@ -186,15 +186,15 @@ function TradingViewWidgetComponent({
   }, [data, height, type, color, showVolume])
   
   return (
-    <div className={`bg-gray-950 rounded-lg p-4 border border-gray-800 ${className}`}>
+    <div className={`bg-card rounded-lg p-5 border border-card-border shadow-card hover:shadow-elevated transition-all duration-200 ${className}`}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-white text-lg font-semibold">{title}</h3>
+        <h3 className="text-foreground text-base font-medium">{title}</h3>
         <div className="flex items-center gap-2">
           <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          <span className="text-xs text-gray-400">Live</span>
+          <span className="text-xs text-foreground-muted">Live</span>
         </div>
       </div>
-      <div ref={chartContainerRef} className="w-full" />
+      <div ref={chartContainerRef} className="w-full overflow-hidden" />
     </div>
   )
 }

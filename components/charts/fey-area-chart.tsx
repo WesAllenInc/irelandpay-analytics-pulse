@@ -1,15 +1,16 @@
 'use client';
 
 import React, { useEffect, useRef } from 'react';
-import { createChart } from 'lightweight-charts';
+import { createChart, ColorType, LineStyle, CrosshairMode, Time } from 'lightweight-charts';
 import { FeyCard } from '../ui/fey-card';
 
 interface FeyAreaChartProps {
   data: { time: string; value: number }[];
   title?: string;
+  color?: string;
 }
 
-export function FeyAreaChart({ data, title = 'Performance' }: FeyAreaChartProps) {
+export function FeyAreaChart({ data, title = 'Performance', color = '#98971a' }: FeyAreaChartProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<any>(null);
 
@@ -23,38 +24,41 @@ export function FeyAreaChart({ data, title = 'Performance' }: FeyAreaChartProps)
       // Create new chart with Fey style
       const chart = createChart(containerRef.current, {
         layout: {
-          background: { color: 'transparent' },
-          textColor: '#666666',
+          background: { type: ColorType.Solid, color: 'transparent' },
+          textColor: '#a89984', // Gruvbox fg4/muted
         },
         grid: {
-          vertLines: { color: '#1A1A1A' },
-          horzLines: { color: '#1A1A1A' },
+          vertLines: { color: '#504945' }, // Gruvbox bg2
+          horzLines: { color: '#504945' }, // Gruvbox bg2
         },
         crosshair: {
+          mode: CrosshairMode.Normal,
           vertLine: {
-            color: '#3A3A3A',
-            labelBackgroundColor: '#1A1A1A',
+            color: '#928374', // Gruvbox fg2
+            labelBackgroundColor: '#3c3836', // Gruvbox bg1
+            style: LineStyle.Dotted,
           },
           horzLine: {
-            color: '#3A3A3A',
-            labelBackgroundColor: '#1A1A1A',
+            color: '#928374', // Gruvbox fg2
+            labelBackgroundColor: '#3c3836', // Gruvbox bg1
+            style: LineStyle.Dotted,
           },
         },
         timeScale: {
-          borderColor: '#1A1A1A',
+          borderColor: '#504945', // Gruvbox bg2
           timeVisible: true,
         },
         rightPriceScale: {
-          borderColor: '#1A1A1A',
+          borderColor: '#504945', // Gruvbox bg2
         },
       });
       
       chartRef.current = chart;
       
       const areaSeries = chart.addAreaSeries({
-        lineColor: '#00CC66',
-        topColor: 'rgba(0, 204, 102, 0.3)',
-        bottomColor: 'rgba(0, 204, 102, 0.0)',
+        lineColor: color,
+        topColor: color.startsWith('#') ? `${color}4D` : `${color}30`, // Add 30% opacity for top color
+        bottomColor: color.startsWith('#') ? `${color}00` : `${color}00`, // Add 0% opacity for bottom color
         lineWidth: 2,
         // Using a basic price format instead of custom formatter
         priceFormat: {
@@ -64,7 +68,13 @@ export function FeyAreaChart({ data, title = 'Performance' }: FeyAreaChartProps)
         },
       });
       
-      areaSeries.setData(data);
+      // Format data to match the expected Time type
+      const formattedData = data.map(item => ({
+        time: item.time as Time,
+        value: item.value
+      }));
+      
+      areaSeries.setData(formattedData);
 
       // Handle resize
       const handleResize = () => {

@@ -1,8 +1,8 @@
 import React, { useEffect, useRef } from 'react';
-import { createChart, ColorType } from 'lightweight-charts';
+import { createChart, ColorType, LineStyle, CrosshairMode, Time } from 'lightweight-charts';
 
 export interface FeyChartProps {
-  data: Array<{ time: number | string; value: number }>;
+  data: Array<{ time: string; value: number }>;
   type?: 'area' | 'line';
 }
 
@@ -15,36 +15,42 @@ export function FeyChart({ data, type = 'area' }: FeyChartProps) {
     const chartOptions = {
       layout: {
         background: { type: ColorType.Solid, color: 'transparent' },
-        textColor: 'hsl(var(--foreground-muted))',
+        textColor: '#a89984', // Gruvbox fg4/muted
       },
       grid: {
-        vertLines: { color: 'hsl(var(--card-border))' },
-        horzLines: { color: 'hsl(var(--card-border))' },
+        vertLines: { color: '#504945' }, // Gruvbox bg2 (border)
+        horzLines: { color: '#504945' }, // Gruvbox bg2 (border)
       },
       crosshair: {
-        mode: 1,
-        vertLine: { width: 1, color: 'hsl(var(--foreground-subtle))', style: 3 },
-        horzLine: { width: 1, color: 'hsl(var(--foreground-subtle))', style: 3 },
+        mode: CrosshairMode.Normal,
+        vertLine: { color: '#928374', style: LineStyle.Dotted }, // Gruvbox fg2/subtle
+        horzLine: { color: '#928374', style: LineStyle.Dotted }, // Gruvbox fg2/subtle
       },
-      timeScale: { borderColor: 'hsl(var(--card-border))', timeVisible: true },
-      rightPriceScale: { borderColor: 'hsl(var(--card-border))' },
+      timeScale: { borderColor: '#504945', timeVisible: true }, // Gruvbox bg2 (border)
+      rightPriceScale: { borderColor: '#504945' }, // Gruvbox bg2 (border)
     };
 
     const chart = createChart(chartContainerRef.current, chartOptions);
     const series =
       type === 'area'
         ? chart.addAreaSeries({
-            lineColor: 'hsl(var(--success))',
-            topColor: 'hsla(var(--success),0.4)',
-            bottomColor: 'hsla(var(--success),0)',
+            lineColor: '#98971a', // Gruvbox green/success
+            topColor: 'rgba(152, 151, 26, 0.4)', // Gruvbox green with opacity
+            bottomColor: 'rgba(152, 151, 26, 0)', // Gruvbox green fully transparent
             lineWidth: 2,
           })
         : chart.addLineSeries({
-            color: 'hsl(var(--success))',
+            color: '#98971a', // Gruvbox green/success
             lineWidth: 2,
           });
 
-    series.setData(data);
+    // Format data to match the expected Time type
+    const formattedData = data.map(item => ({
+      time: item.time as Time,
+      value: item.value
+    }));
+    
+    series.setData(formattedData);
 
     const handleResize = () => {
       if (chartContainerRef.current) {

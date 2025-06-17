@@ -1,6 +1,6 @@
 'use client'
 
-import { FeySidebar } from '@/components/navigation/FeySidebar'
+import { TopNavigation } from '@/components/dashboard/top-navigation'
 import { useRealtimeData } from '@/hooks/use-realtime-data'
 import { useMerchantData } from '@/hooks/use-merchant-data'
 import { useStore } from '@/lib/store'
@@ -36,8 +36,8 @@ export default function DashboardLayout({
   }, [realtimeMasterData, setMasterData])
   
   return (
-    <div className="flex h-screen overflow-hidden">
-      <FeySidebar />
+    <div className="flex flex-col h-screen overflow-hidden">
+      <TopNavigation />
       <main className="flex-1 overflow-y-auto">
         <div className="container mx-auto p-6">
           {loading ? (

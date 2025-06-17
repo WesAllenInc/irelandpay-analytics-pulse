@@ -62,17 +62,17 @@ export function TotalSalesChartLite({ data, mtdTotal, eomEstimate, daysElapsed, 
   }, [data])
 
   return (
-    <motion.div initial="hidden" animate="visible" variants={animations.fadeIn}>
-      <Card className={`bg-card border-card-border ${className}`}>
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
+    <motion.div initial="hidden" animate="visible" variants={animations.fadeIn} className="h-full">
+      <Card className={`bg-card border-card-border shadow-card hover:shadow-elevated transition-all duration-200 h-full ${className}`}>
+        <CardHeader className="pb-2 pt-5 px-5">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
-              <CardTitle className="text-white text-xl">Total Sales Volume (MTD)</CardTitle>
-              <CardDescription className="text-foreground-muted">
+              <CardTitle className="text-foreground text-base font-medium">Total Sales Volume (MTD)</CardTitle>
+              <CardDescription className="text-foreground-muted text-sm mt-1">
                 Month-to-date sales + end-of-month projection
               </CardDescription>
             </div>
-            <div className="flex flex-col items-end">
+            <div className="flex flex-col items-start md:items-end space-y-1 mt-1 md:mt-0">
               <div className="flex items-center gap-2">
                 <div className="w-2 h-2 bg-blue-500 rounded-full" />
                 <span className="text-foreground-muted text-sm">MTD: {formatCurrency(mtdTotal)}</span>
@@ -87,8 +87,8 @@ export function TotalSalesChartLite({ data, mtdTotal, eomEstimate, daysElapsed, 
             </div>
           </div>
         </CardHeader>
-        <CardContent>
-          <div ref={chartContainer} className="w-full h-[300px]" />
+        <CardContent className="p-5 pt-2 overflow-hidden">
+          <div ref={chartContainer} className="w-full h-[300px] overflow-hidden" />
         </CardContent>
       </Card>
     </motion.div>

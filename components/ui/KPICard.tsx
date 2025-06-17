@@ -12,19 +12,21 @@ export interface KPICardProps {
   trend: 'up' | 'down';
   sparklineData: Array<{ time: number | string; value: number }>;
   icon: ReactNode;
+  className?: string;
 }
 
-export function KPICard({ title, value, change, trend, sparklineData, icon }: KPICardProps) {
+export function KPICard({ title, value, change, trend, sparklineData, icon, className = '' }: KPICardProps) {
   return (
     <motion.div
       initial="initial"
       whileHover="animate"
       variants={animations.cardHover}
-      className="
+      className={`
         bg-card border border-card-border rounded-xl p-6
         hover:bg-card-hover transition-all duration-200
         hover:border-primary/20 group cursor-pointer
-      ">
+        ${className}
+      `}>
       <div className="flex items-center justify-between mb-4">
         <span className="text-foreground-muted text-xs uppercase tracking-wider">
           {title}

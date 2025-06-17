@@ -183,7 +183,7 @@ export default async function DashboardPage() {
       </DashboardSection>
       
       <DashboardSection 
-        className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5"
+        className="grid grid-cols-1 lg:grid-cols-2 gap-6"
         delay={0.4}
       >
         <TotalSalesChart
@@ -192,43 +192,47 @@ export default async function DashboardPage() {
           eomEstimate={eomEstimate}
           daysElapsed={daysElapsed}
           totalDaysInMonth={daysInMonth}
+          className="h-full"
         />
         <EstimatedProfitChart
           merchants={merchants}
           totalEstimatedProfit={totalEstimatedProfit}
+          className="h-full"
         />
       </DashboardSection>
       
       <DashboardSection 
-        className="grid grid-cols-1 lg:grid-cols-2 gap-5"
+        className="grid grid-cols-1 lg:grid-cols-2 gap-6"
         delay={0.5}
       >
         <TradingViewWidget 
           data={aggregatedVolumeData} 
           title="Transaction Volume (Historical)" 
-          height={400}
+          height={420}
           color="#2962FF"
+          className="h-full"
         />
         <TradingViewWidget 
           data={aggregatedProfitData} 
           title="Net Profit (Historical)" 
-          height={400}
+          height={420}
           type="line"
           color="#00E676"
+          className="h-full"
         />
       </DashboardSection>
       
       <DashboardSection 
-        className="bg-card rounded-md border border-card-border p-5 shadow-card hover:shadow-elevated hover:bg-card-hover transition-all duration-200 overflow-x-auto"
+        className="bg-card rounded-lg border border-card-border p-6 shadow-card hover:shadow-elevated transition-all duration-200 overflow-hidden"
         delay={0.6}
       >
-        <div className="flex items-center justify-between mb-4">
-          <h2 className="text-base font-medium text-foreground">Top Merchants</h2>
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="text-foreground text-base font-medium">Top Merchants</h2>
           <div className="px-2.5 py-1 bg-background rounded-md border border-card-border text-foreground-muted text-xs font-medium">
             Updated {new Date().toLocaleDateString()}
           </div>
         </div>
-        <div className="w-full min-w-[400px]">
+        <div className="w-full overflow-x-auto">
           <MerchantTable merchants={topMerchants || []} />
         </div>
       </DashboardSection>

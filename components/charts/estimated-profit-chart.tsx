@@ -42,15 +42,15 @@ const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>)
     const estimatedProfit = payload[1]?.value || 0
 
     return (
-      <div className="bg-gruvbox-bg-1 border-gruvbox-bg-3 p-3 rounded-md shadow-lg">
-        <p className="text-gruvbox-gray text-xs">{label}</p>
+      <div className="bg-card border border-card-border p-3 rounded-md shadow-lg">
+        <p className="text-foreground-muted text-xs">{label}</p>
         {actualProfit !== undefined && (
-          <p className="text-gruvbox-fg font-medium">
-            <span className="text-gruvbox-green">Actual:</span> {formatCurrency(actualProfit)}
+          <p className="text-foreground font-medium">
+            <span className="text-green-500">Actual:</span> {formatCurrency(actualProfit)}
           </p>
         )}
-        <p className="text-gruvbox-fg font-medium">
-          <span className="text-gruvbox-purple">Estimated:</span> {formatCurrency(estimatedProfit)}
+        <p className="text-foreground font-medium">
+          <span className="text-purple-500">Estimated:</span> {formatCurrency(estimatedProfit)}
         </p>
       </div>
     )
@@ -88,31 +88,31 @@ export function EstimatedProfitChart({
     }))
 
   return (
-    <motion.div initial="hidden" animate="visible" variants={animations.fadeIn}>
-      <Card className={`bg-gruvbox-bg border-gruvbox-bg-2 ${className}`}>
-        <CardHeader className="pb-2">
-          <div className="flex items-center justify-between">
+    <motion.div initial="hidden" animate="visible" variants={animations.fadeIn} className="h-full">
+      <Card className={`bg-card border-card-border shadow-card hover:shadow-elevated transition-all duration-200 h-full ${className}`}>
+        <CardHeader className="pb-2 pt-5 px-5">
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3">
             <div>
-              <CardTitle className="text-gruvbox-fg text-xl">Estimated Net Profit</CardTitle>
-              <CardDescription className="text-gruvbox-gray">
+              <CardTitle className="text-foreground text-base font-medium">Estimated Net Profit</CardTitle>
+              <CardDescription className="text-foreground-muted text-sm mt-1">
                 Projected profit based on merchant BPS rates
               </CardDescription>
             </div>
-            <div className="flex flex-col items-end">
+            <div className="flex flex-col items-start md:items-end space-y-1 mt-1 md:mt-0">
               <div className="flex items-center gap-2">
-                <div className="w-2 h-2 bg-gruvbox-purple rounded-full" />
-                <span className="text-gruvbox-gray text-sm">Est. Profit: {formatCurrency(totalEstimatedProfit)}</span>
+                <div className="w-2 h-2 bg-purple-500 rounded-full" />
+                <span className="text-foreground-muted text-sm">Est. Profit: {formatCurrency(totalEstimatedProfit)}</span>
               </div>
               {totalActualProfit !== undefined && (
                 <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 bg-gruvbox-green rounded-full" />
-                  <span className="text-gruvbox-gray text-sm">Actual: {formatCurrency(totalActualProfit)}</span>
+                  <div className="w-2 h-2 bg-green-500 rounded-full" />
+                  <span className="text-foreground-muted text-sm">Actual: {formatCurrency(totalActualProfit)}</span>
                 </div>
               )}
             </div>
           </div>
         </CardHeader>
-        <CardContent>
+        <CardContent className="p-5 pt-2 overflow-hidden">
           <div className="h-[300px] w-full mt-4">
             <ResponsiveContainer width="100%" height="100%">
               {!showBreakdown ? (

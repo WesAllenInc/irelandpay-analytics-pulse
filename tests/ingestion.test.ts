@@ -9,10 +9,10 @@ const supabaseStub = {
   select: vi.fn(() => supabaseStub),
   eq: vi.fn(() => supabaseStub),
   match: vi.fn(() => supabaseStub),
-  maybeSingle: vi.fn(async () => ({ data: null, error: null })),
-  single: vi.fn(async () => ({ data: { id: 'uuid' }, error: null })),
-  insert: vi.fn(async () => ({ data: null, error: null })),
-  update: vi.fn(async () => ({ data: null, error: null })),
+  maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null }),
+  single: vi.fn().mockResolvedValue({ data: { id: 'test-uuid' }, error: null }),
+  insert: vi.fn().mockResolvedValue({ data: { id: 'inserted-uuid' }, error: null }),
+  update: vi.fn().mockResolvedValue({ data: null, error: null }),
 };
 
 // Mock imports
@@ -43,6 +43,7 @@ describe('ingestion utilities', () => {
 
   describe('ingestResiduals', () => {
     it('processes valid rows successfully', async () => {
+      // Set up XLSX mocks
       (XLSX.read as unknown as vi.Mock).mockReturnValue({
         SheetNames: ['Sheet1'],
         Sheets: { Sheet1: {} },
@@ -59,6 +60,69 @@ describe('ingestion utilities', () => {
         'Agent BPS': 2.5,
         'Processor Residual': 90,
       }]);
+      
+      // Configure Supabase stub responses for this specific test case
+      // Agent lookup
+      supabaseStub.from.mockImplementation((table) => {
+        if (table === 'agents') {
+          return {
+            ...supabaseStub,
+            select: vi.fn().mockReturnValue({
+              ...supabaseStub,
+              eq: vi.fn().mockReturnValue({
+                ...supabaseStub,
+                single: vi.fn().mockResolvedValue({ data: { id: 'agent-uuid' }, error: null })
+              })
+            })
+          };
+        }
+        // Merchant lookup
+        else if (table === 'merchants') {
+          return {
+            ...supabaseStub,
+            select: vi.fn().mockReturnValue({
+              ...supabaseStub,
+              eq: vi.fn().mockReturnValue({
+                ...supabaseStub,
+                single: vi.fn().mockResolvedValue({ data: { id: 'merchant-uuid' }, error: null })
+              })
+            }),
+            update: vi.fn().mockReturnValue({
+              ...supabaseStub,
+              eq: vi.fn().mockResolvedValue({ data: null, error: null })
+            }),
+            insert: vi.fn().mockReturnValue({
+              ...supabaseStub,
+              select: vi.fn().mockReturnValue({
+                ...supabaseStub,
+                single: vi.fn().mockResolvedValue({ data: { id: 'new-merchant-uuid' }, error: null })
+              })
+            })
+          };
+        }
+        // Residuals lookup and insert
+        else if (table === 'residuals') {
+          return {
+            ...supabaseStub,
+            select: vi.fn().mockReturnValue({
+              ...supabaseStub,
+              match: vi.fn().mockReturnValue({
+                ...supabaseStub,
+                maybeSingle: vi.fn().mockResolvedValue({ data: null, error: null })
+              })
+            }),
+            insert: vi.fn().mockResolvedValue({ data: { id: 'new-residual-uuid' }, error: null })
+          };
+        }
+        // Ingestion logs
+        else if (table === 'ingestion_logs') {
+          return {
+            ...supabaseStub,
+            insert: vi.fn().mockResolvedValue({ data: null, error: null })
+          };
+        }
+        return supabaseStub;
+      });
 
       const result = await ingestResiduals(Buffer.from([]), 'file_July2023_.xlsx');
       expect(result.totalRows).toBe(1);

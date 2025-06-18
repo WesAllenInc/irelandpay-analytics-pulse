@@ -1,7 +1,7 @@
-import { createSupabaseServiceClient } from '@/lib/supabase';
+import { createSupabaseServiceClient } from '../lib/supabase';
 import * as XLSX from 'xlsx';
 
-const supabase = createSupabaseServiceClient();
+
 
 
 
@@ -26,6 +26,7 @@ export function parseDateFromFilename(fileName: string): string {
 }
 
 export async function ingestResiduals(buffer: any, fileName: string): Promise<IngestionResult> {
+  const supabase = createSupabaseServiceClient();
   const workbook = XLSX.read(buffer);
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
   const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: null });
@@ -86,12 +87,12 @@ export async function ingestResiduals(buffer: any, fileName: string): Promise<In
       const { data: existingRes, error: exErr } = await supabase
         .from('residuals')
         .select('id')
-        .match({ merchant_mid: merchantId, processing_month: processingMonth })
+        .match({ merchant_id: merchantUuid, processing_month: processingMonth })
         .maybeSingle();
       if (exErr) throw exErr;
       if (!existingRes) {
         const payload = {
-          merchant_mid: merchantId,
+          merchant_id: merchantUuid,
           processing_month: processingMonth,
           net_residual: row['Net Residual'],
           fees_deducted: row['Fees Deducted'],
@@ -118,6 +119,7 @@ export async function ingestResiduals(buffer: any, fileName: string): Promise<In
 }
 
 export async function ingestVolumes(buffer: any, fileName: string): Promise<IngestionResult> {
+  const supabase = createSupabaseServiceClient();
   const workbook = XLSX.read(buffer);
   const sheet = workbook.Sheets[workbook.SheetNames[0]];
   const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: null });
@@ -158,12 +160,12 @@ export async function ingestVolumes(buffer: any, fileName: string): Promise<Inge
       const { data: existingVol, error: exErr } = await supabase
         .from('merchant_processing_volumes')
         .select('id')
-        .match({ merchant_mid: merchantId, processing_month: processingMonth })
+        .match({ merchant_id: merchantUuid, processing_month: processingMonth })
         .maybeSingle();
       if (exErr) throw exErr;
       if (!existingVol) {
         const payload = {
-          merchant_mid: merchantId,
+          merchant_id: merchantUuid,
           processing_month: processingMonth,
           gross_volume: row['Gross Processing Volume'],
           chargebacks: row['Chargebacks'],

@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { describe, it, expect, vi, beforeEach } from 'vitest';
 import * as XLSX from 'xlsx';
-import { parseDateFromFilename, ingestResiduals, ingestVolumes } from '@/lib/ingestion';
+import { parseDateFromFilename, ingestResiduals, ingestVolumes } from '../lib/ingestion';
 
 // Stub Supabase client
 const supabaseStub = {
@@ -16,7 +16,7 @@ const supabaseStub = {
 };
 
 // Mock imports
-vi.mock('@/lib/supabase', () => ({ createSupabaseServiceClient: () => supabaseStub }));
+vi.mock('../lib/supabase', () => ({ createSupabaseServiceClient: () => supabaseStub }));
 vi.mock('xlsx', () => ({
   read: vi.fn(),
   utils: { sheet_to_json: vi.fn() },

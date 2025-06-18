@@ -30,6 +30,8 @@ Add the following environment variables to your Vercel project:
 NEXT_PUBLIC_SUPABASE_URL=https://your-project-id.supabase.co
 NEXT_PUBLIC_SUPABASE_ANON_KEY=your-supabase-anon-key
 SUPABASE_SERVICE_ROLE_KEY=your-supabase-service-role-key
+NEXT_PUBLIC_APP_URL=https://your-production-url.vercel.app
+NEXT_PUBLIC_SUPABASE_PROJECT_ID=your-supabase-project-id
 ```
 
 > **Important**: Ensure these values match your production Supabase project, not your development environment.

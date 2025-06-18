@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
-import { createClient } from '@/lib/supabase/client';
+import { createSupabaseBrowserClient } from '@/lib/supabase';
 
 export default function MerchantSummary() {
   const [loading, setLoading] = useState(true);
@@ -13,7 +13,7 @@ export default function MerchantSummary() {
     async function fetchMerchantData() {
       try {
         setLoading(true);
-        const supabase = createClient();
+        const supabase = createSupabaseBrowserClient();
         
         // Query the master_data_mv materialized view
         const { data, error } = await supabase

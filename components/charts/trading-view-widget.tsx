@@ -1,13 +1,12 @@
 'use client'
 
 import { useEffect, useRef, memo } from 'react'
-import { 
-  createChart, 
-  ColorType, 
+import { createChart, ColorType, LineStyle, CrosshairMode } from 'lightweight-charts'
+
+// Only import types from lightweight-charts for TypeScript
+import type { 
   IChartApi, 
   ISeriesApi,
-  LineStyle,
-  CrosshairMode,
   Time,
   SeriesType
 } from 'lightweight-charts'
@@ -33,72 +32,76 @@ function TradingViewWidgetComponent({
   title, 
   height = 400,
   type = 'area',
-  color = '#2962FF',
+  color = '#d79921', // Gruvbox Yellow
   showVolume = false,
   className = ''
-}: TradingViewWidgetProps) {
+}: TradingViewWidgetProps): JSX.Element {
   const chartContainerRef = useRef<HTMLDivElement>(null)
   const chartRef = useRef<IChartApi | null>(null)
   const seriesRef = useRef<ISeriesApi<SeriesType> | null>(null)
   const volumeSeriesRef = useRef<ISeriesApi<SeriesType> | null>(null)
 
   useEffect(() => {
-    if (!chartContainerRef.current || data.length === 0) return
-
-    const chart = createChart(chartContainerRef.current, {
-      layout: {
-        background: { type: ColorType.Solid, color: '#0a0a0a' },
-        textColor: '#d1d4dc',
-      },
-      grid: {
-        vertLines: { 
-          color: '#1e1e1e',
-          style: LineStyle.Solid,
-          visible: true,
+    if (!chartContainerRef.current || data.length === 0) return;
+    
+    // Use directly imported lightweight-charts
+    function setupChart(): void {
+      // Already imported at the top of the file
+      
+      const chart = createChart(chartContainerRef.current!, {
+        layout: {
+          background: { type: ColorType.Solid, color: '#282828' }, // Gruvbox bg
+          textColor: '#ebdbb2', // Gruvbox foreground
         },
-        horzLines: { 
-          color: '#1e1e1e',
-          style: LineStyle.Solid,
-          visible: true,
+        grid: {
+          vertLines: { 
+            color: '#504945', // Gruvbox bg2
+            style: LineStyle.Solid,
+            visible: true,
+          },
+          horzLines: { 
+            color: '#504945', // Gruvbox bg2
+            style: LineStyle.Solid,
+            visible: true,
+          },
         },
-      },
-      width: chartContainerRef.current.clientWidth,
-      height: height,
-      timeScale: {
-        borderColor: '#2a2a2a',
-        timeVisible: true,
-        secondsVisible: false,
-        tickMarkFormatter: (time: Time) => {
-          const date = new Date(time as string)
-          return date.toLocaleDateString('en-US', { 
-            month: 'short', 
-            day: 'numeric' 
-          })
+        width: chartContainerRef.current!.clientWidth,
+        height: height,
+        timeScale: {
+          borderColor: '#2a2a2a',
+          timeVisible: true,
+          secondsVisible: false,
+          tickMarkFormatter: (time: Time) => {
+            const date = new Date(time as string)
+            return date.toLocaleDateString('en-US', { 
+              month: 'short', 
+              day: 'numeric' 
+            })
+          },
         },
-      },
-      rightPriceScale: {
-        borderColor: '#2a2a2a',
-        scaleMargins: {
-          top: 0.1,
-          bottom: showVolume ? 0.3 : 0.1,
+        rightPriceScale: {
+          borderColor: '#2a2a2a',
+          scaleMargins: {
+            top: 0.1,
+            bottom: showVolume ? 0.3 : 0.1,
+          },
         },
-      },
-      crosshair: {
-        mode: CrosshairMode.Normal,
-        vertLine: {
-          color: '#758696',
-          width: 1,
-          style: LineStyle.Solid,
-          labelBackgroundColor: '#2a2a2a',
+        crosshair: {
+          mode: CrosshairMode.Normal,
+          vertLine: {
+            color: '#a89984', // Gruvbox fg4
+            width: 1,
+            style: LineStyle.Solid,
+            labelBackgroundColor: '#3c3836', // Gruvbox bg1
+          },
+          horzLine: {
+            color: '#a89984', // Gruvbox fg4
+            width: 1,
+            style: LineStyle.Solid,
+            labelBackgroundColor: '#3c3836', // Gruvbox bg1
+          },
         },
-        horzLine: {
-          color: '#758696',
-          width: 1,
-          style: LineStyle.Solid,
-          labelBackgroundColor: '#2a2a2a',
-        },
-      },
-    })
+      })
 
     // Create main series based on type
     let series: ISeriesApi<SeriesType> | null = null
@@ -138,7 +141,7 @@ function TradingViewWidgetComponent({
     }
 
     // Set data
-    const formattedData = data.map(d => ({
+    const formattedData = data.map((d: ChartData) => ({
       time: d.time as Time,
       value: d.value
     }))
@@ -159,10 +162,10 @@ function TradingViewWidgetComponent({
     }
 
     // Add volume if requested
-    if (showVolume && data.some(d => d.volume !== undefined)) {
+    if (showVolume && data.some((d: ChartData) => d.volume !== undefined)) {
       // @ts-ignore - Type definitions in lightweight-charts may be outdated
       const volumeSeries = chart.addHistogramSeries({
-        color: '#26a69a',
+        color: '#98971a', // Gruvbox green
         priceFormat: {
           type: 'volume',
         },
@@ -174,13 +177,13 @@ function TradingViewWidgetComponent({
       })
 
       const volumeData = data
-        .filter(d => d.volume !== undefined)
-        .map(d => ({
+        .filter((d: ChartData) => d.volume !== undefined)
+        .map((d: ChartData) => ({
           time: d.time as Time,
           value: d.volume!,
           color: d.value > (data[data.indexOf(d) - 1]?.value ?? 0) 
-            ? '#26a69a' 
-            : '#ef5350'
+            ? '#b8bb26' // Gruvbox bright green 
+            : '#fb4934' // Gruvbox bright red
         }))
       
       volumeSeries.setData(volumeData)
@@ -193,29 +196,33 @@ function TradingViewWidgetComponent({
     seriesRef.current = series
 
     // Handle resize
-    const handleResize = () => {
-      if (chartContainerRef.current && chart) {
-        chart.applyOptions({ 
+    function handleResize(): void {
+      if (chartContainerRef.current && chartRef.current) {
+        chartRef.current.applyOptions({ 
           width: chartContainerRef.current.clientWidth 
         })
       }
     }
 
     window.addEventListener('resize', handleResize)
-
+    
+    setupChart();
+    
     return () => {
       window.removeEventListener('resize', handleResize)
-      chart.remove()
+      if (chartRef.current) {
+        chartRef.current.remove()
+      }
     }
-  }, [data, height, type, color, showVolume])
+  }, [data, height, type, color, showVolume]);
 
   return (
-    <div className={`bg-gray-950 rounded-lg p-4 border border-gray-800 ${className}`}>
+    <div className={`bg-gruvbox-bg rounded-lg p-4 border border-gruvbox-bg-2 ${className}`}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-white text-lg font-semibold">{title}</h3>
+        <h3 className="text-gruvbox-fg-1 text-lg font-semibold">{title}</h3>
         <div className="flex items-center gap-2">
-          <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
-          <span className="text-xs text-gray-400">Live</span>
+          <div className="w-2 h-2 bg-gruvbox-green-bright rounded-full animate-pulse" />
+          <span className="text-xs text-gruvbox-gray">Live</span>
         </div>
       </div>
       <div ref={chartContainerRef} className="w-full" />
@@ -223,4 +230,4 @@ function TradingViewWidgetComponent({
   )
 }
 
-export const TradingViewWidget = memo(TradingViewWidgetComponent)
+export const TradingViewWidget = memo(TradingViewWidgetComponent);

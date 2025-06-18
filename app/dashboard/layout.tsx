@@ -1,11 +1,12 @@
 'use client'
 
-import { NavSidebar } from '@/components/dashboard/nav-sidebar'
+import { TopNavigation } from '@/components/dashboard/top-navigation'
 import { useRealtimeData } from '@/hooks/use-realtime-data'
 import { useMerchantData } from '@/hooks/use-merchant-data'
 import { useStore } from '@/lib/store'
 import { useEffect } from 'react'
 import type { Database } from '@/types/database'
+import { StagewiseToolbarWrapper } from '@/components/ui/stagewise-toolbar'
 
 type MasterData = Database['public']['Tables']['master_data_mv']['Row']
 
@@ -35,19 +36,20 @@ export default function DashboardLayout({
   }, [realtimeMasterData, setMasterData])
   
   return (
-    <div className="flex h-screen bg-gray-950">
-      <NavSidebar />
+    <div className="flex flex-col h-screen overflow-hidden">
+      <TopNavigation />
       <main className="flex-1 overflow-y-auto">
         <div className="container mx-auto p-6">
           {loading ? (
             <div className="flex items-center justify-center h-full">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-primary"></div>
+              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-success"></div>
             </div>
           ) : (
             children
           )}
         </div>
       </main>
+      <StagewiseToolbarWrapper />
     </div>
   )
 }

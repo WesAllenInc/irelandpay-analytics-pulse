@@ -1,16 +1,10 @@
 'use client'
 
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from '@/components/ui/table'
-import { Badge } from '@/components/ui/badge'
+import React from 'react'
 import Link from 'next/link'
-import { ArrowUpRight } from 'lucide-react'
+import { FeyTable, Column } from '@/components/ui/FeyTable'
+import { Badge } from '@/components/ui/badge'
+import { formatCurrency, formatNumber } from '@/lib/utils'
 
 interface Merchant {
   mid: string
@@ -26,73 +20,72 @@ interface MerchantTableProps {
 }
 
 export function MerchantTable({ merchants }: MerchantTableProps) {
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(value)
-  }
-
-  const formatNumber = (value: number) => {
-    return new Intl.NumberFormat('en-US').format(value)
-  }
+  const columns: Column<Merchant>[] = [
+    {
+      key: 'merchant_dba',
+      label: 'Merchant',
+      render: (row) => (
+        <Link
+          href={`/dashboard/merchants/${row.mid}`}
+          className="hover:underline hover:text-primary"
+        >
+          {row.merchant_dba}
+        </Link>
+      ),
+    },
+    {
+      key: 'mid',
+      label: 'MID',
+      render: (row) => (
+        <span className="font-mono text-xs text-foreground-subtle">
+          {row.mid}
+        </span>
+      ),
+    },
+    {
+      key: 'merchant_volume',
+      label: 'Volume',
+      render: (row) => formatCurrency(row.merchant_volume),
+    },
+    {
+      key: 'total_txns',
+      label: 'Transactions',
+      render: (row) => formatNumber(row.total_txns),
+    },
+    {
+      key: 'net_profit',
+      label: 'Net Profit',
+      render: (row) => (row.net_profit !== null ? formatCurrency(row.net_profit) : '-'),
+    },
+    {
+      key: 'status',
+      label: 'Status',
+      render: (row) => {
+        let variant: string
+        let label: string
+        if (row.profit_margin == null) {
+          variant = 'outline'
+          label = 'New'
+        } else if (row.profit_margin < 0) {
+          variant = 'destructive'
+          label = 'Underperforming'
+        } else if (row.merchant_volume > 100000) {
+          variant = 'default'
+          label = 'Active'
+        } else {
+          variant = 'secondary'
+          label = 'Active'
+        }
+        return <Badge variant={variant}>{label}</Badge>
+      },
+    },
+  ]
 
   return (
-    <Table>
-      <TableHeader>
-        <TableRow className="border-gray-800 hover:bg-gray-900/50">
-          <TableHead className="text-gray-400">Merchant</TableHead>
-          <TableHead className="text-gray-400">MID</TableHead>
-          <TableHead className="text-gray-400 text-right">Volume</TableHead>
-          <TableHead className="text-gray-400 text-right">Transactions</TableHead>
-          <TableHead className="text-gray-400 text-right">Net Profit</TableHead>
-          <TableHead className="text-gray-400 text-right">Margin</TableHead>
-          <TableHead></TableHead>
-        </TableRow>
-      </TableHeader>
-      <TableBody>
-        {merchants.map((merchant) => (
-          <TableRow key={merchant.mid} className="border-gray-800 hover:bg-gray-900/50">
-            <TableCell className="font-medium text-white">
-              {merchant.merchant_dba}
-            </TableCell>
-            <TableCell className="text-gray-400 font-mono text-sm">
-              {merchant.mid}
-            </TableCell>
-            <TableCell className="text-right text-white">
-              {formatCurrency(merchant.merchant_volume)}
-            </TableCell>
-            <TableCell className="text-right text-gray-400">
-              {formatNumber(merchant.total_txns)}
-            </TableCell>
-            <TableCell className="text-right text-white">
-              {merchant.net_profit ? formatCurrency(merchant.net_profit) : '-'}
-            </TableCell>
-            <TableCell className="text-right">
-              {merchant.profit_margin ? (
-                <Badge 
-                  variant={merchant.profit_margin > 0 ? 'default' : 'destructive'}
-                  className={merchant.profit_margin > 0 ? 'bg-green-900 text-green-300' : ''}
-                >
-                  {merchant.profit_margin.toFixed(2)}%
-                </Badge>
-              ) : (
-                '-'
-              )}
-            </TableCell>
-            <TableCell>
-              <Link 
-                href={`/dashboard/merchants/${merchant.mid}`}
-                className="text-blue-500 hover:text-blue-400 inline-flex items-center"
-              >
-                <ArrowUpRight className="h-4 w-4" />
-              </Link>
-            </TableCell>
-          </TableRow>
-        ))}
-      </TableBody>
-    </Table>
+    <FeyTable
+      title="Merchant List"
+      columns={columns}
+      data={merchants}
+    />
   )
 }

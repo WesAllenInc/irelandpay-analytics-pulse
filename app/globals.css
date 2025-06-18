@@ -4,48 +4,57 @@
 
 @layer base {
   :root {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
-    --radius: 0.5rem;
-  }
-
-  .dark {
-    --background: 0 0% 3.9%;
-    --foreground: 0 0% 98%;
-    --card: 0 0% 3.9%;
-    --card-foreground: 0 0% 98%;
-    --popover: 0 0% 3.9%;
-    --popover-foreground: 0 0% 98%;
-    --primary: 0 0% 98%;
-    --primary-foreground: 0 0% 9%;
-    --secondary: 0 0% 14.9%;
-    --secondary-foreground: 0 0% 98%;
-    --muted: 0 0% 14.9%;
-    --muted-foreground: 0 0% 63.9%;
-    --accent: 0 0% 14.9%;
-    --accent-foreground: 0 0% 98%;
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 0 0% 98%;
-    --border: 0 0% 14.9%;
-    --input: 0 0% 14.9%;
-    --ring: 0 0% 83.1%;
+    /* Gruvbox Dark Theme */
+    --background: 0 0% 16%; /* #282828 */
+    --background-secondary: 0 0% 11%; /* #1d2021 */
+    --background-tertiary: 0 0% 24%; /* #3c3836 */
+    
+    --card: 0 0% 20%; /* #32302f */
+    --card-hover: 0 0% 24%; /* #3c3836 */
+    --card-border: 0 0% 31%; /* #504945 */
+    
+    --primary: 42 87% 47%; /* #d79921 */
+    --primary-foreground: 0 0% 11%; /* #1d2021 */
+    
+    --success: 61 43% 35%; /* #98971a */
+    --danger: 6 78% 46%; /* #cc241d */
+    --warning: 42 87% 47%; /* #d79921 */
+    
+    --foreground: 39 21% 80%; /* #ebdbb2 */
+    --foreground-muted: 24 12% 58%; /* #a89984 */
+    --foreground-subtle: 30 14% 44%; /* #928374 */
+    
+    --accent-red: 2 86% 64%; /* #fb4934 */
+    --accent-blue: 179 26% 41%; /* #458588 */
+    --accent-green: 66 31% 50%; /* #b8bb26 */
+    --accent-orange: 26 76% 49%; /* #d65d0e */
+    --accent-purple: 333 34% 54%; /* #b16286 */
+    --accent-aqua: 162 25% 46%; /* #689d6a */
+    
+    --border: 0 0% 31%; /* #504945 */
+    --input: 0 0% 31%; /* #504945 */
+    --ring: 42 87% 47%; /* #d79921 */
+    
+    --muted: 0 0% 31%; /* #504945 */
+    --muted-foreground: 24 12% 58%; /* #a89984 */
+    
+    --popover: 0 0% 20%; /* #32302f */
+    --popover-foreground: 39 21% 80%; /* #ebdbb2 */
+    
+    --secondary: 0 0% 24%; /* #3c3836 */
+    --secondary-foreground: 39 21% 80%; /* #ebdbb2 */
+    
+    --destructive: 6 78% 46%; /* #cc241d */
+    --destructive-foreground: 39 33% 95%; /* #fbf1c7 */
+    
+    --sidebar-background: 0 0% 11%; /* #1d2021 */
+    --sidebar-foreground: 39 21% 80%; /* #ebdbb2 */
+    --sidebar-primary: 42 87% 47%; /* #d79921 */
+    --sidebar-primary-foreground: 0 0% 11%; /* #1d2021 */
+    --sidebar-accent: 0 0% 24%; /* #3c3836 */
+    --sidebar-accent-foreground: 39 21% 80%; /* #ebdbb2 */
+    --sidebar-border: 0 0% 31%; /* #504945 */
+    --sidebar-ring: 42 87% 47%; /* #d79921 */
   }
 }
 
@@ -65,16 +74,16 @@
 }
 
 ::-webkit-scrollbar-track {
-  background: rgb(15 15 15);
+  background: #1d2021;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: rgb(64 64 64);
+  background: #504945;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: rgb(82 82 82);
+  background: #665c54;
 }
 
 /* Chart container styles */
@@ -94,4 +103,23 @@
 
 .animate-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+/* Chart legend color dots */
+[class^="legend-color-"] {
+  background-color: var(--chart-series-color, #458588);
+}
+
+/* Apply color from data attribute */
+[class^="legend-color-"]:not([style*="background-color"]) {
+  background-color: attr(data-color);
+}
+
+/* Chart tooltip positioning classes */
+.chart-tooltip.tooltip-left {
+  transform: translateX(-100%);
+}
+
+.chart-tooltip:not(.tooltip-left) {
+  transform: none;
 }

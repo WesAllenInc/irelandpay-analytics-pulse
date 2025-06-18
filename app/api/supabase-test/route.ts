@@ -1,20 +1,9 @@
-import { createClient } from '@supabase/supabase-js';
+import { createSupabaseServerClient } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
 
 export async function GET() {
   try {
-    // Initialize Supabase client
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    
-    if (!supabaseUrl || !supabaseKey) {
-      return NextResponse.json(
-        { error: 'Supabase credentials not found in environment variables' },
-        { status: 500 }
-      );
-    }
-    
-    const supabase = createClient(supabaseUrl, supabaseKey);
+    const supabase = createSupabaseServerClient();
     
     // Test the connection by getting Supabase version
     const { data, error } = await supabase.rpc('get_service_status');
@@ -30,7 +19,6 @@ export async function GET() {
         return NextResponse.json({
           connected: true,
           message: 'Connected to Supabase, but could not get detailed status',
-          supabaseUrl,
           projectData: projectData || null
         });
       }
@@ -38,7 +26,6 @@ export async function GET() {
       return NextResponse.json({
         connected: true,
         message: 'Connected to Supabase health check',
-        supabaseUrl,
         healthData: healthData || null
       });
     }
@@ -46,7 +33,6 @@ export async function GET() {
     return NextResponse.json({
       connected: true,
       message: 'Successfully connected to Supabase',
-      supabaseUrl,
       serviceStatus: data
     });
     

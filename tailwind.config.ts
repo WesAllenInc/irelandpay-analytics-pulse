@@ -18,53 +18,6 @@ export default {
 			}
 		},
 		extend: {
-  colors: {
-    // Add Gruvbox palette
-    gruvbox: {
-      bg: '#282828',
-      'bg-h': '#1d2021',
-      'bg-0': '#282828',
-      'bg-s': '#32302f',
-      'bg-1': '#3c3836',
-      'bg-2': '#504945',
-      'bg-3': '#665c54',
-      'bg-4': '#7c6f64',
-      red: '#cc241d',
-      'red-bright': '#fb4934',
-      green: '#98971a',
-      'green-bright': '#b8bb26',
-      yellow: '#d79921',
-      'yellow-bright': '#fabd2f',
-      blue: '#458588',
-      'blue-bright': '#83a598',
-      purple: '#b16286',
-      'purple-bright': '#d3869b',
-      aqua: '#689d6a',
-      'aqua-bright': '#8ec07c',
-      orange: '#d65d0e',
-      'orange-bright': '#fe8019',
-      gray: '#928374',
-      'gray-alt': '#a89984',
-      'fg-0': '#fbf1c7',
-      'fg-1': '#ebdbb2',
-      'fg-2': '#d5c4a1',
-      'fg-3': '#bdae93',
-      'fg-4': '#a89984',
-    },
-    // Update primary colors
-    primary: {
-      DEFAULT: '#d79921', // Gruvbox Yellow
-      foreground: '#1d2021',
-    },
-    success: '#98971a', // Gruvbox Green
-    danger: '#cc241d', // Gruvbox Red
-    warning: '#d79921', // Gruvbox Yellow
-    // Add dark mode CSS variables
-    'primary-dark': 'var(--primary-dark, #d79921)',
-    'success-dark': 'var(--success-dark, #98971a)',
-    'danger-dark': 'var(--danger-dark, #cc241d)',
-    'warning-dark': 'var(--warning-dark, #d79921)',
-  },
 			colors: {
 				border: 'hsl(var(--border))',
 				input: 'hsl(var(--input))',

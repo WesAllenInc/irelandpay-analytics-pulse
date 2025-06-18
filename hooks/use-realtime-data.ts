@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createSupabaseBrowserClient } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/client'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 
 export function useRealtimeData<T extends { id?: string }>(  
@@ -10,7 +10,7 @@ export function useRealtimeData<T extends { id?: string }>(
   filter?: { column: string; value: string }
 ) {
   const [data, setData] = useState<T[]>(initialData)
-  const supabase = createSupabaseBrowserClient()
+  const supabase = createClient()
 
   useEffect(() => {
     let channel: RealtimeChannel

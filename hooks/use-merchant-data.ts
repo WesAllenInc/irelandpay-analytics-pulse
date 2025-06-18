@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createSupabaseBrowserClient } from '@/lib/supabase'
+import { createClient } from '@/lib/supabase/client'
 import type { Database } from '@/types/database'
 
 type MerchantData = Database['public']['Tables']['master_data_mv']['Row']
@@ -11,7 +11,7 @@ export function useMerchantData(merchantId?: string) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<Error | null>(null)
   
-  const supabase = createSupabaseBrowserClient()
+  const supabase = createClient()
 
   useEffect(() => {
     async function fetchData() {

@@ -1,0 +1,14 @@
+.text-block {
+  font-family: monospace;
+  font-size: clamp(14px, 4vw, 32px);
+  font-weight: bold;
+  color: inherit;
+  line-height: 1.2;
+  margin: 0;
+  padding: 0;
+}
+
+.text-block p {
+  margin: 0;
+  padding: 0;
+}

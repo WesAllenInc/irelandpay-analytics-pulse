@@ -1,54 +1,72 @@
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
+import { createSupabaseServerClient } from './lib/supabase';
+
+// Define public routes that don't need authentication
+const publicRoutes = [
+  '/auth',
+  '/auth/callback',
+  '/_next',
+  '/api/auth',
+  '/favicon.ico',
+  '/static'
+];
 
 export async function middleware(request: NextRequest) {
-  const res = NextResponse.next();
-  const supabase = createMiddlewareClient({ req: request, res });
-  const {
-    data: { session },
-  } = await supabase.auth.getSession();
-
-  // If not logged in, redirect to login page
+  const { pathname } = request.nextUrl;
+  
+  // Check if this is a public route
+  const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
+  
+  if (isPublicRoute) {
+    return NextResponse.next();
+  }
+  
+  // Get session from Supabase
+  const supabase = createSupabaseServerClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  // If user is not authenticated, redirect to auth page
   if (!session) {
-    return NextResponse.redirect(new URL('/login', request.url));
+    return NextResponse.redirect(new URL('/auth', request.url));
   }
 
-  // Get user role from user metadata or database
-  const { data: userData, error } = await supabase
-    .from('users')
+  // If authenticated, fetch the user role
+  const { data: userData } = await supabase
+    .from('agents')
     .select('role')
-    .eq('id', session.user.id)
+    .eq('email', session.user.email || '')
     .single();
-
-  const userRole = userData?.role || 'agent';
-
-  const isAdminPath = request.nextUrl.pathname.startsWith('/admin');
-  const isAgentPath = request.nextUrl.pathname.startsWith('/agent');
-
-  // Redirect based on role and path
-  if (isAdminPath && userRole !== 'admin') {
-    return NextResponse.redirect(new URL('/agent', request.url));
+  
+  const role = userData?.role || 'agent';
+  
+  // Redirect from root to appropriate dashboard
+  if (pathname === '/') {
+    const redirectUrl = role === 'admin' 
+      ? new URL('/dashboard', request.url) 
+      : new URL('/leaderboard', request.url);
+    return NextResponse.redirect(redirectUrl);
   }
-
-  if (isAgentPath && userRole === 'admin') {
-    // Allow admins to access agent pages if they navigate there directly
-    return res;
+  
+  // Role-based access control
+  if (pathname.startsWith('/admin') && role !== 'admin') {
+    return NextResponse.redirect(new URL('/leaderboard', request.url));
   }
-
-  // For the root path, redirect based on role
-  if (request.nextUrl.pathname === '/') {
-    if (userRole === 'admin') {
-      return NextResponse.redirect(new URL('/admin/dashboard', request.url));
-    } else {
-      return NextResponse.redirect(new URL('/agent', request.url));
-    }
+  
+  if (pathname === '/dashboard' && role !== 'admin') {
+    return NextResponse.redirect(new URL('/leaderboard', request.url));
   }
-
-  return res;
+  
+  return NextResponse.next();
 }
 
 // Apply middleware to specific paths
 export const config = {
-  matcher: ['/', '/agent/:path*', '/admin/:path*'],
+  matcher: [
+    '/',
+    '/dashboard',
+    '/admin/:path*',
+    '/leaderboard',
+    '/upload'
+  ]
 };

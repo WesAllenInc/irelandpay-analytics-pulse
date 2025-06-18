@@ -2,6 +2,7 @@
 
 import * as React from "react"
 import Link from "next/link"
+import Image from "next/image"
 import { usePathname } from "next/navigation"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -91,7 +92,15 @@ export function MainNav({ className, children }: MainNavProps) {
     <nav className={cn("flex items-center justify-between py-4", className)}>
       <div className="flex items-center gap-6 lg:gap-10">
         <Link href="/dashboard" className="flex items-center space-x-2">
-          <span className="font-bold text-xl md:text-2xl">IrelandPay</span>
+          <div className="relative h-8 w-28 md:h-10 md:w-36">
+            <Image 
+              src="/kairos-logo.png" 
+              alt="Kairos Logo" 
+              fill 
+              style={{ objectFit: 'contain' }} 
+              priority 
+            />
+          </div>
           <span className="text-xs bg-primary text-primary-foreground px-2 py-0.5 rounded-md">Analytics</span>
         </Link>
         
@@ -154,7 +163,18 @@ export function MainNav({ className, children }: MainNavProps) {
           </SheetTrigger>
           <SheetContent side="right" className="w-[240px] sm:w-[300px]">
             <SheetHeader>
-              <SheetTitle>IrelandPay Analytics</SheetTitle>
+              <SheetTitle className="flex items-center gap-2">
+                <div className="relative h-6 w-20">
+                  <Image 
+                    src="/kairos-logo.png" 
+                    alt="Kairos Logo" 
+                    fill 
+                    style={{ objectFit: 'contain' }} 
+                    priority 
+                  />
+                </div>
+                <span>Analytics</span>
+              </SheetTitle>
             </SheetHeader>
             <div className="flex flex-col gap-4 py-6">
               {routes.map((route) => (

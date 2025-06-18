@@ -2,7 +2,6 @@ import type { Metadata } from 'next';
 import { createSupabaseServerClient } from '@/lib/supabase';
 import { Inter, Roboto_Mono } from 'next/font/google';
 import Link from 'next/link';
-import { AuthProvider } from '@/hooks/useAuth';
 import './globals.css';
 
 import { Button } from '@/components/ui/button';
@@ -37,12 +36,9 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${inter.variable} ${robotoMono.variable} font-sans bg-background min-h-screen text-foreground`}>
-        {/* Wrap the entire app with AuthProvider to enable authentication globally */}
-        <AuthProvider>
-          {/* Only use the full sidebar layout for dashboard routes */}
-          {children}
-          <Toaster />
-        </AuthProvider>
+        {/* Only use the full sidebar layout for dashboard routes */}
+        {children}
+        <Toaster />
       </body>
     </html>
   );

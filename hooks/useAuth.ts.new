@@ -9,7 +9,7 @@ import { Session, User } from '@supabase/supabase-js';
 type UserRole = 'admin' | 'agent' | null;
 
 // Define auth context type
-type AuthContextType = {
+interface AuthContextType {
   user: User | null;
   session: Session | null;
   role: UserRole;
@@ -18,7 +18,7 @@ type AuthContextType = {
   signOut: () => Promise<void>;
   isAdmin: boolean;
   isAgent: boolean;
-};
+}
 
 // Create auth context with default values
 const AuthContext = createContext<AuthContextType>({
@@ -126,7 +126,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isAdmin = role === "admin";
   const isAgent = role === "agent";
 
-  const value: AuthContextType = {
+  const contextValue: AuthContextType = {
     user,
     session,
     role,
@@ -138,7 +138,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   };
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={contextValue}>
       {children}
     </AuthContext.Provider>
   );

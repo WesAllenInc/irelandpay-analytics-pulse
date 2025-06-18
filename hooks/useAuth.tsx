@@ -126,19 +126,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const isAdmin = role === "admin";
   const isAgent = role === "agent";
 
-  const value: AuthContextType = {
-    user,
-    session,
-    role,
-    loading,
-    error,
-    signOut,
-    isAdmin,
-    isAgent
-  };
-
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider value={{
+      user,
+      session,
+      role,
+      loading,
+      error,
+      signOut,
+      isAdmin,
+      isAgent
+    }}>
       {children}
     </AuthContext.Provider>
   );

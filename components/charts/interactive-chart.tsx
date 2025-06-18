@@ -337,18 +337,11 @@ function InteractiveChartComponent({
     document.addEventListener('chart-crosshair-move', handleCrosshairMove);
 
     // Listen for time range selection
-    const timeToDate = (t: Time): Date => {
-      if (typeof t === 'number') return new Date(t * 1000);
-      if (typeof t === 'string') return new Date(t);
-      const { year, month, day } = t as { year: number; month: number; day: number };
-      return new Date(year, month - 1, day);
-    };
-
     chart.timeScale().subscribeVisibleTimeRangeChange((timeRange) => {
       if (timeRange) {
         // Update global state with selected time range
-        const from = timeToDate(timeRange.from as Time);
-        const to = timeToDate(timeRange.to as Time);
+        const from = new Date(timeRange.from as number * 1000);
+        const to = new Date(timeRange.to as number * 1000);
         setDateRange(from, to);
       }
     });

@@ -3,7 +3,6 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import Image from 'next/image';
 import { createSupabaseBrowserClient } from '@/lib/supabase';
 import AuthCard from '@/components/Auth/AuthCard';
 import ScrambledText from '@/components/Auth/ScrambledText';
@@ -96,17 +95,6 @@ export default function AuthPage() {
       
       {/* Content Container */}
       <div className="relative z-10 w-full max-w-6xl px-4 py-12 flex flex-col items-center justify-center space-y-8">
-        {/* Logo */}
-        <div className="relative h-20 w-64 mb-6">
-          <Image 
-            src="/kairos-logo.png" 
-            alt="Kairos Logo" 
-            fill 
-            style={{ objectFit: 'contain' }} 
-            priority 
-          />
-        </div>
-        
         {/* Animated Title */}
         <div className="text-center mb-8">
           <ScrambledText
@@ -116,7 +104,7 @@ export default function AuthPage() {
             speed={0.3}
             scrambleChars=".:/|=_"
           >
-            Kairos Analytics
+            Ireland Pay Analytics
           </ScrambledText>
           
           <div className="mt-4 text-gray-300 text-lg font-light opacity-80">
@@ -131,7 +119,7 @@ export default function AuthPage() {
         
         {/* Footer */}
         <div className="mt-8 text-gray-500 text-sm text-center">
-          <p>© {new Date().getFullYear()} Kairos Analytics. All rights reserved.</p>  
+          <p>© {new Date().getFullYear()} Ireland Pay Analytics. All rights reserved.</p>
         </div>
       </div>
     </main>

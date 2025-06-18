@@ -9,7 +9,7 @@ import { Session, User } from '@supabase/supabase-js';
 type UserRole = 'admin' | 'agent' | null;
 
 // Define auth context type
-type AuthContextType = {
+interface AuthContextType {
   user: User | null;
   session: Session | null;
   role: UserRole;
@@ -18,7 +18,7 @@ type AuthContextType = {
   signOut: () => Promise<void>;
   isAdmin: boolean;
   isAgent: boolean;
-};
+}
 
 // Create auth context with default values
 const AuthContext = createContext<AuthContextType>({
@@ -58,59 +58,59 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         if (session?.user) {
           // Fetch user role from agents table
           const { data: agentData, error: agentError } = await supabase
-            .from("agents")
-            .select("role")
-            .eq("email", session.user.email || "")
+            .from('agents')
+            .select('role')
+            .eq('email', session.user.email || '')
             .single();
- 
+            
           if (agentError) {
-            console.error("Error fetching user role:", agentError);
+            console.error('Error fetching user role:', agentError);
             setRole(null);
           } else {
-            setRole(agentData?.role as UserRole || "agent");
+            setRole(agentData?.role as UserRole || 'agent');
           }
         }
       } catch (err: any) {
-        console.error("Auth initialization error:", err);
+        console.error('Auth initialization error:', err);
         setError(err.message);
       } finally {
         setLoading(false);
       }
     };
-  
+    
     getInitialSession();
-  
+    
     // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         setSession(session);
         setUser(session?.user || null);
         setLoading(true);
-  
-        if (event === "SIGNED_OUT") {
+        
+        if (event === 'SIGNED_OUT') {
           setRole(null);
-          router.push("/auth");
+          router.push('/auth');
         } 
         else if (session?.user) {
           // Fetch user role
           const { data: agentData, error: agentError } = await supabase
-            .from("agents")
-            .select("role")
-            .eq("email", session.user.email || "")
+            .from('agents')
+            .select('role')
+            .eq('email', session.user.email || '')
             .single();
- 
+            
           if (agentError) {
-            console.error("Error fetching user role:", agentError);
+            console.error('Error fetching user role:', agentError);
             setRole(null);
           } else {
-            setRole(agentData?.role as UserRole || "agent");
+            setRole(agentData?.role as UserRole || 'agent');
           }
         }
-  
+        
         setLoading(false);
       }
     );
-  
+    
     return () => {
       subscription.unsubscribe();
     };
@@ -119,26 +119,26 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   // Sign out function
   const signOut = async () => {
     await supabase.auth.signOut();
-    router.push("/auth");
+    router.push('/auth');
   };
 
   // Helper properties
-  const isAdmin = role === "admin";
-  const isAgent = role === "agent";
-
-  const value: AuthContextType = {
-    user,
-    session,
-    role,
-    loading,
-    error,
-    signOut,
-    isAdmin,
-    isAgent
-  };
+  const isAdmin = role === 'admin';
+  const isAgent = role === 'agent';
 
   return (
-    <AuthContext.Provider value={value}>
+    <AuthContext.Provider 
+      value={{
+        user,
+        session,
+        role,
+        loading,
+        error,
+        signOut,
+        isAdmin,
+        isAgent
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
@@ -148,7 +148,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 export const useAuth = () => {
   const context = useContext(AuthContext);
   if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
+    throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 };

@@ -21,7 +21,7 @@ const robotoMono = Roboto_Mono({
 });
 
 export const metadata: Metadata = {
-  title: 'Ireland Pay Analytics',
+  title: 'Kairos Analytics',
   description: 'Real-time merchant analytics and insights dashboard',
   themeColor: '#282828', // Updated to Gruvbox bg color
 };

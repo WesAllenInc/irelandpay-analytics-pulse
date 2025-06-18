@@ -172,13 +172,15 @@ const UploadExcel = ({ datasetType: initialDatasetType = "merchants" }: UploadEx
           setUploadStatus("success");
           
           // Log success analytics
+          const header = response.headers.get('x-request-time');
+          const requestTime = header ? new Date(header).getTime() : Date.now();
           console.info(`Successfully processed ${datasetType} file:`, {
             fileName: selectedFile.name,
             fileSize: selectedFile.size,
             merchants: result.merchants || 0,
             metrics: datasetType === "merchants" ? (result.metrics || 0) : 0,
             residuals: datasetType === "residuals" ? (result.residuals || 0) : 0,
-            processingTime: new Date().getTime() - new Date(JSON.parse(response.headers.get('x-request-time') || '0')).getTime()
+            processingTime: Date.now() - requestTime
           });
         } else {
           setProcessingResult({

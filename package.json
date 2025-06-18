@@ -6,7 +6,8 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "next lint"
+    "lint": "next lint",
+    "test": "npx vitest"
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.2.4",
@@ -72,6 +73,8 @@
     "zustand": "^4.5.7"
   },
   "devDependencies": {
+    "vitest": "^0.34.0",
+    
     "@tailwindcss/typography": "^0.5.15",
     "@types/node": "^22.15.29",
     "@types/react": "^18.3.23",

@@ -18,6 +18,8 @@ export default function IngestionPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         router.replace('/auth/login');
+      } else if (session.user.user_metadata?.role !== 'admin') {
+        router.replace('/');
       } else {
         loadLogs();
       }
@@ -34,7 +36,7 @@ export default function IngestionPage() {
 
   async function handleUpload() {
     const { data: { session } } = await supabase.auth.getSession();
-    if (!session) { router.replace('/auth/login'); return; }
+    if (!session) { router.replace('/auth/login'); return; } else if (session.user.user_metadata?.role !== 'admin') { router.replace('/'); return; }
     if (!files) return;
     setLoading(true);
     const formData = new FormData();

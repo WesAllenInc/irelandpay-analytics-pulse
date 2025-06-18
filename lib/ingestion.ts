@@ -14,7 +14,7 @@ export interface IngestionResult {
   errorLog: Record<number, any>;
 }
 
-function parseDateFromFilename(fileName: string): string {
+export function parseDateFromFilename(fileName: string): string {
   const match = fileName.match(/_([A-Za-z]+)(\d{4})_/);
   if (match) {
     const monthName = match[1];

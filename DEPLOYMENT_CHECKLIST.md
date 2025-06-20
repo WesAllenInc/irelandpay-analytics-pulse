@@ -8,11 +8,11 @@ This checklist will help ensure your Vercel deployment with Supabase integration
 - [ ] Select your project "irelandpay-analytics-pulse"
 - [ ] Go to "Settings" > "Environment Variables"
 - [ ] Verify the following secrets are set:
-  - [ ] `supabase_url` - Your Supabase project URL (e.g., https://yourproject.supabase.co)
+  - [ ] `supabase_url` - [ https://ainmbbtycciukbjjdjtl.supabase.co ](https://ainmbbtycciukbjjdjtl.supabase.co)
   - [ ] `supabase_anon_key` - Your Supabase anonymous key
   - [ ] `supabase_service_role_key` - Your Supabase service role key (for admin operations)
   - [ ] `app_url` - Your deployed app URL (e.g., https://irelandpay-analytics-pulse.vercel.app)
-  - [ ] `supabase_project_id` - Your Supabase project ID
+  - [ ] `supabase_project_id` - ainmbbtycciukbjjdjtl
 
 ### Testing Environment Variables
 

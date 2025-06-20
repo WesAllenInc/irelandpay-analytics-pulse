@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useStore } from '@/lib/store'
-import { createBrowserClient } from '@supabase/ssr'
+import { createClientComponentClient } from "@/lib/supabase-compat"
 import { Database } from '@/types/database'
 import Link from 'next/link'
 
@@ -17,10 +17,7 @@ export default function MerchantComparisonPage() {
   const searchParams = useSearchParams()
   const ids = searchParams?.get('ids')
   const merchantIds = ids ? ids.split(',') : []
-  const supabase = createBrowserClient<Database>(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  )
+  const supabase = createClientComponentClient<Database>()
   
   const { selectedMerchants, comparisonMode, toggleComparisonMode } = useStore()
   const [merchants, setMerchants] = useState<MasterData[]>([])

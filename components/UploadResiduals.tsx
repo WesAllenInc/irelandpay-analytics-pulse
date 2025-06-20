@@ -1,7 +1,8 @@
 'use client';
 
 import { useState } from 'react';
-import { createBrowserClient } from '@supabase/ssr';
+import { createClientComponentClient } from "@/lib/supabase-compat";
+import { Database } from '@/types/database';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -13,10 +14,7 @@ const UploadResiduals = () => {
   const [statusMsg, setStatusMsg] = useState<string>('');
   const [statusColor, setStatusColor] = useState<string>('');
   const [isLoading, setIsLoading] = useState<boolean>(false);
-  const supabaseClient = createBrowserClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-  );
+  const supabaseClient = createClientComponentClient<Database>();
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;

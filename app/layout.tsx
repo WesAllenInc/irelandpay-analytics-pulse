@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+import type { Metadata, Viewport } from 'next';
 import { createSupabaseServerClient } from '@/lib/supabase';
 import { Inter, Roboto_Mono } from 'next/font/google';
 import Link from 'next/link';
@@ -23,6 +23,9 @@ const robotoMono = Roboto_Mono({
 export const metadata: Metadata = {
   title: 'Kairos Analytics',
   description: 'Real-time merchant analytics and insights dashboard',
+};
+
+export const viewport: Viewport = {
   themeColor: '#282828', // Updated to Gruvbox bg color
 };
 

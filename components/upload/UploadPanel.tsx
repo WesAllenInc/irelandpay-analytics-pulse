@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { useDropzone } from 'react-dropzone';
 import * as XLSX from 'xlsx';
 import { Button } from '@/components/ui/button';
@@ -28,6 +28,14 @@ const UploadPanel = () => {
   const [progress, setProgress] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [results, setResults] = useState<UploadResult[]>([]);
+  const [isMounted, setIsMounted] = useState(false);
+  const dropzoneRef = useRef<HTMLDivElement>(null);
+
+  // Set isMounted to true after component mounts
+  useEffect(() => {
+    setIsMounted(true);
+    return () => setIsMounted(false);
+  }, []);
 
   const onDrop = useCallback(async (acceptedFiles: File[]) => {
     if (acceptedFiles.length === 0) return;
@@ -121,7 +129,8 @@ const UploadPanel = () => {
       'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx'],
       'application/vnd.ms-excel': ['.xls']
     },
-    multiple: true
+    multiple: true,
+    disabled: !isMounted // Disable until mounted
   });
 
   return (
@@ -134,8 +143,9 @@ const UploadPanel = () => {
       </CardHeader>
       <CardContent>
         <div
+          ref={dropzoneRef}
           {...getRootProps()}
-          className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors ${
+          className={`border-2 border-dashed rounded-lg p-12 text-center cursor-pointer transition-colors min-h-[200px] ${
             isDragActive ? 'border-primary bg-primary/10' : 'border-muted-foreground/25 hover:border-primary/50'
           }`}
         >

@@ -4,17 +4,52 @@
 // These functions are drop-in replacements for the functions from @supabase/auth-helpers-nextjs
 // and should be used in place of those functions in all components and pages
 
+import { createBrowserClient } from '@supabase/ssr'
+import { createClient } from '@supabase/supabase-js'
+import type { Database } from '@/types/database'
+
+// Singleton pattern to avoid multiple client instances
+let browserClient: ReturnType<typeof createBrowserClient<Database>> | null = null
+let serverClient: ReturnType<typeof createClient<Database>> | null = null
+
 /**
  * This file provides compatibility with @supabase/auth-helpers-nextjs
- * by re-exporting functions from @supabase/auth-helpers-nextjs
- * 
- * This ensures that any code using the auth-helpers-nextjs package
- * will continue to work without changes.
+ * while using modern @supabase/ssr approach to avoid multiple client instances
  */
 
-// Re-export directly from auth-helpers-nextjs
-export { 
-  createClientComponentClient,
-  createServerComponentClient,
-  createRouteHandlerClient 
-} from '@supabase/auth-helpers-nextjs'
+// Create browser client (singleton)
+export const createClientComponentClient = <T = Database>() => {
+  if (typeof window === 'undefined') {
+    // Server-side rendering
+    return createClient<T>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+  }
+  
+  if (!browserClient) {
+    browserClient = createBrowserClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+  }
+  
+  return browserClient as ReturnType<typeof createBrowserClient<T>>
+}
+
+// Create server client (singleton)
+export const createServerComponentClient = <T = Database>() => {
+  if (!serverClient) {
+    serverClient = createClient<Database>(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    )
+  }
+  
+  return serverClient as ReturnType<typeof createClient<T>>
+}
+
+// Route handler client - same as server client
+export const createRouteHandlerClient = <T = Database>() => {
+  return createServerComponentClient<T>()
+}

@@ -24,9 +24,10 @@ const nextConfig = {
       }
     ]
   },
-  webpack: (config) => {
-    // Alias all Supabase auth helpers to our compatibility layer
-    config.resolve.alias['@supabase/auth-helpers-nextjs'] = './lib/supabase-compat.ts';
+  webpack: (config, { isServer }) => {
+    // Alias all Supabase auth helpers to our compatibility layer with proper absolute path
+    const path = require('path');
+    config.resolve.alias['@supabase/auth-helpers-nextjs'] = path.join(__dirname, 'lib/supabase-compat.ts');
     
     // Add more stable compilation options for Node.js v20
     config.resolve.fallback = { 

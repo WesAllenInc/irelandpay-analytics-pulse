@@ -34,14 +34,30 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/auth', request.url));
   }
 
-  // If authenticated, fetch the user role
-  const { data: userData } = await supabase
-    .from('agents')
-    .select('role')
-    .eq('email', session.user.email)
-    .single();
-
-  const role = userData?.role || 'agent';
+  // Fetch user role if user is authenticated
+  let userData = null;
+  let role = 'agent'; // Default role
+  
+  if (session?.user?.email) {
+    try {
+      // First try with 'role' column
+      const { data, error } = await supabase
+        .from('agents')
+        .select('role')
+        .eq('email', session.user.email)
+        .single();
+      
+      if (error) {
+        console.error('[Middleware] Error fetching role:', error);
+        // If role column doesn't exist, just use the default 'agent' role
+      } else if (data) {
+        role = data.role || 'agent';
+      }
+    } catch (err) {
+      console.error('[Middleware] Exception in role fetch:', err);
+      // Keep default role on error
+    }
+  }
 
   // Redirect from root to appropriate dashboard
   if (pathname === '/') {

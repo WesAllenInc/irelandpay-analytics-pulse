@@ -28,28 +28,52 @@ export default function AuthPage() {
       
       // Only redirect if user is truly authenticated
       if (session?.user?.email) {
-        // User is authenticated, fetch role and redirect
-        const { data: agentData } = await supabase
-          .from('agents')
-          .select('role')
-          .eq('email', session.user.email)
-          .single();
-        
-        if (agentData) {
-          // Redirect based on role
-          router.push(agentData.role === 'admin' ? '/dashboard' : '/leaderboard');
-        } else {
-          // If no agent record exists but user is authenticated, create one
-          try {
-            await supabase.from('agents').insert({
-              email: session.user.email,
-              agent_name: session.user?.user_metadata?.name || (session.user.email).split('@')[0],
-              role: 'agent'
-            });
-            router.push('/leaderboard');
-          } catch (err) {
-            console.error('Error creating agent record:', err);
+        try {
+          // User is authenticated, fetch role and redirect
+          const { data: agentData, error: roleError } = await supabase
+            .from('agents')
+            .select('*') // Select all columns to handle possible schema differences
+            .eq('email', session.user.email)
+            .single();
+          
+          console.log('[AUTH PAGE] Agent data:', agentData);
+          
+          if (roleError) {
+            console.error('[AUTH PAGE] Error fetching agent:', roleError);
           }
+          
+          if (agentData) {
+            // Check if role column exists or use agent_role or other possible column names
+            const userRole = agentData.role || agentData.agent_role || agentData.user_role || agentData.user_type || 'agent';
+            // Redirect based on role
+            router.push(userRole === 'admin' ? '/dashboard' : '/leaderboard');
+          } else {
+            // If no agent record exists but user is authenticated, create one
+            try {
+              // Check if the table has a role column first
+              const { error: insertError } = await supabase.from('agents').insert({
+                email: session.user.email,
+                agent_name: session.user?.user_metadata?.name || (session.user.email).split('@')[0],
+                // We'll exclude the role field if it causes issues
+              });
+              
+              if (insertError) {
+                console.error('[AUTH PAGE] Error creating agent record:', insertError);
+                // Default redirect on error
+                router.push('/leaderboard'); 
+              } else {
+                router.push('/leaderboard');
+              }
+            } catch (err) {
+              console.error('[AUTH PAGE] Exception creating agent record:', err);
+              // Default redirect on exception
+              router.push('/leaderboard');
+            }
+          }
+        } catch (err) {
+          console.error('[AUTH PAGE] Exception in auth flow:', err);
+          // Default redirect on any exception
+          router.push('/leaderboard');
         }
       } else if (session) {
         // Session exists but no user, log warning

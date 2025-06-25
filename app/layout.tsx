@@ -39,7 +39,14 @@ export default function RootLayout({
   return (
     <html lang="en" className="dark">
       <body className={`${inter.variable} ${robotoMono.variable} font-sans bg-background min-h-screen text-foreground`}>
-        {/* Only use the full sidebar layout for dashboard routes */}
+        {/* Add debug info for development */}
+        {process.env.NODE_ENV === 'development' && (
+          <div className="fixed top-0 right-0 bg-black/80 text-white text-xs p-1 z-50">
+            Ireland Pay Analytics - {process.env.NODE_ENV}
+          </div>
+        )}
+        
+        {/* Main content */}
         {children}
         <Toaster />
       </body>

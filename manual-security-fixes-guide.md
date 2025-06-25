@@ -5,16 +5,14 @@ Since we encountered issues applying the security fixes through the CLI, here's 
 1. Log in to the [Supabase Dashboard](https://app.supabase.com)
 2. Select your project (`ainmbbtycciukbjjdjtl`)
 3. Go to the **SQL Editor** section
-4. Create a new query
+4. Create a new SQL query
 5. Copy and paste the contents of the security fixes SQL script:
 
 ```sql
 -- Migration to fix all security issues identified by Supabase linter
 -- Date: 2025-06-25
-
 -- 1. Fix SECURITY DEFINER Views
 -- Recreate all views without SECURITY DEFINER property
-
 -- Drop and recreate master_data view
 DROP VIEW IF EXISTS public.master_data CASCADE;
 CREATE VIEW public.master_data AS
@@ -27,17 +25,15 @@ SELECT
 FROM merchants m
 JOIN merchant_processing_volumes mpv ON m.id = mpv.merchant_id
 JOIN residuals r ON m.id = r.merchant_id AND mpv.processing_month = r.processing_month;
-
 -- Drop and recreate merchant_data view
 DROP VIEW IF EXISTS public.merchant_data CASCADE;
 CREATE VIEW public.merchant_data AS
-SELECT 
+SELECT
   to_char(processing_month, 'YYYY-MM-DD') as month,
   SUM(gross_volume) as total_volume,
   SUM(transaction_count) as total_txns
 FROM merchant_processing_volumes
 GROUP BY processing_month;
-
 -- Drop and recreate merchant_volume view
 DROP VIEW IF EXISTS public.merchant_volume CASCADE;
 CREATE VIEW public.merchant_volume AS
@@ -47,12 +43,11 @@ WITH daily_data AS (
     gross_volume / EXTRACT(DAY FROM (DATE_TRUNC('MONTH', processing_month) + INTERVAL '1 MONTH - 1 day')) as daily_volume
   FROM merchant_processing_volumes
 )
-SELECT 
+SELECT
   volume_date,
   SUM(daily_volume) as daily_volume
 FROM daily_data
 GROUP BY volume_date;
-
 -- Drop and recreate estimated_net_profit view
 DROP VIEW IF EXISTS public.estimated_net_profit CASCADE;
 CREATE VIEW public.estimated_net_profit AS
@@ -66,23 +61,16 @@ FROM merchants m
 LEFT JOIN residuals r ON m.id = r.merchant_id
 LEFT JOIN merchant_processing_volumes mpv ON m.id = mpv.merchant_id AND r.processing_month = mpv.processing_month
 WHERE r.processing_month = (SELECT MAX(processing_month) FROM residuals);
-
 -- 2. Enable RLS on all required tables
-
 -- Enable RLS on agents table
 ALTER TABLE public.agents ENABLE ROW LEVEL SECURITY;
-
 -- Enable RLS on merchant_processing_volumes table
 ALTER TABLE public.merchant_processing_volumes ENABLE ROW LEVEL SECURITY;
-
 -- Enable RLS on residuals table
 ALTER TABLE public.residuals ENABLE ROW LEVEL SECURITY;
-
 -- Enable RLS on ingestion_logs table
 ALTER TABLE public.ingestion_logs ENABLE ROW LEVEL SECURITY;
-
 -- 3. Create RLS policies for each table
-
 -- RLS policies for agents table
 DROP POLICY IF EXISTS "Allow authenticated users to select from agents" ON public.agents;
 CREATE POLICY "Allow authenticated users to select from agents"
@@ -90,7 +78,6 @@ CREATE POLICY "Allow authenticated users to select from agents"
   FOR SELECT
   TO authenticated
   USING (true);
-
 DROP POLICY IF EXISTS "Allow admins to manage agents" ON public.agents;
 CREATE POLICY "Allow admins to manage agents"
   ON public.agents
@@ -98,7 +85,6 @@ CREATE POLICY "Allow admins to manage agents"
   TO authenticated
   USING ((SELECT role FROM public.users WHERE id = auth.uid()) = 'admin')
   WITH CHECK ((SELECT role FROM public.users WHERE id = auth.uid()) = 'admin');
-
 -- RLS policies for merchant_processing_volumes table
 DROP POLICY IF EXISTS "Allow authenticated users to select from merchant_processing_volumes" ON public.merchant_processing_volumes;
 CREATE POLICY "Allow authenticated users to select from merchant_processing_volumes"
@@ -106,7 +92,6 @@ CREATE POLICY "Allow authenticated users to select from merchant_processing_volu
   FOR SELECT
   TO authenticated
   USING (true);
-
 DROP POLICY IF EXISTS "Allow admins to manage merchant_processing_volumes" ON public.merchant_processing_volumes;
 CREATE POLICY "Allow admins to manage merchant_processing_volumes"
   ON public.merchant_processing_volumes
@@ -114,7 +99,6 @@ CREATE POLICY "Allow admins to manage merchant_processing_volumes"
   TO authenticated
   USING ((SELECT role FROM public.users WHERE id = auth.uid()) = 'admin')
   WITH CHECK ((SELECT role FROM public.users WHERE id = auth.uid()) = 'admin');
-
 -- Agent can only access their merchant's processing volumes
 DROP POLICY IF EXISTS "Agents can access their merchants' processing volumes" ON public.merchant_processing_volumes;
 CREATE POLICY "Agents can access their merchants' processing volumes"
@@ -131,7 +115,6 @@ CREATE POLICY "Agents can access their merchants' processing volumes"
       AND u.role = 'agent'
     )
   );
-
 -- RLS policies for residuals table
 DROP POLICY IF EXISTS "Allow authenticated users to select from residuals" ON public.residuals;
 CREATE POLICY "Allow authenticated users to select from residuals"
@@ -139,7 +122,6 @@ CREATE POLICY "Allow authenticated users to select from residuals"
   FOR SELECT
   TO authenticated
   USING (true);
-
 DROP POLICY IF EXISTS "Allow admins to manage residuals" ON public.residuals;
 CREATE POLICY "Allow admins to manage residuals"
   ON public.residuals
@@ -147,7 +129,6 @@ CREATE POLICY "Allow admins to manage residuals"
   TO authenticated
   USING ((SELECT role FROM public.users WHERE id = auth.uid()) = 'admin')
   WITH CHECK ((SELECT role FROM public.users WHERE id = auth.uid()) = 'admin');
-
 -- Agent can only access their merchant's residuals
 DROP POLICY IF EXISTS "Agents can access their merchants' residuals" ON public.residuals;
 CREATE POLICY "Agents can access their merchants' residuals"
@@ -164,7 +145,6 @@ CREATE POLICY "Agents can access their merchants' residuals"
       AND u.role = 'agent'
     )
   );
-
 -- RLS policies for ingestion_logs table
 DROP POLICY IF EXISTS "Allow admins to access ingestion_logs" ON public.ingestion_logs;
 CREATE POLICY "Allow admins to access ingestion_logs"
@@ -173,7 +153,6 @@ CREATE POLICY "Allow admins to access ingestion_logs"
   TO authenticated
   USING ((SELECT role FROM public.users WHERE id = auth.uid()) = 'admin')
   WITH CHECK ((SELECT role FROM public.users WHERE id = auth.uid()) = 'admin');
-
 -- 4. Grant appropriate permissions on views to authenticated users
 GRANT SELECT ON public.master_data TO authenticated;
 GRANT SELECT ON public.merchant_data TO authenticated;
@@ -181,25 +160,28 @@ GRANT SELECT ON public.merchant_volume TO authenticated;
 GRANT SELECT ON public.estimated_net_profit TO authenticated;
 ```
 
-6. Click the "Run" button to execute the SQL script
-7. Check for any errors in the output panel
+1. Click the "Run" button to execute the SQL script
+2. Check for any errors in the output panel
 
 ## Alternative Approach
 
 If you want to apply the fixes through CLI without needing to paste SQL into the dashboard, try the following approach:
 
 1. Repair the migration history as suggested by the CLI error:
-   ```
+
+   ```bash
    supabase migration repair --status reverted 20250604080135 20250604080144 20250604080211 20250604080617040703
    ```
 
 2. Pull the latest schema from the remote database:
-   ```
+
+   ```bash
    supabase db pull
    ```
 
 3. Then try pushing the migrations again:
-   ```
+
+   ```bash
    supabase db push
    ```
 

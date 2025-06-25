@@ -39,10 +39,8 @@ const nextConfig = {
 
     return config;
   },
-  // Experimental settings
-  experimental: {
-    serverExternalPackages: [],
-  }
+  // Next.js 15.3.4 no longer supports serverExternalPackages
+  experimental: {}
 };
 
 module.exports = nextConfig;

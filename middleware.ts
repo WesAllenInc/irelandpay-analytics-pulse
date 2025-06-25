@@ -17,23 +17,20 @@ const publicRoutes = [
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-  
-  // DEBUG: Log each request path and session status
-  console.log('[MIDDLEWARE]', pathname);
-  
+
   // Check if this is a public route
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
-  
   if (isPublicRoute) {
     return NextResponse.next();
   }
-  
-  // Get session from Supabase
+
+  // Get Supabase server client
   const supabase = createSupabaseServerClient();
   const { data: { session } } = await supabase.auth.getSession();
-  
-  // If user is not authenticated, redirect to auth page
-  if (!session) {
+  console.log('[MIDDLEWARE]', pathname, 'Session:', session);
+
+  // Only treat as authenticated if session?.user?.email exists
+  if (!session || !session.user || !session.user.email) {
     return NextResponse.redirect(new URL('/auth', request.url));
   }
 
@@ -41,34 +38,36 @@ export async function middleware(request: NextRequest) {
   const { data: userData } = await supabase
     .from('agents')
     .select('role')
-    .eq('email', session.user.email || '')
+    .eq('email', session.user.email)
     .single();
-  
+
   const role = userData?.role || 'agent';
-  
+
   // Redirect from root to appropriate dashboard
   if (pathname === '/') {
-    const redirectUrl = role === 'admin' 
-      ? new URL('/dashboard', request.url) 
+    const redirectUrl = role === 'admin'
+      ? new URL('/dashboard', request.url)
       : new URL('/leaderboard', request.url);
     return NextResponse.redirect(redirectUrl);
   }
-  
+
   // Role-based access control
   if (pathname.startsWith('/admin') && role !== 'admin') {
     return NextResponse.redirect(new URL('/leaderboard', request.url));
   }
-  
+
   if (pathname === '/dashboard' && role !== 'admin') {
     return NextResponse.redirect(new URL('/leaderboard', request.url));
   }
-  
+
   return NextResponse.next();
 }
+
 
 // Apply middleware to specific paths
 export const config = {
   matcher: [
-    '/((?!auth|api|_next|favicon.ico|static|public).*)'
-  ]
+    // Match all paths except those starting with the following
+    '/((?!api|_next/static|_next/image|favicon.ico|static|public|auth).*)',
+  ],
 };

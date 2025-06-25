@@ -24,13 +24,15 @@ export default function AuthPage() {
     
     const checkAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
+      console.log('[AUTH PAGE] Session:', session);
       
-      if (session) {
-        // User is already authenticated, fetch role and redirect
+      // Only redirect if user is truly authenticated
+      if (session?.user?.email) {
+        // User is authenticated, fetch role and redirect
         const { data: agentData } = await supabase
           .from('agents')
           .select('role')
-          .eq('email', session.user.email || '')
+          .eq('email', session.user.email)
           .single();
         
         if (agentData) {
@@ -40,8 +42,8 @@ export default function AuthPage() {
           // If no agent record exists but user is authenticated, create one
           try {
             await supabase.from('agents').insert({
-              email: session.user.email || '',
-              agent_name: session.user?.user_metadata?.name || (session.user.email || '').split('@')[0],
+              email: session.user.email,
+              agent_name: session.user?.user_metadata?.name || (session.user.email).split('@')[0],
               role: 'agent'
             });
             router.push('/leaderboard');
@@ -49,6 +51,9 @@ export default function AuthPage() {
             console.error('Error creating agent record:', err);
           }
         }
+      } else if (session) {
+        // Session exists but no user, log warning
+        console.warn('[AUTH PAGE] Session exists but no user:', session);
       }
     };
     
@@ -57,15 +62,18 @@ export default function AuthPage() {
     // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
-        if (event === 'SIGNED_IN' && session) {
+        if (event === 'SIGNED_IN' && session?.user?.email) {
           // Redirect after sign in
           const { data } = await supabase
             .from('agents')
             .select('role')
-            .eq('email', session.user.email || '')
+            .eq('email', session.user.email)
             .single();
           
           router.push(data?.role === 'admin' ? '/dashboard' : '/leaderboard');
+        } else if (event === 'SIGNED_IN' && session) {
+          // Session exists but no user, log warning
+          console.warn('[AUTH PAGE] SIGNED_IN event but no user:', session);
         }
       }
     );

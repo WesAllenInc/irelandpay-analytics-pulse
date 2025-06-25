@@ -1,15 +1,43 @@
 'use client';
 
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { createSupabaseBrowserClient } from '@/lib/supabase';
 
-// Temporary component that redirects to dashboard
+// Landing page that checks auth and redirects appropriately
 export default function LandingPage() {
   const router = useRouter();
+  const [isLoading, setIsLoading] = useState(true);
   
-  // Automatically redirect to dashboard
+  // Check authentication and redirect accordingly
   useEffect(() => {
-    router.push('/dashboard');
+    const checkAuthAndRedirect = async () => {
+      const supabase = createSupabaseBrowserClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      console.log('[Landing] Session check:', !!session?.user);
+      
+      if (session?.user?.email) {
+        // Authenticated user - check role
+        const { data: agentData } = await supabase
+          .from('agents')
+          .select('role')
+          .eq('email', session.user.email)
+          .single();
+        
+        // Redirect based on role
+        if (agentData?.role === 'admin') {
+          router.push('/dashboard');
+        } else {
+          router.push('/leaderboard');
+        }
+      } else {
+        // Not authenticated - go to login
+        router.push('/auth');
+      }
+    };
+    
+    checkAuthAndRedirect();
   }, [router]);
 
   // Show a simple loading screen briefly while redirecting

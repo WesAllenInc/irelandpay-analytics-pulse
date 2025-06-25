@@ -22,8 +22,7 @@ DROP VIEW IF EXISTS public.merchant_data CASCADE;
 CREATE VIEW public.merchant_data AS
 SELECT 
   to_char(processing_month, 'YYYY-MM-DD') as month,
-  SUM(gross_volume) as total_volume,
-  SUM(transaction_count) as total_txns
+  SUM(gross_volume) as total_volume
 FROM merchant_processing_volumes
 GROUP BY processing_month;
 
@@ -85,8 +84,8 @@ CREATE POLICY "Allow admins to manage agents"
   ON public.agents
   FOR ALL
   TO authenticated
-  USING ((SELECT role FROM public.users WHERE id = auth.uid()) = 'admin')
-  WITH CHECK ((SELECT role FROM public.users WHERE id = auth.uid()) = 'admin');
+  USING ((SELECT role FROM auth.users WHERE id = auth.uid()) = 'admin')
+  WITH CHECK ((SELECT role FROM auth.users WHERE id = auth.uid()) = 'admin');
 
 -- RLS policies for merchant_processing_volumes table
 DROP POLICY IF EXISTS "Allow authenticated users to select from merchant_processing_volumes" ON public.merchant_processing_volumes;
@@ -101,8 +100,8 @@ CREATE POLICY "Allow admins to manage merchant_processing_volumes"
   ON public.merchant_processing_volumes
   FOR ALL
   TO authenticated
-  USING ((SELECT role FROM public.users WHERE id = auth.uid()) = 'admin')
-  WITH CHECK ((SELECT role FROM public.users WHERE id = auth.uid()) = 'admin');
+  USING ((SELECT role FROM auth.users WHERE id = auth.uid()) = 'admin')
+  WITH CHECK ((SELECT role FROM auth.users WHERE id = auth.uid()) = 'admin');
 
 -- Agent can only access their merchant's processing volumes
 DROP POLICY IF EXISTS "Agents can access their merchants' processing volumes" ON public.merchant_processing_volumes;
@@ -113,8 +112,8 @@ CREATE POLICY "Agents can access their merchants' processing volumes"
   USING (
     EXISTS (
       SELECT 1 FROM merchants m
-      JOIN agents a ON m.agent_aid = a.aid
-      JOIN users u ON a.aid = u.agent_aid
+      JOIN agents a ON m.agent_id = a.aid
+      JOIN auth.users u ON a.aid = u.agent_aid
       WHERE m.mid = merchant_processing_volumes.merchant_mid
       AND u.id = auth.uid()
       AND u.role = 'agent'
@@ -134,8 +133,8 @@ CREATE POLICY "Allow admins to manage residuals"
   ON public.residuals
   FOR ALL
   TO authenticated
-  USING ((SELECT role FROM public.users WHERE id = auth.uid()) = 'admin')
-  WITH CHECK ((SELECT role FROM public.users WHERE id = auth.uid()) = 'admin');
+  USING ((SELECT role FROM auth.users WHERE id = auth.uid()) = 'admin')
+  WITH CHECK ((SELECT role FROM auth.users WHERE id = auth.uid()) = 'admin');
 
 -- Agent can only access their merchant's residuals
 DROP POLICY IF EXISTS "Agents can access their merchants' residuals" ON public.residuals;
@@ -146,8 +145,8 @@ CREATE POLICY "Agents can access their merchants' residuals"
   USING (
     EXISTS (
       SELECT 1 FROM merchants m
-      JOIN agents a ON m.agent_aid = a.aid
-      JOIN users u ON a.aid = u.agent_aid
+      JOIN agents a ON m.agent_id = a.aid
+      JOIN auth.users u ON a.aid = u.agent_aid
       WHERE m.mid = residuals.merchant_mid
       AND u.id = auth.uid()
       AND u.role = 'agent'
@@ -160,8 +159,8 @@ CREATE POLICY "Allow admins to access ingestion_logs"
   ON public.ingestion_logs
   FOR ALL
   TO authenticated
-  USING ((SELECT role FROM public.users WHERE id = auth.uid()) = 'admin')
-  WITH CHECK ((SELECT role FROM public.users WHERE id = auth.uid()) = 'admin');
+  USING ((SELECT role FROM auth.users WHERE id = auth.uid()) = 'admin')
+  WITH CHECK ((SELECT role FROM auth.users WHERE id = auth.uid()) = 'admin');
 
 -- 4. Grant appropriate permissions on views to authenticated users
 GRANT SELECT ON public.master_data TO authenticated;

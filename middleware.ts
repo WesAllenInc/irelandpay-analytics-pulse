@@ -5,15 +5,21 @@ import { createSupabaseServerClient } from './lib/supabase';
 // Define public routes that don't need authentication
 const publicRoutes = [
   '/auth',
+  '/auth/login',
+  '/auth/signup',
   '/auth/callback',
+  '/api',
   '/_next',
-  '/api/auth',
   '/favicon.ico',
-  '/static'
+  '/static',
+  '/public'
 ];
 
 export async function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
+  
+  // DEBUG: Log each request path and session status
+  console.log('[MIDDLEWARE]', pathname);
   
   // Check if this is a public route
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
@@ -63,10 +69,6 @@ export async function middleware(request: NextRequest) {
 // Apply middleware to specific paths
 export const config = {
   matcher: [
-    '/',
-    '/dashboard',
-    '/admin/:path*',
-    '/leaderboard',
-    '/upload'
+    '/((?!auth|api|_next|favicon.ico|static|public).*)'
   ]
 };

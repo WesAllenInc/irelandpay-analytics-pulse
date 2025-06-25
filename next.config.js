@@ -23,7 +23,7 @@ const nextConfig = {
     // Add alias for Supabase auth helpers to redirect to our compatibility layer
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@supabase/auth-helpers-nextjs': require.resolve('./lib/auth-helpers-nextjs')
+      '@supabase/auth-helpers-nextjs': require.resolve('./lib/supabase-compat.ts')
     };
     
     return config;

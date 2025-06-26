@@ -19,6 +19,7 @@ import { createSupabaseBrowserClient } from '@/lib/supabase';
 import OAuthButton from './OAuthButton';
 
 type AuthMode = 'login' | 'signup';
+type ApprovalStatus = 'pending' | 'approved' | 'rejected';
 
 interface AuthCardProps {
   defaultMode?: AuthMode;
@@ -65,10 +66,17 @@ const AuthCard: React.FC<AuthCardProps> = ({
             const { error: insertError } = await supabase
               .from('agents')
               .insert({
-                email: data.user.email,
+                email: data.user.email || '',
                 agent_name: data.user?.user_metadata?.name || email.split('@')[0],
-                role: 'agent'
+                role: 'agent',
+                approval_status: 'pending'
               });
+            
+            // Send approval notification email
+            await sendApprovalNotification({
+              newUserEmail: data.user.email || '',
+              newUserName: data.user?.user_metadata?.name || email.split('@')[0]
+            });
             
             if (insertError) throw insertError;
             router.push('/leaderboard');
@@ -92,19 +100,26 @@ const AuthCard: React.FC<AuthCardProps> = ({
         if (signUpError) throw signUpError;
         
         if (data.user) {
-          // Create new agent record
+          // Create new agent record with pending approval status
           const { error: insertError } = await supabase
             .from('agents')
             .insert({
               email: data.user.email,
               agent_name: name || email.split('@')[0],
-              role: 'agent'
+              role: 'agent',
+              approval_status: 'pending'
             });
             
           if (insertError) throw insertError;
           
+          // Send approval notification email
+          await sendApprovalNotification({
+            newUserEmail: email,
+            newUserName: name || email.split('@')[0]
+          });
+          
           // Show confirmation message or redirect
-          alert("Signup successful! Please confirm your email to continue.");
+          alert("Signup successful! Your account is pending approval. Please confirm your email to continue.");
           setMode('login');
         }
       }
@@ -123,6 +138,29 @@ const AuthCard: React.FC<AuthCardProps> = ({
   
   const handleOAuthError = (err: Error) => {
     setError(err.message || 'OAuth authentication failed. Please try again.');
+  };
+  
+  // Function to send approval notification email
+  const sendApprovalNotification = async ({ newUserEmail, newUserName }: { newUserEmail: string, newUserName: string }) => {
+    try {
+      const response = await fetch('/api/send-approval-notification', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          newUserEmail,
+          newUserName
+        }),
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        console.error('Failed to send approval notification:', errorData);
+      }
+    } catch (error) {
+      console.error('Error sending approval notification:', error);
+    }
   };
 
   return (

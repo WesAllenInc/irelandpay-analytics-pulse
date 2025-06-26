@@ -10,7 +10,7 @@ import {
   BarChart3,
   Activity,
   Upload,
-  Plus
+  Flower
 } from 'lucide-react'
 
 const navigation = [
@@ -33,15 +33,22 @@ export function TopNavigation() {
         <div className="flex justify-between items-center h-16">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <Activity className="h-8 w-8 text-blue-500" />
+              <Link href="/dashboard" className="flex items-center">
+                <div className="flex items-center">
+                  <Flower className="h-8 w-8 text-emerald-600 mr-2" />
+                  <div className="flex flex-col justify-center">
+                    <span className="text-2xl font-bold tracking-tight text-emerald-700">Ireland Pay</span>
+                    <span className="text-xs text-emerald-600 -mt-1">Analytics Pulse</span>
+                  </div>
+                </div>
+              </Link>
             </div>
-            <div className="ml-2 font-bold text-xl">Ireland Pay</div>
           </div>
           
           <div className="hidden md:block">
             <div className="ml-10 flex items-center space-x-4">
               {navigation.map((item) => {
-                const isActive = pathname.startsWith(item.href)
+                const isActive = pathname?.startsWith(item.href) || false
                 return (
                   <Link
                     key={item.name}
@@ -60,14 +67,7 @@ export function TopNavigation() {
             </div>
           </div>
           
-          <div className="hidden md:block">
-            <div className="ml-4 flex items-center">
-              <button className="inline-flex items-center px-3 py-1.5 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-blue-600 hover:bg-blue-700 focus:outline-none">
-                <Plus className="-ml-1 mr-1 h-4 w-4" /> 
-                New
-              </button>
-            </div>
-          </div>
+          {/* New button removed as requested */}
           
           <div className="-mr-2 flex md:hidden">
             <button

@@ -1,6 +1,6 @@
 import type { Metadata, Viewport } from 'next';
 import { createSupabaseServerClient } from '@/lib/supabase';
-import { Inter, Roboto_Mono } from 'next/font/google';
+import { Sora, Roboto_Mono } from 'next/font/google';
 import Link from 'next/link';
 import './globals.css';
 
@@ -10,9 +10,10 @@ import { Menu, X } from 'lucide-react';
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet';
 
 // Font configuration for a more modern look
-const inter = Inter({ 
+const sora = Sora({ 
   subsets: ['latin'],
-  variable: '--font-inter', 
+  variable: '--font-sora',
+  display: 'swap',
 });
 
 const robotoMono = Roboto_Mono({
@@ -38,7 +39,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className={`${inter.variable} ${robotoMono.variable} font-sans bg-background min-h-screen text-foreground`}>
+      <body className={`${sora.variable} ${robotoMono.variable} font-sans bg-background min-h-screen text-foreground`}>
         {/* Add debug info for development */}
         {process.env.NODE_ENV === 'development' && (
           <div className="fixed top-0 right-0 bg-black/80 text-white text-xs p-1 z-50">

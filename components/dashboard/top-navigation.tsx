@@ -1,6 +1,7 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { 
   LayoutDashboard, 
@@ -9,8 +10,7 @@ import {
   Settings,
   BarChart3,
   Activity,
-  Upload,
-  Flower
+  Upload
 } from 'lucide-react'
 
 const navigation = [
@@ -35,11 +35,14 @@ export function TopNavigation() {
             <div className="flex-shrink-0">
               <Link href="/dashboard" className="flex items-center">
                 <div className="flex items-center">
-                  <Flower className="h-8 w-8 text-emerald-600 mr-2" />
-                  <div className="flex flex-col justify-center">
-                    <span className="text-2xl font-bold tracking-tight text-emerald-700">Ireland Pay</span>
-                    <span className="text-xs text-emerald-600 -mt-1">Analytics Pulse</span>
-                  </div>
+                  <Image 
+                    src="/IRIS IP LOGO.png" 
+                    alt="Ireland Pay" 
+                    width={180} 
+                    height={45} 
+                    className="h-10 w-auto" 
+                    priority
+                  />
                 </div>
               </Link>
             </div>

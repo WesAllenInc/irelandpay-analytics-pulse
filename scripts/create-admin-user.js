@@ -22,8 +22,8 @@ const supabase = createClient(supabaseUrl, serviceRoleKey);
 
 async function createAdminUser() {
   // Email and password for the admin user
-  const email = process.env.ADMIN_EMAIL || 'jake@wesallencompany.com';
-  const password = process.env.ADMIN_PASSWORD || 'Admin123!';
+  const email = process.env.ADMIN_EMAIL || 'jmarkey@irelandpay.com';
+  const password = process.env.ADMIN_PASSWORD || 'IRLP@2025';
   
   console.log(`Creating admin user with email: ${email}`);
   
@@ -43,14 +43,15 @@ async function createAdminUser() {
 
     console.log('User created successfully:', userData.user);
 
-    // If you have an admins table, you can insert the user there as well
+    // Insert the user into the agents table with admin role and approved status
     if (userData && userData.user) {
       const { error: roleError } = await supabase
-        .from('users')
+        .from('agents')
         .insert({
-          id: userData.user.id,
           email: userData.user.email,
-          role: 'admin'
+          agent_name: 'John Markey',
+          role: 'admin',
+          approval_status: 'approved'
         });
 
       if (roleError) {

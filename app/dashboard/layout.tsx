@@ -1,12 +1,14 @@
 'use client'
 
-import { TopNavigation } from '@/components/dashboard/top-navigation'
 import { useRealtimeData } from '@/hooks/use-realtime-data'
 import { useMerchantData } from '@/hooks/use-merchant-data'
 import { useStore } from '@/lib/store'
 import { useEffect } from 'react'
 import type { Database } from '@/types/database'
 import { StagewiseToolbarWrapper } from '@/components/ui/stagewise-toolbar'
+import { Home, Users, BarChart3, Upload, Settings } from 'lucide-react'
+import { NavBar } from '@/components/ui/tubelight-navbar'
+import { FloatingPaths } from '@/components/ui/background-paths'
 
 type MasterData = Database['public']['Tables']['master_data_mv']['Row']
 
@@ -35,10 +37,27 @@ export default function DashboardLayout({
     }
   }, [realtimeMasterData, setMasterData])
   
+  // Navigation items for the tubelight navbar
+  const navItems = [
+    { name: 'Dashboard', url: '/dashboard', icon: Home },
+    { name: 'Merchants', url: '/dashboard/merchants', icon: Users },
+    { name: 'Analytics', url: '/dashboard/analytics', icon: BarChart3 },
+    { name: 'Upload', url: '/dashboard/upload', icon: Upload },
+    { name: 'Settings', url: '/dashboard/settings', icon: Settings }
+  ]
+
   return (
-    <div className="flex flex-col h-screen overflow-hidden">
-      <TopNavigation />
-      <main className="flex-1 overflow-y-auto">
+    <div className="flex flex-col h-screen overflow-hidden relative">
+      {/* Background animation */}
+      <div className="absolute inset-0 z-0 pointer-events-none overflow-hidden">
+        <FloatingPaths position={1} />
+        <FloatingPaths position={-1} />
+      </div>
+      
+      {/* Tubelight navbar */}
+      <NavBar items={navItems} />
+      
+      <main className="flex-1 overflow-y-auto mt-6 relative z-10">
         <div className="container mx-auto p-6">
           {loading ? (
             <div className="flex items-center justify-center h-full">

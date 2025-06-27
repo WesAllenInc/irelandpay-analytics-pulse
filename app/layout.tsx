@@ -14,6 +14,7 @@ const sora = Sora({
   subsets: ['latin'],
   variable: '--font-sora',
   display: 'swap',
+  weight: ['300', '400', '500', '600', '700'],
 });
 
 const robotoMono = Roboto_Mono({
@@ -39,7 +40,7 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en" className="dark">
-      <body className={`${sora.variable} ${robotoMono.variable} font-sans bg-background min-h-screen text-foreground`}>
+      <body className={`${sora.variable} ${robotoMono.variable} font-sora bg-background min-h-screen text-foreground`}>
         {/* Add debug info for development */}
         {process.env.NODE_ENV === 'development' && (
           <div className="fixed top-0 right-0 bg-black/80 text-white text-xs p-1 z-50">

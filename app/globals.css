@@ -2,6 +2,11 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Apply Sora font to all elements */
+* {
+  font-family: var(--font-sora), sans-serif;
+}
+
 @layer base {
   :root {
     /* Gruvbox Dark Theme */
@@ -55,6 +60,7 @@
     --sidebar-accent-foreground: 39 21% 80%; /* #ebdbb2 */
     --sidebar-border: 0 0% 31%; /* #504945 */
     --sidebar-ring: 42 87% 47%; /* #d79921 */
+    --font-sora: 'Sora', sans-serif;
   }
 }
 
@@ -63,7 +69,8 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground font-sans;
+    font-family: var(--font-sora), sans-serif;
   }
 }
 

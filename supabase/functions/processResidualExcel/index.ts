@@ -25,8 +25,8 @@ serve(async (req) => {
 
     const { data: fileData, error: downloadError } = await supabaseAdmin
       .storage
-      .from('uploads')
-      .download(`residual/${path}`)
+      .from('residuals')
+      .download(path)
     if (downloadError) throw new Error(`Failed to download file: ${downloadError.message}`)
 
     const arrayBuffer = await fileData.arrayBuffer()

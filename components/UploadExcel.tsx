@@ -104,10 +104,10 @@ const UploadExcel = ({ datasetType: initialDatasetType = "merchants" }: UploadEx
         });
       }, 300);
       
-      // Upload file to Supabase Storage - use the appropriate bucket based on dataset type
-      const bucketName = "uploads";
-      const folderPath = datasetType === "merchants" ? "merchant" : "residual";
-      const filePath = `${folderPath}/${selectedFile.name}`;
+      // Upload file to Supabase Storage - use the correct bucket based on dataset type
+      const bucketName = datasetType; // Use 'merchants' or 'residuals' bucket directly
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const filePath = `${timestamp}-${selectedFile.name}`;
       
       const supabase = createSupabaseBrowserClient();
       const { data, error } = await supabase

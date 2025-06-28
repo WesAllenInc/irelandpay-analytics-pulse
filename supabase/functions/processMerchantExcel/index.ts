@@ -35,7 +35,7 @@ serve(async (req) => {
     // Download file from storage
     const { data: fileData, error: downloadError } = await supabaseAdmin
       .storage
-      .from('uploads')
+      .from('merchants')
       .download(path)
 
     if (downloadError) {

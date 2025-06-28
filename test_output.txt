@@ -1,0 +1,15 @@
+Testing DataTransformer class...
+PASS: Created DataTransformer instance
+PASS: Merchant column mappings are correctly defined
+PASS: Residual column mappings are correctly defined
+PASS: normalize_column_names works for merchant data
+PASS: normalize_column_names works for residual data
+PASS: clean_merchant_data works correctly
+PASS: clean_residual_data works correctly
+PASS: transform_data works for merchant data
+PASS: transform_data works for residual data
+PASS: merge_merchant_residual_data works correctly
+
+All tests passed successfully!
+
+SUCCESS: All tests passed!

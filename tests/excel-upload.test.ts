@@ -53,7 +53,7 @@ describe('Excel Upload Flow', () => {
       const result = await uploadExcelToStorage(supabase, mockFile, 'merchant');
       
       // Verify the storage.from was called with the correct bucket
-      expect(supabase.storage.from).toHaveBeenCalledWith('uploads');
+      expect(supabase.storage.from).toHaveBeenCalledWith('merchants');
       
       // Verify upload was called with the file and a path
       expect(supabase.storage.from().upload).toHaveBeenCalled();

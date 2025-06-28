@@ -80,8 +80,8 @@ async function uploadToSupabaseStorage(filePath) {
   // Upload to Supabase Storage
   const { data, error } = await supabase
     .storage
-    .from('uploads')
-    .upload(`merchant/${fileName}`, fileBuffer, {
+    .from('merchants')
+    .upload(fileName, fileBuffer, {
       cacheControl: '3600',
       upsert: true
     });

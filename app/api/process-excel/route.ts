@@ -26,7 +26,7 @@ export async function POST(request: Request) {
       const supabase = createSupabaseServerClient();
       const { data: fileData, error: downloadError } = await supabase
         .storage
-        .from('uploads')
+        .from(datasetType) // Use the correct bucket based on dataset type ('merchants' or 'residuals')
         .download(path);
       
       if (downloadError || !fileData) {

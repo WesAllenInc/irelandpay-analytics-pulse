@@ -20,7 +20,7 @@ interface FeyAreaChartProps {
   color?: string;
 }
 
-export function FeyAreaChart({ data, title = 'Performance', color = '#98971a' }: FeyAreaChartProps) {
+export function RechartsFeyAreaChart({ data, title = 'Performance', color = '#98971a' }: FeyAreaChartProps) {
   // Currently active period button
   const [activePeriod, setActivePeriod] = useState('1M');
   
@@ -46,7 +46,8 @@ export function FeyAreaChart({ data, title = 'Performance', color = '#98971a' }:
         <div className={styles.tooltipContainer}>
           <p className={styles.tooltipTime}>{label}</p>
           <p className="text-white font-medium">
-            <span className={styles.tooltipLabel}>{title}:</span> ${(payload[0]?.value as number).toLocaleString()}
+            <span className={styles.tooltipLabel}>{title}:</span>{' '}
+            <span className={styles.tooltipValue}>${(payload[0]?.value as number).toLocaleString()}</span>
           </p>
         </div>
       );
@@ -60,15 +61,11 @@ export function FeyAreaChart({ data, title = 'Performance', color = '#98971a' }:
     <FeyCard className="p-6">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-lg font-semibold text-white">{title}</h3>
-        <div className="flex gap-1">
+        <div className={styles.periodButtonGroup}>
           {periods.map((period) => (
             <button
               key={period}
-              className={`px-3 py-1.5 text-xs font-medium ${
-                activePeriod === period 
-                  ? 'text-white bg-[#1A1A1A]' 
-                  : 'text-[#666666] hover:text-white hover:bg-[#1A1A1A]'
-              } rounded-md transition-all duration-200`}
+              className={`${styles.periodButton} ${activePeriod === period ? styles.periodButtonActive : ''}`}
               onClick={() => setActivePeriod(period)}
             >
               {period}

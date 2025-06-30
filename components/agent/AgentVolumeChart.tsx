@@ -3,8 +3,8 @@
 import React from 'react';
 import dynamic from 'next/dynamic';
 
-// Dynamically import ApexCharts to avoid SSR issues
-const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
+// Dynamically import RechartsAgentVolumeChart to avoid SSR issues
+const Chart = dynamic(() => import('./RechartsAgentVolumeChart'), { ssr: false });
 
 interface VolumeData {
   month: string;
@@ -24,103 +24,11 @@ const AgentVolumeChart: React.FC<AgentVolumeChartProps> = ({ data }) => {
     return date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
   };
 
-  const options = {
-    chart: {
-      id: 'agent-volume-chart',
-      toolbar: {
-        show: true,
-      },
-      zoom: {
-        enabled: true,
-      },
-    },
-    xaxis: {
-      categories: data.map(item => formatMonthLabel(item.month)),
-    },
-    yaxis: [
-      {
-        title: {
-          text: 'Processing Volume',
-          style: {
-            fontSize: '12px',
-            fontWeight: 500,
-          },
-        },
-        labels: {
-          formatter: (value: number) => {
-            return '$' + new Intl.NumberFormat('en-US', {
-              notation: 'compact',
-              maximumFractionDigits: 1,
-            }).format(value);
-          },
-        },
-      },
-      {
-        opposite: true,
-        title: {
-          text: 'Residual Earnings',
-          style: {
-            fontSize: '12px',
-            fontWeight: 500,
-          },
-        },
-        labels: {
-          formatter: (value: number) => {
-            return '$' + new Intl.NumberFormat('en-US', {
-              notation: 'compact',
-              maximumFractionDigits: 1,
-            }).format(value);
-          },
-        },
-      },
-    ],
-    stroke: {
-      curve: 'smooth',
-      width: [3, 3],
-    },
-    colors: ['#2563eb', '#10b981'],
-    dataLabels: {
-      enabled: false,
-    },
-    tooltip: {
-      shared: true,
-      intersect: false,
-      y: {
-        formatter: (value: number, { seriesIndex }: { seriesIndex: number }) => {
-          return '$' + value.toLocaleString('en-US', { maximumFractionDigits: 2 });
-        },
-      },
-    },
-    legend: {
-      position: 'top',
-      horizontalAlign: 'right',
-    },
-  };
-
-  const series = [
-    {
-      name: 'Processing Volume',
-      type: 'line',
-      data: data.map(item => item.volume),
-    },
-    {
-      name: 'Residual Earnings',
-      type: 'line',
-      data: data.map(item => item.residual),
-    },
-  ];
+  // Using recharts implementation instead of ApexCharts
 
   return (
     <div className="w-full h-full">
-      {typeof window !== 'undefined' && (
-        <Chart
-          options={options as any}
-          series={series}
-          type="line"
-          height="100%"
-          width="100%"
-        />
-      )}
+      <Chart data={data} />
     </div>
   );
 };

@@ -1,0 +1,202 @@
+/* Chart container styles */
+.chartContainer {
+  background-color: #282828;
+  border-radius: 0.5rem;
+  padding: 1rem;
+  border: 1px solid #504945;
+  width: 100%;
+  position: relative;
+}
+
+.chartWrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
+
+/* Chart height utility classes */
+.height400 {
+  height: 400px;
+}
+
+.height300 {
+  height: 300px;
+}
+
+.height500 {
+  height: 500px;
+}
+
+.height600 {
+  height: 600px;
+}
+
+/* Loading placeholder styles */
+.loadingContainer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.loadingIndicator {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.loadingDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  background-color: #98971a;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+/* Chart header styles */
+.chartHeader {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.chartTitle {
+  color: #ebdbb2;
+  font-size: 1.125rem;
+  font-weight: 600;
+}
+
+/* Chart tooltip styles */
+.tooltipContainer {
+  background-color: #1d2021;
+  border: 1px solid #504945;
+  border-radius: 0.25rem;
+  padding: 0.5rem 0.75rem;
+  color: #ebdbb2;
+  font-size: 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  max-width: 240px;
+  z-index: 10;
+}
+
+.tooltipLabel {
+  font-weight: 600;
+  color: #ebdbb2;
+}
+
+.tooltipValue {
+  color: #b8bb26;
+  font-weight: 600;
+}
+
+.tooltipTime {
+  color: #a89984;
+  font-size: 0.7rem;
+  margin-bottom: 0.25rem;
+}
+
+.tooltipEntry {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-top: 0.25rem;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.5rem 1rem;
+  margin-top: 0.5rem;
+}
+
+/* Dynamic color styles */
+.colorPrimary {
+  color: #458588;
+}
+
+.colorSecondary {
+  color: #98971a;
+}
+
+.colorTertiary {
+  color: #d79921;
+}
+
+.colorQuaternary {
+  color: #cc241d;
+}
+
+/* Dynamic background color styles */
+.bgPrimary {
+  background-color: #458588;
+}
+
+.bgSecondary {
+  background-color: #98971a;
+}
+
+.bgTertiary {
+  background-color: #d79921;
+}
+
+.bgQuaternary {
+  background-color: #cc241d;
+}
+
+/* Period button styles */
+.periodButtonGroup {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1rem;
+}
+
+.periodButton {
+  background-color: #3c3836;
+  color: #a89984;
+  border: none;
+  border-radius: 0.25rem;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.periodButtonActive {
+  background-color: #98971a;
+  color: #ebdbb2;
+}
+
+/* Chart legend styles */
+.legendContainer {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 0.5rem;
+}
+
+.legendItem {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  font-size: 0.75rem;
+  color: #a89984;
+}
+
+.legendColorBox {
+  width: 0.75rem;
+  height: 0.75rem;
+  border-radius: 0.125rem;
+}
+
+@keyframes pulse {
+  0% {
+    opacity: 0.3;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 0.3;
+  }
+}

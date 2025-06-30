@@ -4,8 +4,8 @@ import { useEffect, useRef, memo } from 'react'
 import dynamic from 'next/dynamic'
 
 // Create a dynamic version of the chart component to avoid SSR issues
-const TradingViewChart = dynamic(
-  () => import('./trading-view-chart'),
+const RechartsViewChart = dynamic(
+  () => import('./recharts-trading-view'),
   { ssr: false }
 )
 
@@ -44,7 +44,7 @@ function TradingViewWidgetComponent({
           <span className="text-xs text-gray-400">Live</span>
         </div>
       </div>
-      <TradingViewChart 
+      <RechartsViewChart 
         data={data}
         height={height}
         type={type}

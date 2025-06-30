@@ -1,7 +1,16 @@
 'use client'
 
-import React, { useRef, useEffect } from 'react'
-import { createChart, IChartApi, ISeriesApi } from 'lightweight-charts'
+import React from 'react'
+import { 
+  ResponsiveContainer, 
+  LineChart, 
+  Line, 
+  XAxis, 
+  YAxis, 
+  CartesianGrid, 
+  Tooltip,
+  TooltipProps
+} from 'recharts'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { formatCurrency } from '@/lib/utils'
 import { motion } from 'framer-motion'
@@ -11,6 +20,8 @@ export interface SalesDayData {
   time: string
   actualVolume: number
   projectedVolume?: number
+  // For recharts display
+  formattedTime?: string
 }
 
 export interface TotalSalesChartProps {
@@ -22,44 +33,41 @@ export interface TotalSalesChartProps {
   className?: string
 }
 
+// Custom tooltip component for the chart
+const CustomTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
+  if (active && payload && payload.length) {
+    const actualVolume = payload.find(p => p.dataKey === 'actualVolume')?.value || 0
+    const projectedVolume = payload.find(p => p.dataKey === 'projectedVolume')?.value
+    
+    return (
+      <div className="bg-gray-800 text-white p-3 rounded-md shadow-lg border border-gray-700">
+        <p className="text-gray-300 text-xs mb-1">{label}</p>
+        <p className="text-white font-medium">
+          <span className="text-blue-400">Actual:</span> {formatCurrency(actualVolume as number)}
+        </p>
+        {projectedVolume !== undefined && (
+          <p className="text-white font-medium">
+            <span className="text-amber-400">Projected:</span> {formatCurrency(projectedVolume as number)}
+          </p>
+        )}
+      </div>
+    )
+  }
+  return null
+}
+
 export function TotalSalesChartLite({ data, mtdTotal, eomEstimate, daysElapsed, totalDaysInMonth, className = '' }: TotalSalesChartProps) {
-  const chartContainer = useRef<HTMLDivElement>(null)
-  const chartRef = useRef<IChartApi>()
-  const actualSeriesRef = useRef<ISeriesApi<'Line'>>()
-  const projectedSeriesRef = useRef<ISeriesApi<'Line'>>()
-
-  useEffect(() => {
-    if (!chartContainer.current) return
-    chartRef.current = createChart(chartContainer.current, {
-      width: chartContainer.current.clientWidth,
-      height: 300,
-      layout: {
-        backgroundColor: '#282828', // Gruvbox bg - use hex instead of CSS vars
-        textColor: '#a89984', // Gruvbox fg4/muted
-      },
-      grid: {
-        vertLines: { color: '#504945' }, // Gruvbox bg2
-        horzLines: { color: '#504945' }, // Gruvbox bg2
-      },
-      timeScale: {
-        timeVisible: true,
-        borderColor: '#504945', // Gruvbox bg2
-      },
-      rightPriceScale: {
-        borderColor: '#504945', // Gruvbox bg2
-      },
-    })
-    actualSeriesRef.current = chartRef.current.addLineSeries({ color: '#458588', lineWidth: 2 }) // Gruvbox blue
-    projectedSeriesRef.current = chartRef.current.addLineSeries({ color: '#d79921', lineWidth: 2, lineStyle: 2 }) // Gruvbox yellow/warning
-    return () => chartRef.current?.remove()
-  }, [])
-
-  useEffect(() => {
-    const actualData = data.map(d => ({ time: d.time, value: d.actualVolume }))
-    actualSeriesRef.current?.setData(actualData)
-    const projectedData = data.filter(d => d.projectedVolume !== undefined).map(d => ({ time: d.time, value: d.projectedVolume! }))
-    projectedSeriesRef.current?.setData(projectedData)
-  }, [data])
+  // Format the data for display
+  const formattedData = data.map(item => {
+    // Convert time string to a more readable format
+    const date = new Date(item.time)
+    const formattedTime = date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+    
+    return {
+      ...item,
+      formattedTime
+    }
+  })
 
   return (
     <motion.div initial="hidden" animate="visible" variants={animations.fadeIn} className="h-full">
@@ -88,7 +96,48 @@ export function TotalSalesChartLite({ data, mtdTotal, eomEstimate, daysElapsed, 
           </div>
         </CardHeader>
         <CardContent className="p-5 pt-2 overflow-hidden">
-          <div ref={chartContainer} className="w-full h-[300px] overflow-hidden" />
+          <div className="w-full h-[300px] overflow-hidden">
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart 
+                data={formattedData}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" stroke="#504945" vertical={false} />
+                <XAxis 
+                  dataKey="formattedTime" 
+                  tick={{ fill: '#a89984' }}
+                  axisLine={{ stroke: '#504945' }}
+                  tickLine={{ stroke: '#504945' }}
+                />
+                <YAxis 
+                  tick={{ fill: '#a89984' }}
+                  axisLine={{ stroke: '#504945' }}
+                  tickLine={{ stroke: '#504945' }}
+                  tickFormatter={(value) => `$${(value / 1000).toFixed(0)}k`}
+                />
+                <Tooltip content={<CustomTooltip />} />
+                <Line 
+                  type="monotone" 
+                  dataKey="actualVolume" 
+                  name="Actual Volume"
+                  stroke="#458588" 
+                  strokeWidth={2}
+                  dot={{ r: 3 }}
+                  activeDot={{ r: 5 }}
+                />
+                <Line 
+                  type="monotone" 
+                  dataKey="projectedVolume" 
+                  name="Projected Volume"
+                  stroke="#d79921" 
+                  strokeWidth={2}
+                  strokeDasharray="5 5"
+                  dot={{ r: 3 }}
+                  activeDot={{ r: 5 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
+          </div>
         </CardContent>
       </Card>
     </motion.div>

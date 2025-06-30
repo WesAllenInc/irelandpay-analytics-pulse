@@ -8,6 +8,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
 import AgentVolumeChart from '@/components/agent/AgentVolumeChart';
+import AgentPayoutApproval from './AgentPayoutApproval';
 
 interface AgentDetailViewProps {
   agentId: string;
@@ -45,8 +46,8 @@ const AgentDetailView: React.FC<AgentDetailViewProps> = ({ agentId, month }) => 
   const [agentDetails, setAgentDetails] = useState<AgentDetail | null>(null);
   const supabase = createSupabaseBrowserClient();
 
-  useEffect(() => {
-    async function fetchAgentDetails() {
+  // Define fetchAgentDetails outside useEffect to make it accessible throughout the component
+  const fetchAgentDetails = async () => {
       setIsLoading(true);
 
       // Get agent information
@@ -207,10 +208,11 @@ const AgentDetailView: React.FC<AgentDetailViewProps> = ({ agentId, month }) => 
       });
       
       setIsLoading(false);
-    }
-    
+    };
+  
+  useEffect(() => {
     fetchAgentDetails();
-  }, [agentId, month, supabase]);
+  }, [month, supabase, agentId, fetchAgentDetails]);
 
   const exportToCSV = () => {
     if (!agentDetails) return;
@@ -282,15 +284,13 @@ const AgentDetailView: React.FC<AgentDetailViewProps> = ({ agentId, month }) => 
 
   return (
     <div>
-      <div className="mb-8">
-        <h2 className="text-2xl font-bold">{agentDetails.name}</h2>
-        <p className="text-gray-500">{agentDetails.email}</p>
-      </div>
+      <h2 className="text-2xl font-bold mb-6">{agentDetails.name}</h2>
       
+      {/* Summary Cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Merchants</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Merchant Count</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{agentDetails.merchants.length}</div>
@@ -299,11 +299,11 @@ const AgentDetailView: React.FC<AgentDetailViewProps> = ({ agentId, month }) => 
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">MTD Volume</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">MTD Processing Volume</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{formatCurrency(agentDetails.mtdVolume)}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground mt-1">
               Forecast: {formatCurrency(agentDetails.forecastVolume)}
             </p>
           </CardContent>
@@ -315,7 +315,7 @@ const AgentDetailView: React.FC<AgentDetailViewProps> = ({ agentId, month }) => 
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold text-green-600">{formatCurrency(agentDetails.mtdResidual)}</div>
-            <p className="text-xs text-muted-foreground">
+            <p className="text-xs text-muted-foreground mt-1">
               Forecast: {formatCurrency(agentDetails.forecastResidual)}
             </p>
           </CardContent>
@@ -337,6 +337,21 @@ const AgentDetailView: React.FC<AgentDetailViewProps> = ({ agentId, month }) => 
             </Button>
           </CardContent>
         </Card>
+      </div>
+      
+      {/* Payout Approval Section */}
+      <div className="mb-8">
+        <AgentPayoutApproval
+          agentId={agentDetails.id}
+          agentName={agentDetails.name}
+          month={month}
+          totalResidual={agentDetails.mtdResidual}
+          onPayoutApproved={() => {
+            // Refresh agent data when payout is approved
+            setIsLoading(true);
+            fetchAgentDetails();
+          }}
+        />
       </div>
       
       <Tabs defaultValue="merchants" className="mb-8">

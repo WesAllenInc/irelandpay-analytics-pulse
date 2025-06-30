@@ -6,6 +6,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import AdminAgentTable from '@/components/admin/AdminAgentTable';
 import AgentDetailView from '@/components/admin/AgentDetailView';
+import BulkPayoutExport from '@/components/admin/BulkPayoutExport';
+import BatchPayoutApproval from '@/components/admin/BatchPayoutApproval';
 import { format } from 'date-fns';
 
 interface AgentSummary {
@@ -25,8 +27,8 @@ export default function AdminAgentPayoutsPage() {
   const [selectedAgent, setSelectedAgent] = useState<string | null>(null);
   const supabase = createSupabaseBrowserClient();
 
-  useEffect(() => {
-    async function fetchAgentData() {
+  // Define fetchAgentData outside useEffect to make it accessible throughout the component
+  const fetchAgentData = async () => {
       setIsLoading(true);
       
       // Get all agents
@@ -114,8 +116,9 @@ export default function AdminAgentPayoutsPage() {
       
       setAgents(agentSummaries);
       setIsLoading(false);
-    }
-    
+  };
+  
+  useEffect(() => {
     fetchAgentData();
   }, [selectedMonth, supabase]);
   
@@ -183,12 +186,21 @@ export default function AdminAgentPayoutsPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Month</CardTitle>
           </CardHeader>
           <CardContent>
-            <input
-              type="month"
-              value={selectedMonth}
-              onChange={(e) => setSelectedMonth(e.target.value)}
-              className="border rounded p-2 w-full"
-            />
+            <div className="flex flex-col gap-2">
+              <label htmlFor="month-selector" className="sr-only">Select Month</label>
+              <input
+                id="month-selector"
+                type="month"
+                value={selectedMonth}
+                onChange={(e) => setSelectedMonth(e.target.value)}
+                className="border rounded p-2 w-full"
+                title="Select month for commission data"
+                aria-label="Select month for commission data"
+              />
+              <p className="text-xs text-muted-foreground">
+                Note: Use Chrome or Edge for best experience with date inputs
+              </p>
+            </div>
           </CardContent>
         </Card>
       </div>
@@ -208,20 +220,39 @@ export default function AdminAgentPayoutsPage() {
           />
         </div>
       ) : (
-        <Card>
-          <CardHeader>
-            <CardTitle>Agent Commission Summary</CardTitle>
-            <CardDescription>
-              Overview of all agents and their commission metrics for {format(new Date(selectedMonth), 'MMMM yyyy')}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <AdminAgentTable 
-              agents={agents} 
-              onViewDetails={(agentId) => setSelectedAgent(agentId)}
+        <>
+          {/* Bulk Export Component */}
+          <div className="mb-8">
+            <BulkPayoutExport 
+              month={selectedMonth}
+              agents={agents}
             />
-          </CardContent>
-        </Card>
+          </div>
+          
+          {/* Batch Approval Component */}
+          <div className="mb-8">
+            <BatchPayoutApproval
+              month={selectedMonth}
+              agents={agents}
+              onPayoutsApproved={() => fetchAgentData()}
+            />
+          </div>
+          
+          <Card>
+            <CardHeader>
+              <CardTitle>Agent Commission Summary</CardTitle>
+              <CardDescription>
+                Overview of all agents and their commission metrics for {format(new Date(selectedMonth), 'MMMM yyyy')}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <AdminAgentTable 
+                agents={agents} 
+                onViewDetails={(agentId) => setSelectedAgent(agentId)}
+              />
+            </CardContent>
+          </Card>
+        </>
       )}
     </div>
   );

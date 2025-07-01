@@ -59,14 +59,27 @@ class handler(BaseHTTPRequestHandler):
         except Exception as e:
             return False, f"Error verifying token: {str(e)}"
 
-    def run_analytics_pipeline(self):
-        """Run the analytics pipeline script as a subprocess"""
+    def run_analytics_pipeline(self, user_id):
+        """Run the analytics pipeline script as a subprocess and record in Supabase"""
         pipeline_script = str(Path(__file__).parent.parent / "scripts" / "run_pipeline.py")
         
         # Generate a unique run ID
         run_id = str(uuid.uuid4())
         
         try:
+            # Create a client to record the pipeline run in Supabase
+            if SUPABASE_URL and SUPABASE_KEY:
+                from supabase import create_client
+                supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
+                
+                # Record pipeline run in the pipeline_runs table
+                result = supabase.table('pipeline_runs').insert({
+                    'id': run_id,
+                    'status': 'started',
+                    'initiated_by': user_id,
+                    'run_type': 'api_triggered'
+                }).execute()
+            
             # Start the pipeline as a background process
             subprocess.Popen([
                 sys.executable, 
@@ -79,6 +92,16 @@ class handler(BaseHTTPRequestHandler):
             
             return True, run_id
         except Exception as e:
+            # If there was an error, try to record it in Supabase
+            try:
+                if SUPABASE_URL and SUPABASE_KEY and 'supabase' in locals():
+                    supabase.table('pipeline_runs').update({
+                        'status': 'error',
+                        'error': str(e)
+                    }).eq('id', run_id).execute()
+            except:
+                pass  # Silently handle database recording errors
+                
             return False, str(e)
 
     def do_POST(self):
@@ -98,8 +121,14 @@ class handler(BaseHTTPRequestHandler):
                 }).encode('utf-8'))
                 return
             
+            # Extract user ID from the decoded token
+            if isinstance(auth_result, dict) and 'sub' in auth_result:
+                user_id = auth_result['sub']
+            else:
+                user_id = None
+            
             # Run the analytics pipeline
-            success, result = self.run_analytics_pipeline()
+            success, result = self.run_analytics_pipeline(user_id)
             
             if success:
                 run_id = result

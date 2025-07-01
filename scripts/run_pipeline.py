@@ -62,6 +62,8 @@ def parse_arguments():
                         help='Process data but do not write to database')
     parser.add_argument('--force', action='store_true', 
                         help='Force processing even if files are already processed')
+    parser.add_argument('--run-id', type=str,
+                        help='Run ID for tracking in the pipeline_runs table')
     return parser.parse_args()
 
 def validate_environment(dry_run=False):
@@ -360,6 +362,31 @@ def main():
             logger.info(f"Syncing {record_count} records to Supabase")
             sync_to_supabase(residual_summary, env_config, dry_run=False)
         
+        # Update pipeline run status in Supabase
+        if args.run_id and not args.dry_run:
+            try:
+                from supabase import create_client
+                supabase_url = env_config.get('supabase_url')
+                supabase_key = env_config.get('supabase_key')
+                if supabase_url and supabase_key:
+                    supabase_client = create_client(supabase_url, supabase_key)
+                    logger.info(f"Initialized pipeline run tracking with ID: {args.run_id}")
+                    
+                    # Update run status
+                    supabase_client.table('pipeline_runs').update({
+                        'status': 'completed',
+                        'completed_at': datetime.datetime.utcnow().isoformat(),
+                        'summary': {
+                            'processing_time_seconds': time.time() - start_time,
+                            'dry_run': args.dry_run
+                        },
+                        'merchant_count': len(residual_summary),
+                        'residual_count': len(residual_summary)
+                    }).eq('id', args.run_id).execute()
+                    logger.info(f"Updated pipeline run status in Supabase: {args.run_id}")
+            except Exception as e:
+                logger.warning(f"Failed to update pipeline run status: {e}")
+        
         logger.info("Pipeline completed successfully")
         return 0
         
@@ -367,6 +394,24 @@ def main():
         logger.error(f"Pipeline failed: {str(e)}")
         import traceback
         logger.error(traceback.format_exc())
+        
+        # Update pipeline run status on failure
+        if args.run_id and not args.dry_run:
+            try:
+                from supabase import create_client
+                supabase_url = env_config.get('supabase_url')
+                supabase_key = env_config.get('supabase_key')
+                if supabase_url and supabase_key:
+                    supabase_client = create_client(supabase_url, supabase_key)
+                    supabase_client.table('pipeline_runs').update({
+                        'status': 'failed',
+                        'error': str(e),
+                        'completed_at': datetime.datetime.utcnow().isoformat()
+                    }).eq('id', args.run_id).execute()
+                    logger.info(f"Updated pipeline run status to failed in Supabase: {args.run_id}")
+            except:
+                pass
+                
         return 1
 
 if __name__ == "__main__":

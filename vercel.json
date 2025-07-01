@@ -9,5 +9,10 @@
     "SUPABASE_SERVICE_ROLE_KEY": "@supabase_service_role_key",
     "NEXT_PUBLIC_APP_URL": "@app_url",
     "NEXT_PUBLIC_SUPABASE_PROJECT_ID": "@supabase_project_id"
+  },
+  "functions": {
+    "api/*.py": {
+      "runtime": "python3.9"
+    }
   }
 }

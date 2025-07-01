@@ -2,7 +2,7 @@ name: Monthly Analytics Pipeline
 
 on:
   schedule:
-    - cron: '0 13 L * *' # 13:00 UTC = 09:00 EDT on last day of month
+    - cron: '0 13 28-31 * *' # 13:00 UTC = 09:00 EDT on days 28-31 of each month
   workflow_dispatch: # Allow manual triggering
 
 jobs:
@@ -24,7 +24,7 @@ jobs:
         run: python scripts/run_pipeline.py --force
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
           SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
           
       - name: Update pipeline status
@@ -57,7 +57,7 @@ jobs:
           "
         env:
           SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
-          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_KEY }}
           
       - name: Notify status
         if: always()

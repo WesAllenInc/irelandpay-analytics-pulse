@@ -1,0 +1,20 @@
+BEGIN:VCALENDAR
+VERSION:2.0
+PRODID:-//Ireland Pay Analytics//Pipeline Schedule//EN
+CALSCALE:GREGORIAN
+BEGIN:VEVENT
+SUMMARY:Ireland Pay Analytics Monthly Pipeline Run
+DTSTART:20250630T130000Z
+DTEND:20250630T133000Z
+DTSTAMP:20250630T230000Z
+UID:analytics-pipeline-run-monthly@irelandpay.com
+RRULE:FREQ=MONTHLY;BYMONTHDAY=-1;BYHOUR=13;BYMINUTE=0
+DESCRIPTION:Automated monthly run of the Ireland Pay Analytics pipeline.\n\nThis runs on the last day of each month at 09:00 EDT (13:00 UTC).\n\nThe pipeline processes the latest merchant and residual data, calculates agent commissions, and updates dashboards.
+ORGANIZER;CN=Analytics Pipeline:mailto:analytics@irelandpay.com
+BEGIN:VALARM
+ACTION:EMAIL
+DESCRIPTION:Monthly analytics pipeline will run in 24 hours
+TRIGGER:-PT24H
+END:VALARM
+END:VEVENT
+END:VCALENDAR

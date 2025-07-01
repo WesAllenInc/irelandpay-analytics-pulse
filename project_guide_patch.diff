@@ -1,0 +1,118 @@
+--- a/project_guide.md
++++ b/project_guide.md
+@@ -44,8 +44,18 @@
+ - **API**: Next.js API routes
+ 
+ ### Integration Points
+ - **Supabase Client**: Compatibility layer for Supabase authentication and data access
+ - **Excel Processing**: XLSX library for parsing and processing Excel data
++
++### Analytics Pipeline (Python)
++
++The analytics pipeline processes Excel files containing merchant transaction data and residual 
++information to calculate agent commissions and populate the dashboard.
++
++Key components:
++- Excel ingestion via frontend upload or API trigger
++- Background processing using Python pandas and NumPy
++- Supabase database storage for results
++- Authentication via Supabase JWT verification
+ 
+ ## Core Features
+ 
+@@ -91,6 +101,7 @@
+ 5. **Feedback**: Users receive real-time feedback on processing status and results
+ 
+ ### Database Schema
++
+ - **merchants**: Stores merchant information (MID, DBA name, etc.)
+ - **merchant_transactions**: Stores transaction data by merchant and month
+ - **residual_payouts**: Stores commission and residual data
+@@ -109,13 +120,18 @@
+ ### Prerequisites
+ - Node.js (LTS version)
+ - npm or yarn
+ - Supabase account and project
++- Python 3.9+
++- `pip install -r requirements.txt`
+ 
+ ### Local Development Setup
+ 1. Clone the repository
+ 2. Install dependencies:
+    ```
+    npm install
++   pip install -r requirements.txt
+    ```
+ 3. Create a `.env.local` file with the following variables:
+    ```
+    NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+    NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
++   SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
++   SUPABASE_JWT_SECRET=your_supabase_jwt_secret
+    ```
+ 4. Start the development server:
+    ```
+@@ -131,6 +147,8 @@
+ - `/app`: Next.js App Router pages and layouts
+ - `/components`: Reusable UI components
+ - `/lib`: Utility functions and service integrations
++- `/api`: Serverless API functions including Python endpoints
++- `/scripts`: Analytics pipeline and utility scripts
+ - `/hooks`: Custom React hooks
+ - `/types`: TypeScript type definitions
+ - `/public`: Static assets
+@@ -165,11 +183,21 @@
+ - `NEXT_PUBLIC_SUPABASE_URL`
+ - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+ - `SUPABASE_SERVICE_ROLE_KEY`
++- `SUPABASE_JWT_SECRET` (for Python functions authentication)
+ 
+ ### Vercel Configuration
+ 
++Python functions use a separate Vercel configuration specified in vercel.json:
++```json
++{
++  "functions": {
++    "api/*.py": {
++      "runtime": "python3.9"
++    }
++  }
++}
++```
++
+ ### Supabase Configuration
+ 1. Create a Supabase project
+ 2. Set up the necessary tables:
+@@ -191,11 +219,29 @@
+ - ✅ Supabase integration for backend services
+ - ✅ Data upload and processing functionality
+ - ✅ Basic dashboard views for agents and admins
++- ✅ Python analytics pipeline for residual calculations
+ - ✅ Chart components for data visualization
+ 
++## Ownership
++
++### Frontend Team Responsibilities
++- Dashboard UI components
++- File upload interface
++- Data visualization components
++- User experience and interaction design
++- Client-side state management
++
++### Data Team Responsibilities
++- Python pipeline maintenance
++- Excel format specifications
++- Data quality validation
++- Commission calculation algorithms
++
++### Shared Responsibilities
++- API endpoints
++- Database schema
++- Authentication integration
++
+ ### Pending Implementation
+ - ⬜ Enhanced mobile responsiveness
+ - ⬜ Advanced filtering options for reports
+-- ⬜ Batch processing for large datasets
++- ⬜ Automated monthly pipeline execution
+ - ⬜ Export to additional formats (PDF, Excel)

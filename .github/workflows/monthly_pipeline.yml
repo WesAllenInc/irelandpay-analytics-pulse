@@ -1,0 +1,70 @@
+name: Monthly Analytics Pipeline
+
+on:
+  schedule:
+    - cron: '0 13 L * *' # 13:00 UTC = 09:00 EDT on last day of month
+  workflow_dispatch: # Allow manual triggering
+
+jobs:
+  run_pipeline:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v3
+        
+      - name: Setup Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.9'
+          
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+        
+      - name: Run pipeline
+        run: python scripts/run_pipeline.py --force
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          SUPABASE_JWT_SECRET: ${{ secrets.SUPABASE_JWT_SECRET }}
+          
+      - name: Update pipeline status
+        run: |
+          echo "Updating pipeline run status in Supabase"
+          python -c "
+          from supabase import create_client
+          import os, datetime, json, uuid
+          
+          supabase = create_client(
+              os.environ.get('SUPABASE_URL'),
+              os.environ.get('SUPABASE_KEY')
+          )
+          
+          run_id = str(uuid.uuid4())
+          result = supabase.table('pipeline_runs').insert({
+              'id': run_id,
+              'status': 'completed',
+              'initiated_by': 'github_actions',
+              'run_type': 'scheduled',
+              'completed_at': datetime.datetime.utcnow().isoformat(),
+              'summary': {
+                  'source': 'github_actions',
+                  'trigger': 'monthly_schedule',
+                  'execution_environment': 'github'
+              }
+          }).execute()
+          
+          print(f'Pipeline run recorded with ID: {run_id}')
+          "
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+          
+      - name: Notify status
+        if: always()
+        run: |
+          if [ "${{ job.status }}" == "success" ]; then
+            echo "Pipeline completed successfully"
+          else
+            echo "Pipeline failed, see logs for details"
+            exit 1
+          fi

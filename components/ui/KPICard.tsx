@@ -53,8 +53,38 @@ export function KPICard({ title, value, change, trend, sparklineData, icon, clas
       </div>
 
       <div className="h-10 opacity-60 group-hover:opacity-100 transition-opacity">
-        {/* TODO: Render mini sparkline chart using sparklineData */}
+        {sparklineData.length > 1 && (
+          <svg className="w-full h-full">
+            <path
+              d={generateSparklinePath(sparklineData, 100, 40)}
+              fill="none"
+              stroke={trend === 'up' ? '#00CC66' : '#FF4444'}
+              strokeWidth={2}
+            />
+          </svg>
+        )}
       </div>
     </motion.div>
   );
+}
+
+function generateSparklinePath(
+  data: Array<{ time: number | string; value: number }>,
+  width: number,
+  height: number
+) {
+  if (data.length < 2) return '';
+
+  const values = data.map((d) => d.value);
+  const min = Math.min(...values);
+  const max = Math.max(...values);
+  const range = max - min || 1;
+
+  const points = data.map((d, index) => {
+    const x = (index / (data.length - 1)) * width;
+    const y = height - ((d.value - min) / range) * height;
+    return `${x},${y}`;
+  });
+
+  return `M${points.join(' L')}`;
 }

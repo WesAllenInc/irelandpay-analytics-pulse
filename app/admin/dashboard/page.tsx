@@ -5,10 +5,10 @@ import { createSupabaseBrowserClient } from '@/lib/supabase';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { format, startOfMonth, endOfMonth, getDaysInMonth } from 'date-fns';
-import dynamic from 'next/dynamic';
-
-// Dynamically import ApexCharts to avoid SSR issues
-const Chart = dynamic(() => import('react-apexcharts'), { ssr: false });
+import {
+  LineChart, Line, BarChart, Bar, XAxis, YAxis, CartesianGrid,
+  Tooltip, Legend, ResponsiveContainer, TooltipProps
+} from 'recharts';
 
 interface DashboardData {
   currentMonth: string;
@@ -204,108 +204,32 @@ export default function DashboardPage() {
     return <div className="p-4 border rounded bg-red-50 text-red-800">Failed to load dashboard data</div>;
   }
 
-  // Configure volume chart options
-  const volumeChartOptions = {
-    chart: {
-      id: 'volume-chart',
-      toolbar: {
-        show: true,
-      },
-      zoom: {
-        enabled: true,
-      },
-    },
-    xaxis: {
-      categories: dashboardData.monthlyTrends.map(item => formatMonthLabel(item.month)),
-    },
-    yaxis: {
-      title: {
-        text: 'Processing Volume',
-      },
-      labels: {
-        formatter: (value: number) => {
-          return '$' + new Intl.NumberFormat('en-US', {
-            notation: 'compact',
-            maximumFractionDigits: 1,
-          }).format(value);
-        },
-      },
-    },
-    colors: ['#2563eb'],
-    stroke: {
-      curve: 'smooth',
-      width: 3,
-    },
-    dataLabels: {
-      enabled: false,
-    },
-    tooltip: {
-      y: {
-        formatter: (value: number) => formatCurrency(value),
-      },
-    },
-    markers: {
-      size: 5,
-    },
+  // Format chart data for recharts
+  const chartData = dashboardData.monthlyTrends.map(item => ({
+    month: formatMonthLabel(item.month),
+    volume: item.volume,
+    profit: item.profit
+  }));
+  
+  // Custom tooltip formatter for currency values
+  const CurrencyTooltip = ({ active, payload, label }: TooltipProps<number, string>) => {
+    if (active && payload && payload.length) {
+      return (
+        <div className="bg-white p-2 border rounded shadow">
+          <p className="font-medium">{label}</p>
+          {payload.map((entry, index) => {
+            const colorClass = entry.name === 'Processing Volume' ? 'text-blue-600' : 'text-green-600';
+            return (
+              <p key={index} className={colorClass}>
+                {entry.name}: {formatCurrency(entry.value as number)}
+              </p>
+            );
+          })}
+        </div>
+      );
+    }
+    return null;
   };
-
-  const volumeChartSeries = [
-    {
-      name: 'Processing Volume',
-      data: dashboardData.monthlyTrends.map(item => item.volume),
-    },
-  ];
-
-  // Configure profit chart options
-  const profitChartOptions = {
-    chart: {
-      id: 'profit-chart',
-      toolbar: {
-        show: true,
-      },
-      zoom: {
-        enabled: true,
-      },
-    },
-    xaxis: {
-      categories: dashboardData.monthlyTrends.map(item => formatMonthLabel(item.month)),
-    },
-    yaxis: {
-      title: {
-        text: 'Net Profit',
-      },
-      labels: {
-        formatter: (value: number) => {
-          return '$' + new Intl.NumberFormat('en-US', {
-            notation: 'compact',
-            maximumFractionDigits: 1,
-          }).format(value);
-        },
-      },
-    },
-    colors: ['#10b981'],
-    plotOptions: {
-      bar: {
-        borderRadius: 4,
-        columnWidth: '60%',
-      },
-    },
-    dataLabels: {
-      enabled: false,
-    },
-    tooltip: {
-      y: {
-        formatter: (value: number) => formatCurrency(value),
-      },
-    },
-  };
-
-  const profitChartSeries = [
-    {
-      name: 'Net Profit',
-      data: dashboardData.monthlyTrends.map(item => item.profit),
-    },
-  ];
 
   return (
     <div className="container mx-auto py-8">
@@ -419,15 +343,34 @@ export default function DashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="h-[400px]">
-            {typeof window !== 'undefined' && (
-              <Chart
-                options={volumeChartOptions as any}
-                series={volumeChartSeries}
-                type="line"
-                height="100%"
-                width="100%"
-              />
-            )}
+            <ResponsiveContainer width="100%" height="100%">
+              <LineChart
+                data={chartData}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                <XAxis dataKey="month" />
+                <YAxis 
+                  tickFormatter={(value) => 
+                    '$' + new Intl.NumberFormat('en-US', {
+                      notation: 'compact',
+                      maximumFractionDigits: 1,
+                    }).format(value)
+                  } 
+                />
+                <Tooltip content={<CurrencyTooltip />} />
+                <Legend />
+                <Line
+                  type="monotone"
+                  dataKey="volume"
+                  name="Processing Volume"
+                  stroke="#2563eb"
+                  strokeWidth={3}
+                  dot={{ r: 4 }}
+                  activeDot={{ r: 6 }}
+                />
+              </LineChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
         
@@ -439,15 +382,31 @@ export default function DashboardPage() {
             </CardDescription>
           </CardHeader>
           <CardContent className="h-[400px]">
-            {typeof window !== 'undefined' && (
-              <Chart
-                options={profitChartOptions as any}
-                series={profitChartSeries}
-                type="bar"
-                height="100%"
-                width="100%"
-              />
-            )}
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={chartData}
+                margin={{ top: 5, right: 30, left: 20, bottom: 5 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" opacity={0.1} />
+                <XAxis dataKey="month" />
+                <YAxis 
+                  tickFormatter={(value) => 
+                    '$' + new Intl.NumberFormat('en-US', {
+                      notation: 'compact',
+                      maximumFractionDigits: 1,
+                    }).format(value)
+                  } 
+                />
+                <Tooltip content={<CurrencyTooltip />} />
+                <Legend />
+                <Bar 
+                  dataKey="profit" 
+                  name="Net Profit" 
+                  fill="#10b981" 
+                  radius={[4, 4, 0, 0]}
+                />
+              </BarChart>
+            </ResponsiveContainer>
           </CardContent>
         </Card>
       </div>

@@ -1,6 +1,5 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase';
-import * as XLSX from 'xlsx';
 
 export async function POST(request: Request) {
   try {
@@ -22,25 +21,41 @@ export async function POST(request: Request) {
       rows = testData;
       console.log("Using test data for API route test:", testData);
     } else {
-      // Download the file from Supabase Storage
+      // Use the Python Edge Function for Excel processing
       const supabase = createSupabaseServerClient();
-      const { data: fileData, error: downloadError } = await supabase
-        .storage
-        .from(datasetType) // Use the correct bucket based on dataset type ('merchants' or 'residuals')
-        .download(path);
       
-      if (downloadError || !fileData) {
+      // Call the Python Edge Function to process the file
+      const { data: processResult, error: processError } = await supabase
+        .functions
+        .invoke('excel-parser-py', {
+          body: JSON.stringify({
+            fileKey: path,
+            fileType: datasetType,
+            fileName: path.split('/').pop() || path
+          })
+        });
+      
+      if (processError || !processResult) {
         return NextResponse.json(
-          { success: false, error: `Error downloading file: ${downloadError?.message || 'Unknown error'}` },
+          { success: false, error: `Error processing file: ${processError?.message || 'Unknown error'}` },
           { status: 500 }
         );
       }
-
-      // Convert the file to an array buffer and parse with XLSX
-      const arrayBuffer = await fileData.arrayBuffer();
-      const workbook = XLSX.read(arrayBuffer, { type: 'array' });
-      const sheet = workbook.Sheets[workbook.SheetNames[0]];
-      rows = XLSX.utils.sheet_to_json(sheet, { header: 0 });
+      
+      // The processed data is already available in the result
+      if (processResult.rowsFailed > 0) {
+        console.warn(`Some rows failed processing: ${processResult.rowsFailed} out of ${processResult.totalRows}`); 
+      }
+      
+      // Return the processing result directly
+      return NextResponse.json({
+        success: true,
+        message: `Successfully processed ${datasetType} data`,
+        totalRows: processResult.totalRows,
+        successRows: processResult.rowsSuccess,
+        failedRows: processResult.rowsFailed,
+        fileName: path.split('/').pop() || path
+      });
     }
     
     if (!rows || rows.length === 0) {

@@ -1,8 +1,4 @@
 import { createSupabaseServiceClient } from '../lib/supabase';
-import * as XLSX from 'xlsx';
-
-
-
 
 
 export interface IngestionResult {
@@ -27,164 +23,106 @@ export function parseDateFromFilename(fileName: string): string {
 
 export async function ingestResiduals(buffer: any, fileName: string): Promise<IngestionResult> {
   const supabase = createSupabaseServiceClient();
-  const workbook = XLSX.read(buffer);
-  const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: null });
-  const errorLog: Record<number, any> = {};
-  let rowsSuccess = 0;
-
-  for (let i = 0; i < rows.length; i++) {
-    const rowNum = i + 2;
-    try {
-      const row = rows[i];
-      const merchantId = row['Merchant ID'];
-      const dbaName = row['DBA Name'];
-      const processor = row['Processor'] || null;
-      const agentName = row['Agent Name'];
-      if (!merchantId || !agentName) throw new Error('Missing Merchant ID or Agent Name');
-
-      // Upsert agent
-      let { data: existingAgent } = await supabase
-        .from('agents')
-        .select('id')
-        .eq('agent_name', agentName)
-        .single();
-      let agentId = existingAgent?.id;
-      if (!agentId) {
-        const { data: newAgent, error: agErr } = await supabase
-          .from('agents')
-          .insert({ agent_name: agentName, email: null })
-          .select('id')
-          .single();
-        if (agErr) throw agErr;
-        agentId = newAgent.id;
-      }
-
-      // Upsert merchant
-      let { data: existingMerchant } = await supabase
-        .from('merchants')
-        .select('id')
-        .eq('merchant_id', merchantId)
-        .single();
-      let merchantUuid = existingMerchant?.id;
-      if (!merchantUuid) {
-        const { data: newMerch, error: mErr } = await supabase
-          .from('merchants')
-          .insert({ merchant_id: merchantId, dba_name: dbaName, processor, agent_id: agentId })
-          .select('id')
-          .single();
-        if (mErr) throw mErr;
-        merchantUuid = newMerch.id;
-      } else {
-        await supabase
-          .from('merchants')
-          .update({ dba_name: dbaName, processor, agent_id: agentId })
-          .eq('id', merchantUuid);
-      }
-
-      // Insert residual if missing for the month
-      const processingMonth = parseDateFromFilename(fileName);
-      const { data: existingRes, error: exErr } = await supabase
-        .from('residuals')
-        .select('id')
-        .match({ merchant_id: merchantUuid, processing_month: processingMonth })
-        .maybeSingle();
-      if (exErr) throw exErr;
-      if (!existingRes) {
-        const payload = {
-          merchant_id: merchantUuid,
-          processing_month: processingMonth,
-          net_residual: row['Net Residual'],
-          fees_deducted: row['Fees Deducted'],
-          final_residual: row['Final Residual'],
-          office_bps: row['Office BPS'],
-          agent_bps: row['Agent BPS'],
-          processor_residual: row['Processor Residual'],
-        };
-        const { error: rErr } = await supabase.from('residuals').insert(payload);
-        if (rErr) throw rErr;
-      }
+  
+  try {
+    // Upload the file to Supabase storage
+    const fileKey = `residuals/${Date.now()}_${fileName}`;
+    const { error: uploadError } = await supabase
+      .storage
+      .from('uploads')
+      .upload(fileKey, buffer);
       
-
-      rowsSuccess++;
-    } catch (err: any) {
-      errorLog[rowNum] = err.message;
+    if (uploadError) {
+      throw new Error(`Error uploading file: ${uploadError.message}`);
     }
+    
+    // Call the Python Edge Function
+    const { data, error } = await supabase
+      .functions
+      .invoke('excel-parser-py', {
+        body: JSON.stringify({
+          fileKey,
+          fileType: 'residuals',
+          fileName
+        })
+      });
+      
+    if (error) {
+      throw new Error(`Edge function error: ${error.message}`);
+    }
+    
+    // Return the result from the Python function
+    return {
+      fileName,
+      fileType: 'residuals',
+      totalRows: data.totalRows,
+      rowsSuccess: data.rowsSuccess,
+      rowsFailed: data.rowsFailed,
+      errorLog: data.errorLog
+    };
+    
+  } catch (err: any) {
+    console.error('Error in ingestResiduals:', err);
+    return {
+      fileName,
+      fileType: 'residuals',
+      totalRows: 0,
+      rowsSuccess: 0,
+      rowsFailed: 0,
+      errorLog: { 0: err.message }
+    };
   }
-
-  const totalRows = rows.length;
-  const rowsFailed = totalRows - rowsSuccess;
-  await supabase.from('ingestion_logs').insert([{ file_name: fileName, file_type: 'residuals', status: rowsFailed ? 'partial' : 'success', total_rows: totalRows, rows_success: rowsSuccess, rows_failed: rowsFailed, error_log: errorLog }]);
-  return { fileName, fileType: 'residuals', totalRows, rowsSuccess, rowsFailed, errorLog };
 }
 
 export async function ingestVolumes(buffer: any, fileName: string): Promise<IngestionResult> {
   const supabase = createSupabaseServiceClient();
-  const workbook = XLSX.read(buffer);
-  const sheet = workbook.Sheets[workbook.SheetNames[0]];
-  const rows: any[] = XLSX.utils.sheet_to_json(sheet, { defval: null });
-  const errorLog: Record<number, any> = {};
-  let rowsSuccess = 0;
-
-  for (let i = 0; i < rows.length; i++) {
-    const rowNum = i + 2;
-    try {
-      const row = rows[i];
-      const merchantId = row['Merchant ID'];
-      const dbaName = row['DBA Name'];
-      const processingMonthRaw = row['Processing Month'];
-      if (!merchantId || !processingMonthRaw) throw new Error('Missing Merchant ID or Processing Month');
-
-      // Parse processing month
-      const pm = processingMonthRaw instanceof Date ? processingMonthRaw : new Date(processingMonthRaw);
-      const processingMonth = `${pm.getFullYear()}-${String(pm.getMonth() + 1).padStart(2, '0')}-01`;
-
-      // Upsert merchant
-      let { data: existingMerch } = await supabase
-        .from('merchants')
-        .select('id')
-        .eq('merchant_id', merchantId)
-        .single();
-      let merchantUuid = existingMerch?.id;
-      if (!merchantUuid) {
-        const { data: newMerch, error: mErr } = await supabase
-          .from('merchants')
-          .insert({ merchant_id: merchantId, dba_name: dbaName })
-          .select('id')
-          .single();
-        if (mErr) throw mErr;
-        merchantUuid = newMerch.id;
-      }
-
-      // Insert volume if missing for the month
-      const { data: existingVol, error: exErr } = await supabase
-        .from('merchant_processing_volumes')
-        .select('id')
-        .match({ merchant_id: merchantUuid, processing_month: processingMonth })
-        .maybeSingle();
-      if (exErr) throw exErr;
-      if (!existingVol) {
-        const payload = {
-          merchant_id: merchantUuid,
-          processing_month: processingMonth,
-          gross_volume: row['Gross Processing Volume'],
-          chargebacks: row['Chargebacks'],
-          fees: row['Fees'],
-          estimated_bps: row['Estimated BPS'],
-        };
-        const { error: vErr } = await supabase.from('merchant_processing_volumes').insert(payload);
-        if (vErr) throw vErr;
-      }
+  
+  try {
+    // Upload the file to Supabase storage
+    const fileKey = `volumes/${Date.now()}_${fileName}`;
+    const { error: uploadError } = await supabase
+      .storage
+      .from('uploads')
+      .upload(fileKey, buffer);
       
-
-      rowsSuccess++;
-    } catch (err: any) {
-      errorLog[rowNum] = err.message;
+    if (uploadError) {
+      throw new Error(`Error uploading file: ${uploadError.message}`);
     }
+    
+    // Call the Python Edge Function
+    const { data, error } = await supabase
+      .functions
+      .invoke('excel-parser-py', {
+        body: JSON.stringify({
+          fileKey,
+          fileType: 'volumes',
+          fileName
+        })
+      });
+      
+    if (error) {
+      throw new Error(`Edge function error: ${error.message}`);
+    }
+    
+    // Return the result from the Python function
+    return {
+      fileName,
+      fileType: 'volumes',
+      totalRows: data.totalRows,
+      rowsSuccess: data.rowsSuccess,
+      rowsFailed: data.rowsFailed,
+      errorLog: data.errorLog
+    };
+    
+  } catch (err: any) {
+    console.error('Error in ingestVolumes:', err);
+    return {
+      fileName,
+      fileType: 'volumes',
+      totalRows: 0,
+      rowsSuccess: 0,
+      rowsFailed: 0,
+      errorLog: { 0: err.message }
+    };
   }
-
-  const totalRows = rows.length;
-  const rowsFailed = totalRows - rowsSuccess;
-  await supabase.from('ingestion_logs').insert([{ file_name: fileName, file_type: 'volumes', status: rowsFailed ? 'partial' : 'success', total_rows: totalRows, rows_success: rowsSuccess, rows_failed: rowsFailed, error_log: errorLog }]);
-  return { fileName, fileType: 'volumes', totalRows, rowsSuccess, rowsFailed, errorLog };
 }

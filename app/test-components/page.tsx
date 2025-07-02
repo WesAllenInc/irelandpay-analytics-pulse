@@ -5,9 +5,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { AlertCircle } from 'lucide-react';
-import MerchantSelector from '@/components/MerchantSelector';
-import VolumeChart from '@/components/VolumeChart';
-import NetChart from '@/components/NetChart';
+import { MerchantSelector } from '@/components/MerchantSelector';
+import { VolumeChart } from '@/components/VolumeChart';
+import { NetChart } from '@/components/NetChart';
 
 // Mock data for testing charts
 const mockVolumeData = [
@@ -97,7 +97,10 @@ export default function TestComponentsPage() {
                 <div className="w-[300px]">
                   {(() => {
                     try {
-                      return <MerchantSelector merchants={mockMerchants} />;
+                      return <MerchantSelector 
+                        selectedMerchant={null}
+                        onMerchantSelect={(merchant) => console.log('Selected merchant:', merchant)}
+                      />;
                     } catch (error) {
                       handleComponentError('merchantSelector', error as Error);
                       return (
@@ -138,7 +141,7 @@ export default function TestComponentsPage() {
                 <div className="h-[400px] border rounded-md p-4">
                   {(() => {
                     try {
-                      return <VolumeChart data={mockVolumeData} />;
+                      return <VolumeChart data={mockVolumeData} title="Transaction Volume" />;
                     } catch (error) {
                       handleComponentError('volumeChart', error as Error);
                       return (
@@ -179,7 +182,7 @@ export default function TestComponentsPage() {
                 <div className="h-[400px] border rounded-md p-4">
                   {(() => {
                     try {
-                      return <NetChart data={mockNetData} />;
+                      return <NetChart data={mockNetData} title="Net Profit" />;
                     } catch (error) {
                       handleComponentError('netChart', error as Error);
                       return (

@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import { createSupabaseServerClient } from '@/lib/supabase';
 import { Sora, Roboto_Mono } from 'next/font/google';
 import Link from 'next/link';
+import { Analytics } from "@vercel/analytics/next";
 import './globals.css';
 
 import { Button } from '@/components/ui/button';
@@ -51,6 +52,7 @@ export default function RootLayout({
         {/* Main content */}
         {children}
         <Toaster />
+        <Analytics />
       </body>
     </html>
   );

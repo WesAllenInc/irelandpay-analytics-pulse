@@ -1,7 +1,23 @@
 import { createSupabaseServerClient } from '@/lib/supabase'
-import { TradingViewWidget } from '@/components/charts/trading-view-widget-final'
-import { TotalSalesChartLite as TotalSalesChart } from '@/components/charts/total-sales-chart-lite'
-import { EstimatedProfitChart } from '@/components/charts/estimated-profit-chart'
+// Use different name for dynamic import to avoid conflict with Next.js config
+import { default as dynamicImport } from 'next/dynamic'
+
+// Dynamically import heavy chart components with loading fallbacks
+const TradingViewWidget = dynamicImport(
+  () => import('@/components/charts/trading-view-widget-final').then(mod => ({ default: mod.TradingViewWidget })),
+  { ssr: false, loading: () => <div className="h-80 w-full animate-pulse bg-muted rounded-lg"></div> }
+)
+
+const TotalSalesChart = dynamicImport(
+  () => import('@/components/charts/total-sales-chart-lite').then(mod => ({ default: mod.TotalSalesChartLite })),
+  { ssr: false, loading: () => <div className="h-80 w-full animate-pulse bg-muted rounded-lg"></div> }
+)
+
+const EstimatedProfitChart = dynamicImport(
+  () => import('@/components/charts/estimated-profit-chart').then(mod => ({ default: mod.EstimatedProfitChart })),
+  { ssr: false, loading: () => <div className="h-80 w-full animate-pulse bg-muted rounded-lg"></div> }
+)
+
 import { MetricsCards } from '@/components/dashboard/metrics-cards'
 import { MerchantTable } from '@/components/dashboard/merchant-table'
 import { RealtimeIndicator } from '@/components/dashboard/realtime-indicator'
@@ -21,6 +37,7 @@ import { Badge } from '@/components/ui/badge'
 // Import DashboardWrapper for animations
 import { DashboardAnimationWrapper, DashboardHeader, DashboardSection } from '../../components/dashboard/dashboard-animation-wrapper'
 
+// Tell Next.js to always fetch fresh data for this page
 export const dynamic = 'force-dynamic'
 
 export default async function DashboardPage() {

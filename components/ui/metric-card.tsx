@@ -1,6 +1,6 @@
 "use client"
 
-import React, { ReactNode } from "react"
+import React, { ReactNode, memo } from "react"
 import { cn } from "@/lib/utils"
 import { Card } from "@/components/ui/card"
 import { ArrowDown, ArrowUp } from "lucide-react"
@@ -20,7 +20,7 @@ interface MetricCardProps {
   onClick?: () => void
 }
 
-export function MetricCard({
+export const MetricCard = memo(function MetricCard({
   title,
   value,
   icon,
@@ -93,4 +93,4 @@ export function MetricCard({
       `}</style>
     </Card>
   )
-}
+})

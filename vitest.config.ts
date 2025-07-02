@@ -7,9 +7,14 @@ export default defineConfig({
   plugins: [tsconfigPaths(), react()],
   test: {
     globals: true,
-    environment: 'node',
-    include: ['tests/**/*.test.ts', 'tests/**/*.test.tsx'],
-    setupFiles: ['./tests/setup.ts'],
+    environment: 'jsdom',
+    include: [
+      'tests/**/*.test.ts', 
+      'tests/**/*.test.tsx',
+      '__tests__/**/*.test.ts',
+      '__tests__/**/*.test.tsx'
+    ],
+    setupFiles: ['__tests__/setup.ts'],
   },
   resolve: {
     alias: {

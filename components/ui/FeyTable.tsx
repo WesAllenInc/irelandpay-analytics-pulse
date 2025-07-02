@@ -29,9 +29,9 @@ export function FeyTable<T>({ data, columns, title }: FeyTableProps<T>) {
         </div>
       )}
       <div className="overflow-x-auto">
-        <table className="w-full">
-          <thead>
-            <tr className="border-b border-card-border">
+        <table className="w-full" role="table">
+          <thead role="rowgroup">
+            <tr className="border-b border-card-border" role="row">
               {columns.map((column) => (
                 <th
                   key={column.key as string}
@@ -40,17 +40,27 @@ export function FeyTable<T>({ data, columns, title }: FeyTableProps<T>) {
                     text-foreground-muted uppercase tracking-wider
                     hover:text-white transition-colors cursor-pointer
                   "
+                  aria-sort="none"
+                  role="columnheader"
+                  tabIndex={0}
+                  onClick={() => {/* Sort functionality would be implemented here */}}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      // Sort functionality would be implemented here
+                    }
+                  }}
                 >
                   <div className="flex items-center gap-1">
                     {column.label}
-                    <ChevronsUpDown className="w-3 h-3 opacity-50" />
+                    <ChevronsUpDown className="w-3 h-3 opacity-50" aria-hidden="true" />
                   </div>
                 </th>
               ))}
-              <th className="px-6 py-3" />
+              <th className="px-6 py-3" role="columnheader" aria-label="Actions column" />
             </tr>
           </thead>
-          <tbody>
+          <tbody role="rowgroup">
             {data.length > 0 ? (
               data.map((row, rowIdx) => (
                 <tr
@@ -60,28 +70,35 @@ export function FeyTable<T>({ data, columns, title }: FeyTableProps<T>) {
                     hover:bg-card-hover transition-colors
                     group cursor-pointer
                   "
+                  role="row"
                 >
                   {columns.map((column) => (
                     <td
                       key={`${rowIdx}-${column.key as string}`}
                       className="px-6 py-4 text-sm text-foreground"
+                      role="cell"
                     >
                       {column.render ? column.render(row) : (row as any)[column.key]}
                     </td>
                   ))}
                   <td className="px-6 py-4">
-                    <button title="Actions" className="
-                      opacity-0 group-hover:opacity-100
-                      transition-opacity text-foreground-muted
-                      hover:text-white
-                    ">
-                      <MoreVertical className="w-4 h-4" />
+                    <button 
+                      aria-label="Actions menu"
+                      className="
+                        opacity-0 group-hover:opacity-100
+                        transition-opacity text-foreground-muted
+                        hover:text-white
+                        focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-primary
+                        rounded p-1
+                      "
+                    >
+                      <MoreVertical className="w-4 h-4" aria-hidden="true" />
                     </button>
                   </td>
                 </tr>
               ))
             ) : (
-              <tr key="no-data" className="border-b border-card-border/50">
+              <tr key="no-data" className="border-b border-card-border/50" role="row">
                 <td 
                   colSpan={columns.length + 1} 
                   className="px-6 py-8 text-sm text-center text-muted-foreground"

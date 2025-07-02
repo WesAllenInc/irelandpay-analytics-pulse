@@ -1,0 +1,15 @@
+.colorSample {
+  width: 1rem;
+  height: 1rem;
+  border-radius: 9999px;
+  border: 1px solid var(--muted);
+  background-color: var(--sample-color, transparent);
+}
+
+.foregroundColor {
+  composes: colorSample;
+}
+
+.backgroundColor {
+  composes: colorSample;
+}

@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React, { useMemo, useCallback } from 'react';
 import {
   ResponsiveContainer,
   ComposedChart,
@@ -23,9 +23,10 @@ interface RechartsAgentVolumeChartProps {
   data: VolumeData[];
 }
 
-const RechartsAgentVolumeChart: React.FC<RechartsAgentVolumeChartProps> = ({ data }) => {
+const RechartsAgentVolumeChart: React.FC<RechartsAgentVolumeChartProps> = React.memo(({ data }) => {
   // Format month labels to be more readable (e.g., "2023-01" to "Jan 2023")
-  const formattedData = data.map(item => {
+  // Memoized to prevent recalculation on every render
+  const formattedData = useMemo(() => data.map(item => {
     const [year, month] = item.month.split('-');
     const date = new Date(parseInt(year), parseInt(month) - 1, 1);
     const formattedDate = date.toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
@@ -34,10 +35,11 @@ const RechartsAgentVolumeChart: React.FC<RechartsAgentVolumeChartProps> = ({ dat
       ...item,
       formattedMonth: formattedDate
     };
-  });
+  }), [data]);
 
   // Custom tooltip formatter
-  const CustomTooltip = ({ active, payload, label }: any) => {
+  // Memoized to prevent recreation on every render
+  const CustomTooltip = useCallback(({ active, payload, label }: any) => {
     if (active && payload && payload.length) {
       return (
         <div className="bg-gray-800 text-white p-3 rounded border border-gray-700 shadow-lg">
@@ -63,17 +65,18 @@ const RechartsAgentVolumeChart: React.FC<RechartsAgentVolumeChartProps> = ({ dat
       );
     }
     return null;
-  };
+  }, []);
 
   // Format for y-axis labels
-  const formatYAxis = (value: number) => {
+  // Memoized to prevent recreation on every render
+  const formatYAxis = useCallback((value: number) => {
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
       currency: 'USD',
       notation: 'compact',
       maximumFractionDigits: 1
     }).format(value);
-  };
+  }, []);
 
   return (
     <div className="w-full h-full">
@@ -140,6 +143,6 @@ const RechartsAgentVolumeChart: React.FC<RechartsAgentVolumeChartProps> = ({ dat
       </ResponsiveContainer>
     </div>
   );
-};
+});
 
 export default RechartsAgentVolumeChart;

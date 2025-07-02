@@ -76,6 +76,7 @@ export function DataTable<TData, TValue>({
           <div className="flex items-center max-w-sm">
             <Input
               placeholder={searchPlaceholder}
+              aria-label={`Search by ${searchKey}`}
               value={(table.getColumn(searchKey)?.getFilterValue() as string) ?? ""}
               onChange={(event: React.ChangeEvent<HTMLInputElement>) =>
                 table.getColumn(searchKey)?.setFilterValue(event.target.value)
@@ -86,10 +87,15 @@ export function DataTable<TData, TValue>({
         )}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" className="ml-auto">
-              <SlidersHorizontal className="mr-2 h-4 w-4" />
+            <Button 
+              variant="outline" 
+              className="ml-auto focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              aria-label="Toggle column visibility"
+              aria-haspopup="true"
+            >
+              <SlidersHorizontal className="mr-2 h-4 w-4" aria-hidden="true" />
               View
-              <ChevronDown className="ml-2 h-4 w-4" />
+              <ChevronDown className="ml-2 h-4 w-4" aria-hidden="true" />
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent align="end">
@@ -114,13 +120,26 @@ export function DataTable<TData, TValue>({
         </DropdownMenu>
       </div>
       <div className="rounded-md border">
-        <Table>
+        <Table aria-label="Data table" role="table">
           <TableHeader>
             {table.getHeaderGroups().map((headerGroup) => (
-              <TableRow key={headerGroup.id}>
+              <TableRow key={headerGroup.id} role="row">
                 {headerGroup.headers.map((header) => {
                   return (
-                    <TableHead key={header.id}>
+                    <TableHead 
+                      key={header.id} 
+                      role="columnheader"
+                      aria-sort={header.column.getIsSorted() ? (header.column.getIsSorted() === "asc" ? "ascending" : "descending") : "none"}
+                      className={header.column.getCanSort() ? "cursor-pointer select-none" : ""}
+                      tabIndex={header.column.getCanSort() ? 0 : undefined}
+                      onClick={() => header.column.getCanSort() && header.column.toggleSorting()}
+                      onKeyDown={(e) => {
+                        if (header.column.getCanSort() && (e.key === 'Enter' || e.key === ' ')) {
+                          e.preventDefault();
+                          header.column.toggleSorting();
+                        }
+                      }}
+                    >
                       {header.isPlaceholder
                         ? null
                         : flexRender(
@@ -136,12 +155,23 @@ export function DataTable<TData, TValue>({
           <TableBody>
             {table.getRowModel().rows?.length ? (
               table.getRowModel().rows.map((row) => (
-                <TableRow
-                  key={row.id}
+                <TableRow 
+                  key={row.id} 
                   data-state={row.getIsSelected() && "selected"}
+                  role="row"
+                  tabIndex={0}
+                  className="focus:outline-none focus:ring-2 focus:ring-primary focus:ring-inset"
+                  aria-selected={row.getIsSelected()}
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' || e.key === ' ') {
+                      e.preventDefault();
+                      // Toggle row selection when pressing Enter or Space
+                      row.toggleSelected(!row.getIsSelected());
+                    }
+                  }}
                 >
                   {row.getVisibleCells().map((cell) => (
-                    <TableCell key={cell.id}>
+                    <TableCell key={cell.id} role="cell">
                       {flexRender(cell.column.columnDef.cell, cell.getContext())}
                     </TableCell>
                   ))}
@@ -149,7 +179,7 @@ export function DataTable<TData, TValue>({
               ))
             ) : (
               <TableRow>
-                <TableCell colSpan={columns.length} className="h-24 text-center">
+                <TableCell colSpan={columns.length} className="h-24 text-center" role="cell">
                   No results.
                 </TableCell>
               </TableRow>
@@ -158,7 +188,11 @@ export function DataTable<TData, TValue>({
         </Table>
       </div>
       <div className="flex items-center justify-end space-x-2 py-4">
-        <div className="flex-1 text-sm text-muted-foreground">
+        <div 
+          className="flex-1 text-sm text-muted-foreground"
+          aria-live="polite"
+          aria-atomic="true"
+        >
           {table.getFilteredSelectedRowModel().rows.length} of{" "}
           {table.getFilteredRowModel().rows.length} row(s) selected.
         </div>
@@ -168,6 +202,7 @@ export function DataTable<TData, TValue>({
             size="sm"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
+            aria-label="Go to previous page"
           >
             Previous
           </Button>
@@ -176,6 +211,7 @@ export function DataTable<TData, TValue>({
             size="sm"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
+            aria-label="Go to next page"
           >
             Next
           </Button>

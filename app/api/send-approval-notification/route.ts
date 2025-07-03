@@ -1,10 +1,45 @@
 import { createSupabaseServerClient } from '@/lib/supabase';
 import { NextResponse } from 'next/server';
 import nodemailer from 'nodemailer';
+import { z } from 'zod';
+import { validateRequest, successResponse, errorResponse } from '@/lib/api-utils';
+import { logRequest, logError } from '@/lib/logging';
+
+// Define validation schema for the request body
+const ApprovalNotificationSchema = z.object({
+  newUserEmail: z.string().email('Invalid email format'),
+  newUserName: z.string().min(1, 'User name is required')
+});
+
+// Define response schema
+const ApprovalResponseSchema = z.object({
+  success: z.boolean()
+});
 
 export async function POST(request: Request) {
+  // Log request with safe metadata only
+  logRequest(request, {
+    metadata: { endpoint: 'api/send-approval-notification' }
+  });
+  
   try {
-    const { newUserEmail, newUserName } = await request.json();
+    // Validate the request body
+    const validation = await validateRequest(
+      request, 
+      ApprovalNotificationSchema as any,
+      'Invalid notification request parameters'
+    );
+    
+    // Return early if validation failed
+    if (validation.response) return validation.response;
+    
+    // Extract validated data
+    const validatedData = validation.data! as {
+      newUserEmail: string;
+      newUserName: string;
+    };
+    const { newUserEmail, newUserName } = validatedData;
+    
     const supabase = createSupabaseServerClient();
     
     // Create a nodemailer transporter
@@ -60,12 +95,13 @@ export async function POST(request: Request) {
       created_at: new Date().toISOString()
     });
     
-    return NextResponse.json({ success: true });
+    // Return standardized successful response
+    return successResponse({ success: true });
   } catch (error: any) {
-    console.error('Error sending approval notification:', error);
-    return NextResponse.json(
-      { error: 'Failed to send approval notification', details: error.message },
-      { status: 500 }
-    );
+    // Log the error with structured logging
+    logError('Error sending approval notification', error instanceof Error ? error : new Error(String(error)));
+    
+    // Return standardized error response
+    return errorResponse('Failed to send approval notification', 500, error.message);
   }
 }

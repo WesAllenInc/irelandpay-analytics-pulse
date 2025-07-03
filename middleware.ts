@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createSupabaseServerClient } from './lib/supabase';
+import { authRateLimiter, resetRateLimitForIP } from './lib/auth-rate-limiter';
 
 // Define public routes that don't need authentication
 const publicRoutes = [
@@ -16,6 +17,20 @@ const publicRoutes = [
 ];
 
 export async function middleware(request: NextRequest) {
+  // Auth-specific rate limiting for login endpoints
+  if (request.nextUrl.pathname.startsWith('/auth/login') || request.nextUrl.pathname.startsWith('/api/auth/login')) {
+    return authRateLimiter(request, async () => {
+      // Continue with normal middleware processing
+      return handleMiddleware(request);
+    });
+  }
+
+  // For non-auth endpoints, proceed normally
+  return handleMiddleware(request);
+}
+
+// Main middleware handler extracted to be used by rate limiter
+async function handleMiddleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // Check if this is a public route

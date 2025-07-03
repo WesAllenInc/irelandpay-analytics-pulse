@@ -1,8 +1,6 @@
 import { createSupabaseServerClient } from '@/lib/supabase';
-import { NextResponse } from 'next/server';
 import { z } from 'zod';
-import { successResponse, errorResponse } from '@/lib/api-utils';
-import { logRequest, logError } from '@/lib/logging';
+import { createApiHandler } from '@/lib/api-handler';
 
 // Define response schema
 const SupabaseTestResponseSchema = z.object({
@@ -13,73 +11,51 @@ const SupabaseTestResponseSchema = z.object({
   projectData: z.any().optional()
 });
 
-export async function GET() {
-  // Log request with safe metadata only
-  logRequest({
-    method: 'GET',
-    url: '/api/supabase-test',
-    headers: new Headers(),
-  }, {
-    metadata: { endpoint: 'api/supabase-test' }
-  });
+// Define handler function
+async function supabaseTestHandler() {
+  const supabase = createSupabaseServerClient();
   
-  try {
-    const supabase = createSupabaseServerClient();
+  // Test the connection by getting Supabase version
+  const { data, error } = await supabase.rpc('get_service_status');
+  
+  if (error) {
+    // If the RPC method doesn't exist, try a simpler query
+    const { data: healthData, error: healthError } = await supabase.from('_health').select('*').limit(1);
     
-    // Test the connection by getting Supabase version
-    const { data, error } = await supabase.rpc('get_service_status');
-    
-    if (error) {
-      // If the RPC method doesn't exist, try a simpler query
-      const { data: healthData, error: healthError } = await supabase.from('_health').select('*').limit(1);
+    if (healthError) {
+      // If that also fails, just try to get the Supabase project reference
+      const { data: projectData } = await supabase.auth.getSession();
       
-      if (healthError) {
-        // If that also fails, just try to get the Supabase project reference
-        const { data: projectData } = await supabase.auth.getSession();
-        
-        // Prepare response data
-        const responseData = {
-          connected: true,
-          message: 'Connected to Supabase, but could not get detailed status',
-          projectData: projectData || null
-        };
-        
-        // Validate response data with Zod
-        const validatedResponseData = SupabaseTestResponseSchema.parse(responseData);
-        
-        // Return validated response
-        return successResponse(validatedResponseData);
-      }
-      
-      // Prepare response data
-      const responseData = {
+      // Return response data
+      return {
         connected: true,
-        message: 'Connected to Supabase health check',
-        healthData: healthData || null
+        message: 'Connected to Supabase, but could not get detailed status',
+        projectData: projectData || null
       };
-      
-      // Validate response data with Zod
-      const validatedResponseData = SupabaseTestResponseSchema.parse(responseData);
-      
-      // Return validated response
-      return successResponse(validatedResponseData);
     }
     
-    // Prepare response data
-    const responseData = {
+    // Return response data
+    return {
       connected: true,
-      message: 'Successfully connected to Supabase',
-      serviceStatus: data
+      message: 'Connected to Supabase health check',
+      healthData: healthData || null
     };
-    
-    // Return validated response
-    return successResponse(responseData);
-    
-  } catch (error) {
-    // Log error with structured logging
-    logError('Error connecting to Supabase', error instanceof Error ? error : new Error(String(error)));
-    
-    // Return standardized error response
-    return errorResponse('Failed to connect to Supabase', 500);
   }
+  
+  // Return response data
+  return {
+    connected: true,
+    message: 'Successfully connected to Supabase',
+    serviceStatus: data
+  };
 }
+
+// Create API route with standardized error handling and response validation
+export const GET = createApiHandler({
+  // No request schema needed for GET
+  responseSchema: SupabaseTestResponseSchema,
+  logEndpoint: 'api/supabase-test',
+  handler: async () => await supabaseTestHandler(),
+  // Custom error message for response validation failures
+  responseValidationMessage: 'Invalid Supabase test response format'
+});

@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase';
+import { logRequest, logError } from '@/lib/logging';
 
 export async function GET(request: Request) {
+  // Log request with safe metadata only
+  logRequest(request, {
+    metadata: { endpoint: 'auth/callback' }
+  });
   const { searchParams, origin } = new URL(request.url);
   const code = searchParams.get('code');
   const next = searchParams.get('next') || '/dashboard';
@@ -11,7 +16,7 @@ export async function GET(request: Request) {
     const { data, error } = await supabase.auth.exchangeCodeForSession(code);
     
     if (error) {
-      console.error('Error exchanging code for session:', error);
+      logError('Error exchanging code for session', error);
       return NextResponse.redirect(`${origin}/auth?error=${encodeURIComponent(error.message)}`);
     }
     

@@ -1,7 +1,12 @@
 import { NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase';
+import { logRequest, logError, warn, info } from '@/lib/logging';
 
 export async function POST(request: Request) {
+  // Log request with safe metadata only
+  logRequest(request, {
+    metadata: { endpoint: 'api/process-excel' }
+  });
   try {
     // Get the file path and dataset type from the request body
     const { path, datasetType = "merchants", testMode = false, testData = null } = await request.json();
@@ -19,7 +24,7 @@ export async function POST(request: Request) {
     if (testMode && testData) {
       // Use test data directly for integration testing
       rows = testData;
-      console.log("Using test data for API route test:", testData);
+      info("Using test data for API route test", { testMode: true, rowCount: testData?.length });
     } else {
       // Use the Python Edge Function for Excel processing
       const supabase = createSupabaseServerClient();
@@ -44,7 +49,10 @@ export async function POST(request: Request) {
       
       // The processed data is already available in the result
       if (processResult.rowsFailed > 0) {
-        console.warn(`Some rows failed processing: ${processResult.rowsFailed} out of ${processResult.totalRows}`); 
+        warn(`Some rows failed processing`, { 
+          rowsFailed: processResult.rowsFailed,
+          totalRows: processResult.totalRows
+        });
       }
       
       // Return the processing result directly
@@ -74,7 +82,7 @@ export async function POST(request: Request) {
       return await processMerchantData(path, rows);
     }
   } catch (error: any) {
-    console.error('Error processing Excel file:', error);
+    logError('Error processing Excel file', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { success: false, error: `Unexpected error: ${error.message || 'Unknown error'}` },
       { status: 500 }

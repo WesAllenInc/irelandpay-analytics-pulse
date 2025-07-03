@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { createSupabaseServerClient } from './lib/supabase';
 import { authRateLimiter, resetRateLimitForIP } from './lib/auth-rate-limiter';
+import { logRequest, debug, error as logError } from './lib/logging';
 
 // Define public routes that don't need authentication
 const publicRoutes = [
@@ -42,7 +43,17 @@ async function handleMiddleware(request: NextRequest) {
   // Get Supabase server client
   const supabase = createSupabaseServerClient();
   const { data: { session } } = await supabase.auth.getSession();
-  console.log('[MIDDLEWARE]', pathname, 'Session:', session);
+  
+  // Log request with safe metadata only
+  logRequest(request, {
+    metadata: { pathname }
+  });
+  
+  // Log authentication status without exposing session details
+  debug('Checking authentication status', {
+    isAuthenticated: !!session?.user?.email,
+    pathname
+  });
 
   // Only treat as authenticated if session?.user?.email exists
   if (!session || !session.user || !session.user.email) {
@@ -63,13 +74,13 @@ async function handleMiddleware(request: NextRequest) {
         .single();
       
       if (error) {
-        console.error('[Middleware] Error fetching role:', error);
+        logError('[Middleware] Error fetching role', error);
         // If role column doesn't exist, just use the default 'agent' role
       } else if (data) {
         role = data.role || 'agent';
       }
     } catch (err) {
-      console.error('[Middleware] Exception in role fetch:', err);
+      logError('[Middleware] Exception in role fetch', err instanceof Error ? err : new Error(String(err)));
       // Keep default role on error
     }
   }

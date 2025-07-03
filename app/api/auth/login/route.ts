@@ -1,8 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createSupabaseServerClient } from '@/lib/supabase';
 import { resetRateLimitForIP } from '@/lib/auth-rate-limiter';
+import { logRequest, logError } from '@/lib/logging';
 
 export async function POST(request: NextRequest) {
+  // Log request with safe metadata only
+  logRequest(request, {
+    metadata: { endpoint: 'api/auth/login' }
+  });
   try {
     const { email, password } = await request.json();
     const supabase = createSupabaseServerClient();
@@ -15,7 +20,7 @@ export async function POST(request: NextRequest) {
     
     // If authentication fails, return error
     if (error) {
-      console.error('[API] Login failed:', error.message);
+      logError('[API] Login failed', new Error(error.message));
       return NextResponse.json(
         { error: 'Invalid credentials' },
         { status: 401 }
@@ -25,7 +30,8 @@ export async function POST(request: NextRequest) {
     // If authentication succeeds, reset rate limit for this IP
     // This is optional since the middleware already handles this,
     // but added here for demonstration purposes
-    const clientIP = request.ip || request.headers.get('x-forwarded-for')?.split(',')[0] || 'unknown';
+    const forwardedFor = request.headers.get('x-forwarded-for');
+    const clientIP = forwardedFor ? forwardedFor.split(',')[0].trim() : 'unknown';
     resetRateLimitForIP(clientIP);
     
     // Return success response
@@ -35,7 +41,7 @@ export async function POST(request: NextRequest) {
       message: 'Successfully logged in'
     });
   } catch (error) {
-    console.error('[API] Login exception:', error);
+    logError('[API] Login exception', error instanceof Error ? error : new Error(String(error)));
     return NextResponse.json(
       { error: 'An error occurred during login' },
       { status: 500 }

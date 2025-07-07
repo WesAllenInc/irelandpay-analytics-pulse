@@ -3,6 +3,7 @@ import { createSupabaseServerClient } from '@/lib/supabase';
 import { Sora, Roboto_Mono } from 'next/font/google';
 import Link from 'next/link';
 import { Analytics } from "@vercel/analytics/next";
+import Providers from './providers';
 import './globals.css';
 
 import { Button } from '@/components/ui/button';
@@ -49,8 +50,10 @@ export default function RootLayout({
           </div>
         )}
         
-        {/* Main content */}
-        {children}
+        {/* Main content with CSRF protection */}
+        <Providers>
+          {children}
+        </Providers>
         <Toaster />
         <Analytics />
       </body>

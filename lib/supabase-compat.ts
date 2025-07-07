@@ -7,6 +7,7 @@
 import { createBrowserClient } from '@supabase/ssr'
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/database'
+import type { CookieOptions } from '@supabase/auth-helpers-shared'
 
 // Singleton pattern to avoid multiple client instances
 let browserClient: ReturnType<typeof createBrowserClient<Database>> | null = null
@@ -23,14 +24,38 @@ export const createClientComponentClient = <T = Database>() => {
     // Server-side rendering
     return createClient<T>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        auth: {
+          autoRefreshToken: true,
+          persistSession: true,
+        },
+        cookies: {
+          name: 'sb-auth-token',
+          lifetime: 60 * 60 * 24 * 7, // 7 days
+          domain: '',
+          path: '/',
+          sameSite: 'strict',
+          secure: process.env.NODE_ENV === 'production',
+        }
+      }
     )
   }
   
   if (!browserClient) {
     browserClient = createBrowserClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          name: 'sb-auth-token',
+          lifetime: 60 * 60 * 24 * 7, // 7 days
+          domain: '',
+          path: '/',
+          sameSite: 'strict',
+          secure: process.env.NODE_ENV === 'production',
+        }
+      }
     )
   }
   
@@ -42,7 +67,21 @@ export const createServerComponentClient = <T = Database>() => {
   if (!serverClient) {
     serverClient = createClient<Database>(
       process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+      process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        auth: {
+          autoRefreshToken: true,
+          persistSession: true,
+        },
+        cookies: {
+          name: 'sb-auth-token',
+          lifetime: 60 * 60 * 24 * 7, // 7 days
+          domain: '',
+          path: '/',
+          sameSite: 'strict',
+          secure: process.env.NODE_ENV === 'production',
+        }
+      }
     )
   }
   

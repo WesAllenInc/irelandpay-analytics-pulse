@@ -3,6 +3,7 @@ import type { NextRequest } from 'next/server';
 import { createSupabaseServerClient } from './lib/supabase';
 import { authRateLimiter, resetRateLimitForIP } from './lib/auth-rate-limiter';
 import { logRequest, debug, error as logError } from './lib/logging';
+import { validateCSRFToken, extractCSRFToken, refreshCSRFToken } from './lib/csrf';
 
 // Define public routes that don't need authentication
 const publicRoutes = [
@@ -33,11 +34,28 @@ export async function middleware(request: NextRequest) {
 // Main middleware handler extracted to be used by rate limiter
 async function handleMiddleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
-
+  
   // Check if this is a public route
   const isPublicRoute = publicRoutes.some(route => pathname.startsWith(route));
   if (isPublicRoute) {
-    return NextResponse.next();
+    const response = NextResponse.next();
+    // Still refresh CSRF token for public routes (for forms, etc.)
+    if (!pathname.startsWith('/_next') && !pathname.startsWith('/static')) {
+      refreshCSRFToken();
+    }
+    return response;
+  }
+  
+  // CSRF protection for state-changing operations
+  if (!['GET', 'HEAD', 'OPTIONS'].includes(request.method)) {
+    const token = extractCSRFToken(request);
+    if (!validateCSRFToken(token)) {
+      debug('Invalid CSRF token detected', { pathname, method: request.method });
+      return NextResponse.json(
+        { error: 'Invalid or missing CSRF token' },
+        { status: 403 }
+      );
+    }
   }
 
   // Get Supabase server client
@@ -102,7 +120,10 @@ async function handleMiddleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/leaderboard', request.url));
   }
 
-  return NextResponse.next();
+  // Always refresh the CSRF token in the response
+  const response = NextResponse.next();
+  refreshCSRFToken();
+  return response;
 }
 
 

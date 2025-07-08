@@ -30,3 +30,7 @@ dist-ssr
 *.sln
 *.sw?
 .vercel
+
+
+#Ignore windsurf AI rules
+.windsurfrules

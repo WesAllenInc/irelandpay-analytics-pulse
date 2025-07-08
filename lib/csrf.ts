@@ -18,7 +18,7 @@ interface CSRFTokenPayload {
 /**
  * Generate a CSRF token and set it as a cookie
  */
-export function generateCSRFToken(): string {
+export async function generateCSRFToken(): Promise<string> {
   // Generate a random token
   const randomToken = randomBytes(32).toString('hex');
   
@@ -38,7 +38,8 @@ export function generateCSRFToken(): string {
   const csrfToken = `${Buffer.from(serializedPayload).toString('base64')}.${signature}`;
   
   // Set the token as a cookie
-  cookies().set({
+  const cookieStore = await cookies();
+  cookieStore.set({
     name: CSRF_COOKIE_NAME,
     value: csrfToken,
     httpOnly: true,
@@ -54,12 +55,13 @@ export function generateCSRFToken(): string {
 /**
  * Validate a CSRF token against the stored token
  */
-export function validateCSRFToken(token: string | null | undefined): boolean {
+export async function validateCSRFToken(token: string | null | undefined): Promise<boolean> {
   if (!token) return false;
   
   try {
     // Get the token from the cookie
-    const storedToken = cookies().get(CSRF_COOKIE_NAME)?.value;
+    const cookieStore = await cookies();
+    const storedToken = cookieStore.get(CSRF_COOKIE_NAME)?.value;
     if (!storedToken) return false;
     
     // Extract and verify parts of the token
@@ -91,38 +93,39 @@ export function validateCSRFToken(token: string | null | undefined): boolean {
 /**
  * Middleware to refresh CSRF token if it's expired or doesn't exist
  */
-export function refreshCSRFToken(): string {
+export async function refreshCSRFToken(): Promise<string> {
   try {
-    const storedToken = cookies().get(CSRF_COOKIE_NAME)?.value;
+    const cookieStore = await cookies();
+    const storedToken = cookieStore.get(CSRF_COOKIE_NAME)?.value;
     
     if (!storedToken) {
-      return generateCSRFToken();
+      return await generateCSRFToken();
     }
     
     // Check if the token is valid and not expired
     const [payloadBase64] = storedToken.split('.');
-    if (!payloadBase64) return generateCSRFToken();
+    if (!payloadBase64) return await generateCSRFToken();
     
     const serializedPayload = Buffer.from(payloadBase64, 'base64').toString();
     const payload: CSRFTokenPayload = JSON.parse(serializedPayload);
     
     // If token is about to expire (less than 1 hour remaining), refresh it
     if (payload.expires < Date.now() + 3600000) {
-      return generateCSRFToken();
+      return await generateCSRFToken();
     }
     
     return storedToken;
   } catch (error) {
     console.error('Error refreshing CSRF token:', error);
-    return generateCSRFToken();
+    return await generateCSRFToken();
   }
 }
 
 /**
  * Get the current CSRF token from cookies or generate a new one
  */
-export function getCSRFToken(): string {
-  return refreshCSRFToken();
+export async function getCSRFToken(): Promise<string> {
+  return await refreshCSRFToken();
 }
 
 /**
@@ -152,7 +155,9 @@ export async function csrfMiddleware(
   
   // Extract and validate the CSRF token
   const token = extractCSRFToken(req);
-  if (!validateCSRFToken(token)) {
+  const isValid = await validateCSRFToken(token);
+  
+  if (!isValid) {
     return new NextResponse(
       JSON.stringify({ error: 'Invalid or missing CSRF token' }),
       { status: 403, headers: { 'Content-Type': 'application/json' } }
@@ -166,8 +171,8 @@ export async function csrfMiddleware(
 /**
  * Helper function to include CSRF token in forms
  */
-export function csrfFormField(): { name: string, value: string } {
-  const token = getCSRFToken();
+export async function csrfFormField(): Promise<{ name: string, value: string }> {
+  const token = await getCSRFToken();
   return {
     name: CSRF_FORM_FIELD,
     value: token
@@ -177,8 +182,8 @@ export function csrfFormField(): { name: string, value: string } {
 /**
  * Get headers object with CSRF token for fetch/axios requests
  */
-export function getCSRFHeaders(): HeadersInit {
+export async function getCSRFHeaders(): Promise<HeadersInit> {
   return {
-    [CSRF_HEADER]: getCSRFToken()
+    [CSRF_HEADER]: await getCSRFToken()
   };
 }

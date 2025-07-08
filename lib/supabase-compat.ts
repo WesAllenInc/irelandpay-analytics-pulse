@@ -29,17 +29,10 @@ export const createClientComponentClient = <T = Database>() => {
         auth: {
           autoRefreshToken: true,
           persistSession: true,
-        },
-        cookies: {
-          name: 'sb-auth-token',
-          lifetime: 60 * 60 * 24 * 7, // 7 days
-          domain: '',
-          path: '/',
-          sameSite: 'strict',
-          secure: process.env.NODE_ENV === 'production',
         }
+        // Note: 'cookies' was removed as it's not compatible with createClient options
       }
-    )
+    ) as ReturnType<typeof createBrowserClient<T>>
   }
   
   if (!browserClient) {
@@ -48,18 +41,31 @@ export const createClientComponentClient = <T = Database>() => {
       process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
       {
         cookies: {
-          name: 'sb-auth-token',
-          lifetime: 60 * 60 * 24 * 7, // 7 days
-          domain: '',
-          path: '/',
-          sameSite: 'strict',
-          secure: process.env.NODE_ENV === 'production',
+          get(name) {
+            return document.cookie
+              .split('; ')
+              .find(row => row.startsWith(`${name}=`))
+              ?.split('=')[1];
+          },
+          set(name, value, options) {
+            let cookieString = `${name}=${value}`;
+            if (options?.expires) cookieString += `; expires=${options.expires.toUTCString()}`;
+            if (options?.maxAge) cookieString += `; max-age=${options.maxAge}`;
+            if (options?.domain) cookieString += `; domain=${options.domain}`;
+            if (options?.path) cookieString += `; path=${options.path}`;
+            if (options?.sameSite) cookieString += `; samesite=${String(options.sameSite).toLowerCase()}`;
+            if (options?.secure) cookieString += `; secure`;
+            document.cookie = cookieString;
+          },
+          remove(name, options) {
+            this.set(name, '', { ...options, maxAge: -1 });
+          }
         }
       }
     )
   }
   
-  return browserClient as ReturnType<typeof createBrowserClient<T>>
+  return browserClient as unknown as ReturnType<typeof createBrowserClient<T>>
 }
 
 // Create server client (singleton)
@@ -72,20 +78,13 @@ export const createServerComponentClient = <T = Database>() => {
         auth: {
           autoRefreshToken: true,
           persistSession: true,
-        },
-        cookies: {
-          name: 'sb-auth-token',
-          lifetime: 60 * 60 * 24 * 7, // 7 days
-          domain: '',
-          path: '/',
-          sameSite: 'strict',
-          secure: process.env.NODE_ENV === 'production',
         }
+        // Note: 'cookies' was removed as it's not compatible with createClient options
       }
     )
   }
   
-  return serverClient as ReturnType<typeof createClient<T>>
+  return serverClient as unknown as ReturnType<typeof createClient<T>>
 }
 
 // Route handler client - same as server client

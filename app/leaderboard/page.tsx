@@ -30,73 +30,46 @@ export default function LeaderboardPage() {
     async function fetchLeaderboardData() {
       setIsLoading(true);
       
-      // Get all agents
-      const { data: agentsData, error: agentsError } = await supabase
-        .from('agents')
-        .select('*');
+      // Use the materialized view to get all agent performance metrics in a single query
+      const { data: performanceData, error: performanceError } = await supabase
+        .from('agent_performance_metrics')
+        .select('*')
+        .like('processing_month', `${selectedMonth}%`);
       
-      if (agentsError || !agentsData) {
-        console.error('Error fetching agents data:', agentsError);
+      if (performanceError) {
+        console.error('Error fetching agent performance data:', performanceError);
         setIsLoading(false);
         return;
       }
-
-      const agentPerformanceList: AgentPerformance[] = [];
       
-      for (const agent of agentsData) {
-        // Get merchant count
-        const { count: merchantCount, error: countError } = await supabase
-          .from('merchants')
-          .select('*', { count: 'exact', head: true })
-          .eq('agent_id', agent.id);
-        
-        if (countError) {
-          console.error(`Error fetching merchant count for agent ${agent.id}:`, countError);
-          continue;
-        }
-        
-        // Get volume data for the selected month
-        const { data: volumeData, error: volumeError } = await supabase
-          .from('merchant_processing_volumes')
-          .select(`
-            gross_volume,
-            merchant:merchant_id(agent_id)
-          `)
-          .eq('merchant.agent_id', agent.id)
-          .like('processing_month', `${selectedMonth}%`);
-        
-        if (volumeError) {
-          console.error(`Error fetching volume data for agent ${agent.id}:`, volumeError);
-          continue;
-        }
-        
-        // Get residual data for the selected month
-        const { data: residualData, error: residualError } = await supabase
-          .from('residuals')
-          .select(`
-            net_residual,
-            merchant:merchant_id(agent_id)
-          `)
-          .eq('merchant.agent_id', agent.id)
-          .like('processing_month', `${selectedMonth}%`);
-          
-        if (residualError) {
-          console.error(`Error fetching residual data for agent ${agent.id}:`, residualError);
-          continue;
-        }
-        
-        // Calculate totals
-        const totalVolume = volumeData?.reduce((sum, item) => sum + (item.gross_volume || 0), 0) || 0;
-        const netResidual = residualData?.reduce((sum, item) => sum + (item.net_residual || 0), 0) || 0;
-        
-        agentPerformanceList.push({
-          id: agent.id,
-          name: agent.agent_name,
-          merchantCount: merchantCount || 0,
-          totalVolume,
-          netResidual
+      // Check when the materialized view was last refreshed
+      const { data: refreshData } = await supabase
+        .from('materialized_view_refreshes')
+        .select('last_refreshed')
+        .eq('view_name', 'agent_performance_metrics')
+        .single();
+      
+      const lastRefreshed = refreshData?.last_refreshed || null;
+      const refreshThreshold = 15 * 60 * 1000; // 15 minutes in milliseconds
+      
+      // If data is stale, trigger a refresh
+      if (!lastRefreshed || (new Date().getTime() - new Date(lastRefreshed).getTime() > refreshThreshold)) {
+        // Call RPC function to refresh views
+        await supabase.rpc('refresh_performance_views').then(() => {
+          console.log('Materialized views refreshed');
+        }).catch(err => {
+          console.error('Failed to refresh materialized views:', err);
         });
       }
+      
+      // Map the data to our component's expected format
+      const agentPerformanceList: AgentPerformance[] = performanceData?.map(agent => ({
+        id: agent.id,
+        name: agent.agent_name,
+        merchantCount: agent.merchant_count || 0,
+        totalVolume: agent.total_volume || 0,
+        netResidual: agent.total_net_residual || 0
+      })) || [];
       
       setAgents(agentPerformanceList);
       setIsLoading(false);

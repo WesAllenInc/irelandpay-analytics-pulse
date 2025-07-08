@@ -31,88 +31,59 @@ export default function AdminAgentPayoutsPage() {
   const fetchAgentData = async () => {
       setIsLoading(true);
       
-      // Get all agents
-      const { data: agentsData, error: agentsError } = await supabase
-        .from('agents')
-        .select('*');
+      // Use the materialized view to get all agent performance metrics in a single query
+      const { data: performanceData, error: performanceError } = await supabase
+        .from('agent_performance_metrics')
+        .select('*')
+        .like('processing_month', `${selectedMonth}%`);
       
-      if (agentsError || !agentsData) {
-        console.error('Error fetching agents data:', agentsError);
+      if (performanceError) {
+        console.error('Error fetching agent performance data:', performanceError);
         setIsLoading(false);
         return;
       }
-
+      
+      // Check when the materialized view was last refreshed
+      const { data: refreshData } = await supabase
+        .from('materialized_view_refreshes')
+        .select('last_refreshed')
+        .eq('view_name', 'agent_performance_metrics')
+        .single();
+      
+      const lastRefreshed = refreshData?.last_refreshed || null;
+      const refreshThreshold = 15 * 60 * 1000; // 15 minutes in milliseconds
+      
+      // If data is stale, trigger a refresh
+      if (!lastRefreshed || (new Date().getTime() - new Date(lastRefreshed).getTime() > refreshThreshold)) {
+        try {
+          // Call RPC function to refresh views
+          await supabase.rpc('refresh_performance_views');
+          console.log('Materialized views refreshed');
+        } catch (err: unknown) {
+          console.error('Failed to refresh materialized views:', err);
+        }
+      }
+      
       const [year, month] = selectedMonth.split('-');
-      const startDate = `${year}-${month}-01`;
+      const daysInMonth = new Date(parseInt(year), parseInt(month), 0).getDate();
+      const dayOfMonth = Math.min(new Date().getDate(), daysInMonth);
+      const forecastMultiplier = daysInMonth / dayOfMonth;
       
-      // Transform agents with additional data
-      const agentSummaries: AgentSummary[] = [];
-      
-      for (const agent of agentsData) {
-        // Get merchant count for this agent
-        const { count: merchantCount, error: countError } = await supabase
-          .from('merchants')
-          .select('*', { count: 'exact', head: true })
-          .eq('agent_id', agent.id);
+      // Map the data to our component's expected format
+      const agentSummaries: AgentSummary[] = performanceData?.map(agent => {
+        const totalVolume = agent.total_volume || 0;
+        const totalResidual = agent.total_final_residual || 0;
         
-        if (countError) {
-          console.error(`Error fetching merchant count for agent ${agent.id}:`, countError);
-          continue;
-        }
-        
-        // Get volume data for merchants belonging to this agent
-        const { data: volumeData, error: volumeError } = await supabase
-          .from('merchant_processing_volumes')
-          .select(`
-            gross_volume,
-            processing_month,
-            merchant:merchant_id(agent_id)
-          `)
-          .eq('merchant.agent_id', agent.id)
-          .like('processing_month', `${selectedMonth}%`);
-        
-        if (volumeError) {
-          console.error(`Error fetching volume data for agent ${agent.id}:`, volumeError);
-          continue;
-        }
-        
-        // Get residual data for merchants belonging to this agent
-        const { data: residualData, error: residualError } = await supabase
-          .from('residuals')
-          .select(`
-            final_residual,
-            processing_month,
-            merchant:merchant_id(agent_id)
-          `)
-          .eq('merchant.agent_id', agent.id)
-          .like('processing_month', `${selectedMonth}%`);
-          
-        if (residualError) {
-          console.error(`Error fetching residual data for agent ${agent.id}:`, residualError);
-          continue;
-        }
-        
-        // Calculate metrics
-        const totalVolume = volumeData?.reduce((sum, item) => sum + (item.gross_volume || 0), 0) || 0;
-        const totalResidual = residualData?.reduce((sum, item) => sum + (item.final_residual || 0), 0) || 0;
-        
-        // Calculate forecasted values
-        const daysInMonth = new Date(parseInt(year), parseInt(month), 0).getDate();
-        const dayOfMonth = Math.min(new Date().getDate(), daysInMonth);
-        const forecastMultiplier = daysInMonth / dayOfMonth;
-        const forecastedVolume = totalVolume * forecastMultiplier;
-        const forecastedResidual = totalResidual * forecastMultiplier;
-        
-        agentSummaries.push({
+        return {
           id: agent.id,
           name: agent.agent_name,
-          merchantCount: merchantCount || 0,
+          merchantCount: agent.merchant_count || 0,
           totalVolume,
           totalResidual,
-          forecastedVolume,
-          forecastedResidual
-        });
-      }
+          forecastedVolume: totalVolume * forecastMultiplier,
+          forecastedResidual: totalResidual * forecastMultiplier
+        };
+      }) || [];
       
       setAgents(agentSummaries);
       setIsLoading(false);
@@ -186,20 +157,45 @@ export default function AdminAgentPayoutsPage() {
             <CardTitle className="text-sm font-medium text-muted-foreground">Month</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="flex flex-col gap-2">
-              <label htmlFor="month-selector" className="sr-only">Select Month</label>
-              <input
-                id="month-selector"
-                type="month"
-                value={selectedMonth}
-                onChange={(e) => setSelectedMonth(e.target.value)}
-                className="border rounded p-2 w-full"
-                title="Select month for commission data"
-                aria-label="Select month for commission data"
-              />
-              <p className="text-xs text-muted-foreground">
-                Note: Use Chrome or Edge for best experience with date inputs
-              </p>
+            <div className="flex items-center">
+              <label htmlFor="month" className="mr-2 text-sm font-medium">Month:</label>
+              <select 
+                id="month-select"
+                className="px-2 py-1 border rounded mr-2"
+                value={selectedMonth.split('-')[1]}
+                onChange={(e) => {
+                  const year = selectedMonth.split('-')[0];
+                  setSelectedMonth(`${year}-${e.target.value}`);
+                }}
+                aria-label="Select month"
+                title="Select month"
+              >
+                {Array.from({length: 12}, (_, i) => {
+                  const month = (i + 1).toString().padStart(2, '0');
+                  const monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+                  return (
+                    <option key={month} value={month}>{monthNames[i]}</option>
+                  );
+                })}
+              </select>
+              <select
+                id="year-select"
+                className="px-2 py-1 border rounded"
+                value={selectedMonth.split('-')[0]}
+                onChange={(e) => {
+                  const month = selectedMonth.split('-')[1];
+                  setSelectedMonth(`${e.target.value}-${month}`);
+                }}
+                aria-label="Select year"
+                title="Select year"
+              >
+                {Array.from({length: 5}, (_, i) => {
+                  const year = new Date().getFullYear() - 2 + i;
+                  return (
+                    <option key={year} value={year}>{year}</option>
+                  );
+                })}
+              </select>
             </div>
           </CardContent>
         </Card>

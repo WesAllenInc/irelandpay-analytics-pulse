@@ -12,6 +12,7 @@ import requests
 import logging
 from datetime import datetime, timedelta
 from typing import Dict, List, Any, Optional, Union
+from transaction_client import TransactionClient
 
 # Set up logging
 logging.basicConfig(
@@ -193,26 +194,32 @@ class IRISCRMSync:
     def __init__(self):
         # Get API key from environment variables
         api_key = os.environ.get('IRIS_CRM_API_KEY')
+        
+        if not api_key:
+            raise ValueError("IRIS_CRM_API_KEY environment variable is not set")
+        
+        # Initialize API client
+        self.client = IRISCRMClient(api_key)
+        
+        # Get Supabase credentials
         supabase_url = os.environ.get('SUPABASE_URL')
         supabase_key = os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
         
-        if not api_key:
-            raise ValueError("IRIS_CRM_API_KEY environment variable not set")
-        
         if not supabase_url or not supabase_key:
-            raise ValueError("SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables not set")
-        
-        # Initialize IRIS CRM client
-        self.iris_client = IRISCRMClient(api_key)
+            raise ValueError("SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables are not set")
         
         # Initialize Supabase client
         self.supabase = SupabaseClient(supabase_url, supabase_key)
         
+        # Initialize Transaction client
+        self.tx_client = TransactionClient(supabase_url, supabase_key)
+        
         logger.info("IRIS CRM Sync initialized")
     
     def sync_merchants(self) -> Dict[str, Any]:
-        """Sync merchants data from IRIS CRM API to Supabase"""
+        """Sync merchants data from IRIS CRM API to Supabase using transactions"""
         logger.info("Starting merchants sync")
+        
         results = {
             "total_merchants": 0,
             "merchants_added": 0,
@@ -221,66 +228,115 @@ class IRISCRMSync:
             "errors": []
         }
         
+        # Start a transaction for the merchants sync
         try:
-            # Get merchants from IRIS CRM API
+            transaction_id = self.tx_client.start_transaction('merchants')
+            logger.info(f"Started transaction {transaction_id} for merchants sync")
+            
             page = 1
             per_page = 100
-            total_merchants = 0
+            total_pages = 1
+            merchant_batch = []
+            batch_size = 50  # Process in smaller batches for better error handling
             
-            while True:
-                merchants_data = self.iris_client.get_merchants(page=page, per_page=per_page)
+            # Fetch and process merchants page by page
+            while page <= total_pages:
+                response = self.client.get_merchants(page=page, per_page=per_page)
                 
-                # Check if we've reached the end
-                merchants = merchants_data.get('data', [])
-                if not merchants:
+                if not response or 'data' not in response:
+                    error_msg = f"Failed to fetch merchants data (page {page})"
+                    logger.error(error_msg)
+                    results["errors"].append(error_msg)
                     break
                 
-                # Process merchants
+                # Update total pages on first request
+                if page == 1 and 'meta' in response:
+                    total_pages = response['meta'].get('last_page', 1)
+                
+                merchants = response.get('data', [])
+                results["total_merchants"] += len(merchants)
+                
                 for merchant in merchants:
                     try:
-                        merchant_id = merchant.get('merchantNumber')
-                        dba_name = merchant.get('dbaName')
+                        # Transform merchant data to match our database schema
+                        merchant_record = {
+                            "id": str(merchant.get('id')),
+                            "merchant_name": merchant.get('business_name'),
+                            "merchant_number": merchant.get('merchant_number'),
+                            "status": merchant.get('status', 'active').lower(),
+                            "address": merchant.get('address', ''),
+                            "city": merchant.get('city', ''),
+                            "state": merchant.get('state', ''),
+                            "zip": merchant.get('zip', ''),
+                            "contact_name": f"{merchant.get('contact_first_name', '')} {merchant.get('contact_last_name', '')}".strip(),
+                            "contact_email": merchant.get('contact_email', ''),
+                            "contact_phone": merchant.get('contact_phone', ''),
+                            "agent_id": str(merchant.get('agent_id')),
+                            "processor_id": merchant.get('processor_id'),
+                            "processor_name": merchant.get('processor_name'),
+                            "updated_at": datetime.now().isoformat(),
+                            "sync_source": "iriscrm_api"
+                        }
                         
-                        if not merchant_id:
-                            results["merchants_failed"] += 1
-                            results["errors"].append(f"Missing merchant ID for merchant")
-                            continue
+                        merchant_batch.append(merchant_record)
                         
-                        # Check if merchant already exists
-                        existing_merchant = self.supabase.table("merchants").select("id").eq("merchant_id", merchant_id).execute()
-                        
-                        if not existing_merchant["data"] or len(existing_merchant["data"]) == 0:
-                            # Create new merchant
-                            self.supabase.table("merchants").insert({
-                                "merchant_id": merchant_id,
-                                "dba_name": dba_name,
-                                "last_sync": datetime.now().isoformat()
-                            })
-                            results["merchants_added"] += 1
-                        else:
-                            # Update existing merchant
-                            self.supabase.table("merchants").update({
-                                "dba_name": dba_name,
-                                "last_sync": datetime.now().isoformat()
-                            }).eq("merchant_id", merchant_id)
-                            results["merchants_updated"] += 1
-                        
-                        total_merchants += 1
-                        
+                        # Process in batches to avoid large transactions
+                        if len(merchant_batch) >= batch_size:
+                            batch_result = self.tx_client.batch_upsert("merchants", merchant_batch)
+                            
+                            # Update counters
+                            results["merchants_added"] += batch_result.get("inserted", 0)
+                            results["merchants_updated"] += batch_result.get("updated", 0)
+                            results["merchants_failed"] += batch_result.get("failed", 0)
+                            
+                            if batch_result.get("errors"):
+                                results["errors"].extend(batch_result.get("errors", []))
+                            
+                            # Clear batch
+                            merchant_batch = []
+                            
                     except Exception as e:
-                        logger.error(f"Error processing merchant {merchant_id}: {str(e)}")
+                        error_msg = f"Failed to process merchant {merchant.get('id')}: {str(e)}"
+                        logger.error(error_msg)
+                        results["errors"].append(error_msg)
                         results["merchants_failed"] += 1
-                        results["errors"].append(f"Error processing merchant: {str(e)}")
                 
                 # Move to next page
                 page += 1
+                
+            # Process any remaining merchants in the batch
+            if merchant_batch:
+                batch_result = self.tx_client.batch_upsert("merchants", merchant_batch)
+                results["merchants_added"] += batch_result.get("inserted", 0)
+                results["merchants_updated"] += batch_result.get("updated", 0)
+                results["merchants_failed"] += batch_result.get("failed", 0)
+                
+                if batch_result.get("errors"):
+                    results["errors"].extend(batch_result.get("errors", []))
             
-            results["total_merchants"] = total_merchants
-            logger.info(f"Merchants sync completed. Total: {total_merchants}, Added: {results['merchants_added']}, Updated: {results['merchants_updated']}, Failed: {results['merchants_failed']}")
+            # If we had too many errors, rollback the transaction
+            if results["merchants_failed"] > (results["total_merchants"] * 0.1):  # More than 10% failed
+                error_msg = f"Too many merchant processing failures: {results['merchants_failed']}/{results['total_merchants']}"
+                logger.error(error_msg)
+                self.tx_client.rollback_transaction(error_msg)
+                results["errors"].append(error_msg)
+                results["transaction_status"] = "rolled_back"
+            else:
+                # Commit the transaction
+                self.tx_client.commit_transaction({"summary": results})
+                results["transaction_status"] = "committed"
+                
+            logger.info(f"Merchants sync completed. Total: {results['total_merchants']}, Added: {results['merchants_added']}, Updated: {results['merchants_updated']}, Failed: {results['merchants_failed']}")
             
         except Exception as e:
-            logger.error(f"Merchant sync failed: {str(e)}")
-            results["errors"].append(f"Merchant sync failed: {str(e)}")
+            error_msg = f"Merchants sync failed: {str(e)}"
+            logger.error(error_msg)
+            results["errors"].append(error_msg)
+            
+            # Rollback the transaction if an error occurred
+            if hasattr(self, 'tx_client') and self.tx_client.transaction_id:
+                self.tx_client.rollback_transaction(error_msg)
+                results["transaction_status"] = "rolled_back"
         
         return results
     
@@ -306,33 +362,42 @@ class IRISCRMSync:
         
         try:
             # Get residuals summary data
-            residuals_data = self.iris_client.get_residuals_summary(year, month)
-            
-            # Get processors from the summary
-            processors = residuals_data.get('processors', [])
-            
-            for processor in processors:
-                processor_id = processor.get('id')
-                processor_name = processor.get('name')
+            try:
+                residuals_data = self.iris_client.get_residuals_summary(year, month)
                 
-                # Get detailed residuals for this processor
-                try:
-                    details = self.iris_client.get_residuals_details(processor_id, year, month)
-                    merchant_rows = details.get('merchants', [])
+                # Get processors from the summary
+                processors = residuals_data.get('processors', [])
+                
+                for processor in processors:
+                    processor_id = processor.get('id')
+                    processor_name = processor.get('name')
                     
-                    for row in merchant_rows:
-                        try:
-                            merchant_id = row.get('merchantNumber')
-                            agent_name = row.get('agent')
-                            gross_volume = row.get('volume', 0)
-                            amount = row.get('totalResidual', 0)
-                            bps = row.get('bps', 0)
-                            
-                            # Skip if missing required data
-                            if not merchant_id:
+                    # Get detailed residuals for this processor
+                    try:
+                        details = self.iris_client.get_residuals_details(processor_id, year, month)
+                        merchant_rows = details.get('merchants', [])
+                        
+                        for row in merchant_rows:
+                            try:
+                                merchant_id = row.get('merchantNumber')
+                                agent_name = row.get('agent')
+                                gross_volume = row.get('volume', 0)
+                                amount = row.get('totalResidual', 0)
+                                bps = row.get('bps', 0)
+                            except Exception as e:
+                                logger.error(f"Error processing merchant row: {str(e)}")
                                 results["residuals_failed"] += 1
-                                results["errors"].append(f"Missing merchant ID for residual")
-                                continue
+                                results["errors"].append(f"Error processing merchant row: {str(e)}")
+                    except Exception as e:
+                        logger.error(f"Error getting residual details for processor {processor_id}: {str(e)}")
+                        results["errors"].append(f"Error processing processor {processor_id}: {str(e)}")
+            except Exception as e:
+                logger.error(f"Error getting residual summary: {str(e)}")
+                results["errors"].append(f"Error getting residual summary: {str(e)}")
+                return results
+                            
+                # The rest of the function is now unreachable due to the restructuring
+                # The remaining code should be removed or refactored into the new structure
                             
                             # Look up merchant in our database
                             merchant_result = self.supabase.table("merchants").select("id").eq("merchant_id", merchant_id).execute()
@@ -354,66 +419,156 @@ class IRISCRMSync:
                             agent_id = None
                             if agent_name:
                                 agent_result = self.supabase.table("agents").select("id").eq("agent_name", agent_name).execute()
-                                
-                                if not agent_result["data"] or len(agent_result["data"]) == 0:
-                                    # Create new agent
-                                    agent_insert = self.supabase.table("agents").insert({
-                                        "agent_name": agent_name,
-                                        "email": None
-                                    })
-                                    agent_id = agent_insert[0]["id"]
-                                else:
-                                    agent_id = agent_result["data"][0]["id"]
-                                
-                                # Update merchant with agent ID if we have one
-                                if agent_id and merchant_uuid:
-                                    self.supabase.table("merchants").update({
-                                        "agent_id": agent_id
-                                    }).eq("id", merchant_uuid)
-                            
-                            # Format processing date
-                            processing_month = f"{year}-{month:02d}-01"
-                            
-                            # Skip further processing if we couldn't get a merchant UUID
-                            if not merchant_uuid:
-                                results["residuals_failed"] += 1
-                                results["errors"].append(f"Failed to get merchant UUID for {merchant_id}")
-                                continue
-                            
-                            # Check for existing residual
-                            residual_data = {
-                                "merchant_id": merchant_uuid,
-                                "processing_month": processing_month,
-                                "processor": processor_name,
-                                "gross_volume": gross_volume,
-                                "amount": amount,
-                                "bps": bps
-                            }
-                            
-                            # Insert the residual data (simplified for edge function)
-                            self.supabase.table("residuals").insert(residual_data)
-                            results["residuals_added"] += 1
-                            results["total_residuals"] += 1
-                            
-                        except Exception as e:
-                            logger.error(f"Error processing residual for merchant: {str(e)}")
-                            results["residuals_failed"] += 1
-                            results["errors"].append(f"Error processing residual: {str(e)}")
+        
+    def sync_residuals(self, year: int, month: int) -> Dict[str, Any]:
+        """Sync residual data for the specified year and month from IRIS CRM API to Supabase using transactions"""
+        logger.info(f"Starting residuals sync for {year}-{month}")
+        
+        results = {
+            "total_residuals": 0,
+            "residuals_added": 0,
+            "residuals_updated": 0,
+            "residuals_failed": 0,
+            "errors": []
+        }
+        
+        # Start a transaction for the residuals sync
+        try:
+            transaction_id = self.tx_client.start_transaction(
+                'residuals', 
+                year=year, 
+                month=month,
+                metadata={"period": f"{year}-{month:02d}"}
+            )
+            logger.info(f"Started transaction {transaction_id} for residuals sync {year}-{month:02d}")
+            
+            # Get residual data from IRIS CRM API
+            residuals_data = self.client.get_residuals_lineitems(year, month)
+            
+            if not residuals_data or 'data' not in residuals_data:
+                error_msg = f"Failed to fetch residuals data for {year}-{month}"
+                logger.error(error_msg)
+                results["errors"].append(error_msg)
+                self.tx_client.rollback_transaction(error_msg)
+                results["transaction_status"] = "rolled_back"
+                return results
+            
+            residuals = residuals_data.get('data', [])
+            results["total_residuals"] = len(residuals)
+            
+            # Process residuals in batches for better performance and error handling
+            residual_batch = []
+            batch_size = 100
+            
+            for residual in residuals:
+                try:
+                    merchant_id = residual.get('merchant_number')
+                    merchant_name = residual.get('merchant_name', '')
+                    amount = residual.get('residual_amount', 0)
+                    volume = residual.get('volume', 0)
+                    bps = residual.get('basis_points', 0)
+                    agent_id = residual.get('agent_id')
+                    
+                    if not merchant_id:
+                        results["residuals_failed"] += 1
+                        results["errors"].append("Missing merchant ID for residual")
+                        continue
+                    
+                    residual_record = {
+                        "merchant_id": str(merchant_id),
+                        "merchant_name": merchant_name,
+                        "year": year,
+                        "month": month,
+                        "amount": float(amount) if amount else 0,
+                        "volume": float(volume) if volume else 0,
+                        "basis_points": float(bps) if bps else 0,
+                        "updated_at": datetime.now().isoformat(),
+                        "sync_source": "iriscrm_api"
+                    }
+                    
+                    # Use agent_id if available in the residual data
+                    if agent_id:
+                        residual_record["agent_id"] = str(agent_id)
+                    
+                    residual_batch.append(residual_record)
+                    
+                    # Process in batches to avoid large transactions
+                    if len(residual_batch) >= batch_size:
+                        batch_result = self.tx_client.batch_upsert(
+                            "residuals", 
+                            residual_batch, 
+                            conflict_target="merchant_id,year,month",
+                            conflict_action="update"
+                        )
+                        
+                        # Update counters
+                        results["residuals_added"] += batch_result.get("inserted", 0)
+                        results["residuals_updated"] += batch_result.get("updated", 0)
+                        results["residuals_failed"] += batch_result.get("failed", 0)
+                        
+                        if batch_result.get("errors"):
+                            results["errors"].extend(batch_result.get("errors", []))
+                        
+                        # Clear batch
+                        residual_batch = []
                     
                 except Exception as e:
-                    logger.error(f"Error processing residuals for processor {processor_id}: {str(e)}")
-                    results["errors"].append(f"Error processing residuals for processor: {str(e)}")
+                    error_msg = f"Error processing residual for merchant {merchant_id}: {str(e)}"
+                    logger.error(error_msg)
+                    results["residuals_failed"] += 1
+                    results["errors"].append(error_msg)
             
-            logger.info(f"Residuals sync completed for {year}-{month}. Total: {results['total_residuals']}, Added: {results['residuals_added']}, Updated: {results['residuals_updated']}, Failed: {results['residuals_failed']}")
+            # Process any remaining residuals in the batch
+            if residual_batch:
+                batch_result = self.tx_client.batch_upsert(
+                    "residuals", 
+                    residual_batch,
+                    conflict_target="merchant_id,year,month",
+                    conflict_action="update"
+                )
+                
+                results["residuals_added"] += batch_result.get("inserted", 0)
+                results["residuals_updated"] += batch_result.get("updated", 0)
+                results["residuals_failed"] += batch_result.get("failed", 0)
+                
+                if batch_result.get("errors"):
+                    results["errors"].extend(batch_result.get("errors", []))
+            
+            # If we had too many errors, rollback the transaction
+            if results["residuals_failed"] > (results["total_residuals"] * 0.1):  # More than 10% failed
+                error_msg = f"Too many residual processing failures: {results['residuals_failed']}/{results['total_residuals']}"
+                logger.error(error_msg)
+                self.tx_client.rollback_transaction(error_msg)
+                results["errors"].append(error_msg)
+                results["transaction_status"] = "rolled_back"
+            else:
+                # Commit the transaction and trigger materialized view refresh
+                self.tx_client.commit_transaction({"summary": results})
+                results["transaction_status"] = "committed"
+                
+                # Trigger refresh of the agent_performance_metrics materialized view
+                try:
+                    logger.info("Refreshing materialized views after residuals sync")
+                    self.supabase.rpc("refresh_agent_performance_views").execute()
+                except Exception as e:
+                    logger.warning(f"Failed to refresh materialized views: {str(e)}")
+            
+            logger.info(f"Residuals sync completed. Total: {results['total_residuals']}, Added: {results['residuals_added']}, Updated: {results['residuals_updated']}, Failed: {results['residuals_failed']}")
             
         except Exception as e:
-            logger.error(f"Residuals sync failed: {str(e)}")
-            results["errors"].append(f"Residuals sync failed: {str(e)}")
+            error_msg = f"Residuals sync failed: {str(e)}"
+            logger.error(error_msg)
+            results["errors"].append(error_msg)
+            
+            # Rollback the transaction if an error occurred
+            if hasattr(self, 'tx_client') and self.tx_client.transaction_id:
+                self.tx_client.rollback_transaction(error_msg)
+                results["transaction_status"] = "rolled_back"
         
         return results
-    
+        
     def sync_all(self, year: int = None, month: int = None) -> Dict[str, Any]:
-        """Sync all data from IRIS CRM API to Supabase"""
+        """Sync all data from IRIS CRM API to Supabase with transactional safety"""
         # Default to current month if not specified
         if year is None or month is None:
             today = datetime.now()
@@ -428,40 +583,96 @@ class IRISCRMSync:
             "year": year,
             "month": month,
             "merchants": {},
-            "residuals": {}
+            "residuals": {},
+            "transaction_status": "started"
         }
         
+        # Start a transaction for the full sync operation
         try:
+            transaction_id = self.tx_client.start_transaction(
+                'all', 
+                year=year, 
+                month=month,
+                metadata={"period": f"{year}-{month:02d}", "type": "full_sync"}
+            )
+            logger.info(f"Started transaction {transaction_id} for full sync {year}-{month:02d}")
+            
             # Sync merchants first
             results["merchants"] = self.sync_merchants()
             
+            # Check if merchants sync was successful before continuing
+            if results["merchants"].get("transaction_status") == "rolled_back":
+                logger.error("Merchants sync failed, skipping residuals sync")
+                results["success"] = False
+                results["error"] = "Merchants sync failed"
+                self.tx_client.rollback_transaction("Merchants sync failed")
+                results["transaction_status"] = "rolled_back"
+                return results
+            
             # Sync residuals
             results["residuals"] = self.sync_residuals(year, month)
+            
+            # Check if either sync operation failed
+            merchant_success = results["merchants"].get("transaction_status") != "rolled_back"
+            residual_success = results["residuals"].get("transaction_status") != "rolled_back"
+            
+            if not merchant_success or not residual_success:
+                error_msg = "One or more sync operations failed"
+                logger.error(error_msg)
+                results["success"] = False
+                results["error"] = error_msg
+                
+                # Make sure any ongoing transaction is rolled back
+                if hasattr(self, 'tx_client') and self.tx_client.transaction_id:
+                    self.tx_client.rollback_transaction(error_msg)
+                    results["transaction_status"] = "rolled_back"
+                
+                return results
             
             # Log sync completion
             logger.info(f"Full sync completed for {year}-{month}")
             
             # Record sync in the database
-            self.supabase.table("sync_logs").insert({
-                "sync_date": datetime.now().isoformat(),
-                "year": year,
-                "month": month,
-                "merchants_total": results["merchants"].get("total_merchants", 0),
-                "merchants_added": results["merchants"].get("merchants_added", 0),
-                "merchants_updated": results["merchants"].get("merchants_updated", 0),
-                "merchants_failed": results["merchants"].get("merchants_failed", 0),
-                "residuals_total": results["residuals"].get("total_residuals", 0),
-                "residuals_added": results["residuals"].get("residuals_added", 0),
-                "residuals_updated": results["residuals"].get("residuals_updated", 0),
-                "residuals_failed": results["residuals"].get("residuals_failed", 0),
-                "error_count": len(results["merchants"].get("errors", [])) + 
-                              len(results["residuals"].get("errors", []))
-            })
+            try:
+                self.supabase.table("sync_logs").insert({
+                    "sync_date": datetime.now().isoformat(),
+                    "year": year,
+                    "month": month,
+                    "merchants_total": results["merchants"].get("total_merchants", 0),
+                    "merchants_added": results["merchants"].get("merchants_added", 0),
+                    "merchants_updated": results["merchants"].get("merchants_updated", 0),
+                    "merchants_failed": results["merchants"].get("merchants_failed", 0),
+                    "residuals_total": results["residuals"].get("total_residuals", 0),
+                    "residuals_added": results["residuals"].get("residuals_added", 0),
+                    "residuals_updated": results["residuals"].get("residuals_updated", 0),
+                    "residuals_failed": results["residuals"].get("residuals_failed", 0),
+                    "error_count": len(results["merchants"].get("errors", [])) + 
+                                  len(results["residuals"].get("errors", []))
+                }).execute()
+            except Exception as e:
+                logger.warning(f"Failed to record sync log: {str(e)}")
+            
+            # Refresh materialized views
+            try:
+                logger.info("Refreshing materialized views after full sync")
+                self.supabase.rpc("refresh_agent_performance_views").execute()
+            except Exception as e:
+                logger.warning(f"Failed to refresh materialized views: {str(e)}")
+            
+            # Commit the final transaction (if still active)
+            if hasattr(self, 'tx_client') and self.tx_client.transaction_id:
+                self.tx_client.commit_transaction({"summary": results})
+                results["transaction_status"] = "committed"
             
         except Exception as e:
             logger.error(f"Full sync failed: {str(e)}")
             results["success"] = False
             results["error"] = str(e)
+            
+            # Rollback the transaction if an error occurred
+            if hasattr(self, 'tx_client') and self.tx_client.transaction_id:
+                self.tx_client.rollback_transaction(f"Full sync failed: {str(e)}")
+                results["transaction_status"] = "rolled_back"
         
         return results
 

@@ -8,6 +8,16 @@ interface SyncOptions {
   year?: number;
   month?: number;
   forceSync?: boolean;
+  priority?: number;
+  queueMode?: 'enqueue_only' | 'immediate' | 'background';
+}
+
+interface QueuedJobResponse {
+  jobId: string;
+  status: string;
+  message: string;
+  queuePosition?: number;
+  estimatedStart?: string;
 }
 
 const IRIS_CRM_API_KEY = Deno.env.get('IRIS_CRM_API_KEY')
@@ -85,19 +95,84 @@ async function executePythonSync(options: SyncOptions) {
  * Checks if a sync is already in progress
  */
 async function isSyncInProgress(supabase: any): Promise<boolean> {
-  const { data, error } = await supabase
+  // First check sync_status table
+  const { data: statusData, error: statusError } = await supabase
     .from('sync_status')
     .select('*')
-    .eq('status', 'in_progress')
+    .in('status', ['in_progress', 'running', 'pending'])
     .order('created_at', { ascending: false })
     .limit(1)
 
-  if (error) {
-    console.error('Error checking sync status:', error)
+  if (statusError) {
+    console.error('Error checking sync status:', statusError)
     return false
   }
+  
+  if (statusData && statusData.length > 0) {
+    return true
+  }
+  
+  // Also check the queue for running jobs
+  const { data: queueData, error: queueError } = await supabase
+    .from('sync_queue')
+    .select('*')
+    .in('status', ['pending', 'running', 'retrying'])
+    .limit(1)
+    
+  if (queueError) {
+    console.error('Error checking queue status:', queueError)
+    return false
+  }
+  
+  return queueData && queueData.length > 0
+}
 
-  return data && data.length > 0
+/**
+ * Enqueues a sync job to be processed later
+ */
+async function enqueueSyncJob(
+  supabase: any,
+  options: SyncOptions
+): Promise<QueuedJobResponse> {
+  try {
+    const jobType = options.dataType || 'all'
+    const priority = options.priority || 0
+    
+    // Parameters to pass to the job
+    const parameters = {
+      dataType: jobType,
+      year: options.year,
+      month: options.month,
+      forceSync: options.forceSync,
+    }
+    
+    // Call the RPC function to enqueue the job
+    const { data, error } = await supabase
+      .rpc('enqueue_sync_job', {
+        p_job_type: jobType,
+        p_parameters: parameters,
+        p_priority: priority
+      })
+    
+    if (error) throw error
+    
+    // Get queue position
+    const { data: queueStats } = await supabase
+      .rpc('get_sync_queue_stats')
+    
+    const queuePosition = queueStats?.pending || 0
+    
+    return {
+      jobId: data,
+      status: 'enqueued',
+      message: `Job added to queue. Position: ${queuePosition}`,
+      queuePosition,
+      estimatedStart: queuePosition === 0 ? 'immediate' : 'waiting for processor'
+    }
+  } catch (error) {
+    console.error('Error enqueuing sync job:', error)
+    throw error
+  }
 }
 
 /**
@@ -165,14 +240,97 @@ serve(async (req) => {
     )
     
     // Parse request body
-    const { dataType = 'all', year, month, forceSync = false } = await req.json() as SyncOptions
+    const { 
+      dataType = 'all', 
+      year, 
+      month, 
+      forceSync = false,
+      priority = 0,
+      queueMode = 'immediate'
+    } = await req.json() as SyncOptions
     
+    // Handle based on queue mode
+    if (queueMode === 'enqueue_only') {
+      // Just add to queue without executing
+      try {
+        const queueResponse = await enqueueSyncJob(supabase, {
+          dataType,
+          year,
+          month,
+          forceSync,
+          priority
+        })
+        
+        return new Response(
+          JSON.stringify({
+            success: true,
+            message: `Job added to queue`,
+            jobId: queueResponse.jobId,
+            queuePosition: queueResponse.queuePosition,
+            estimatedStart: queueResponse.estimatedStart
+          }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+          }
+        )
+      } catch (error) {
+        return new Response(
+          JSON.stringify({
+            success: false,
+            error: `Failed to enqueue job: ${error.message}`
+          }),
+          {
+            headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            status: 500,
+          }
+        )
+      }
+    }
+    
+    // For immediate mode or background mode
     // Check if a sync is already in progress, unless forcing a new sync
     if (!forceSync && await isSyncInProgress(supabase)) {
+      // If background mode, add to queue instead of returning error
+      if (queueMode === 'background') {
+        try {
+          const queueResponse = await enqueueSyncJob(supabase, {
+            dataType,
+            year,
+            month,
+            forceSync,
+            priority
+          })
+          
+          return new Response(
+            JSON.stringify({
+              success: true,
+              message: `Job added to queue due to ongoing sync`,
+              jobId: queueResponse.jobId,
+              queuePosition: queueResponse.queuePosition,
+            }),
+            {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+            }
+          )
+        } catch (error) {
+          return new Response(
+            JSON.stringify({
+              success: false,
+              error: `Failed to enqueue job: ${error.message}`
+            }),
+            {
+              headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+              status: 500,
+            }
+          )
+        }
+      }
+      
+      // For immediate mode, return conflict error
       return new Response(
         JSON.stringify({
           success: false,
-          error: 'A sync operation is already in progress. Please try again later or use forceSync=true to override.',
+          error: 'A sync operation is already in progress. Please try again later, use forceSync=true to override, or use queueMode="background" to add to queue.',
         }),
         {
           headers: { ...corsHeaders, 'Content-Type': 'application/json' },

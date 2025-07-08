@@ -10,6 +10,8 @@ import {
   ChevronRight,
   FileSpreadsheet,
   Settings,
+  Clock,
+  ShieldCheck,
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -32,6 +34,16 @@ export function AdminSidebar() {
       name: 'Agent Payouts',
       href: '/admin/agent-payouts',
       icon: Users,
+    },
+    {
+      name: 'Sync Scheduling',
+      href: '/admin/sync-scheduling',
+      icon: Clock,
+    },
+    {
+      name: 'Data Validation',
+      href: '/admin/data-validation',
+      icon: ShieldCheck,
     },
     {
       name: 'Residual Upload',

@@ -141,7 +141,7 @@ function QueueStatProgress({ label, value, percent, color }: QueueStatProgressPr
         <span className="font-medium">{label}</span>
         <span>{value}</span>
       </div>
-      <Progress value={percent} className="h-2" indicatorClassName={color} />
+      <Progress value={percent} className={`h-2 ${color}`} />
     </div>
   );
 }

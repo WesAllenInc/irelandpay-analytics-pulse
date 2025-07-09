@@ -210,8 +210,8 @@ export function useDataValidation() {
             resolution_status: resolutionStatus,
             resolved_at: new Date().toISOString(),
             resolved_by: user.id,
-            resolution_notes: notes || null
-          };
+            resolution_notes: notes || undefined
+          } as ValidationIssue;
         }
         return issue;
       }));

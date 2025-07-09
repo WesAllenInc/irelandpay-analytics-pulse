@@ -114,7 +114,7 @@ export function TriggerValidation() {
                 <FormField
                   control={form.control}
                   name="syncScope"
-                  render={({ field }) => (
+                  render={({ field }: { field: any }) => (
                     <FormItem>
                       <FormLabel>Month (Optional)</FormLabel>
                       <FormControl>
@@ -143,7 +143,7 @@ export function TriggerValidation() {
             <FormField
               control={form.control}
               name="validateAll"
-              render={({ field }) => (
+              render={({ field }: { field: any }) => (
                 <FormItem className="flex flex-row items-start space-x-3 space-y-0 rounded-md border p-4">
                   <FormControl>
                     <Checkbox
@@ -165,7 +165,7 @@ export function TriggerValidation() {
               <FormField
                 control={form.control}
                 name="sampleSize"
-                render={({ field }) => (
+                render={({ field }: { field: any }) => (
                   <FormItem>
                     <FormLabel>Sample Size</FormLabel>
                     <FormControl>

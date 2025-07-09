@@ -11,7 +11,8 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend
+  Legend,
+  Cell
 } from 'recharts';
 
 interface SyncPerformanceChartProps {
@@ -211,9 +212,16 @@ export function SyncPerformanceChart({
                     <Legend />
                     <Bar 
                       dataKey="value" 
-                      fill={(data) => data.name === 'Successful' ? '#10b981' : '#ef4444'} 
+                      fill="#10b981"
                       name="Count"
-                    />
+                    >
+                      {syncPerformanceData.map((entry: {name: string, value: number}, index: number) => (
+                        <Cell 
+                          key={`cell-${index}`} 
+                          fill={entry.name === 'Successful' ? '#10b981' : '#ef4444'} 
+                        />
+                      ))}
+                    </Bar>
                   </BarChart>
                 </ResponsiveContainer>
               </div>

@@ -318,7 +318,7 @@ export function ValidationIssuesList({ reportId }: ValidationIssuesListProps) {
                       <p className="text-sm font-medium">Resolution Notes</p>
                       <Textarea
                         value={resolutionNotes}
-                        onChange={(e) => setResolutionNotes(e.target.value)}
+                        onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => setResolutionNotes(e.target.value)}
                         placeholder="Add notes about how this issue was resolved or why it was ignored"
                       />
                     </div>

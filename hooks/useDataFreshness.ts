@@ -10,11 +10,26 @@ export interface FreshnessData {
   freshness_status: 'fresh' | 'recent' | 'aging' | 'stale'
 }
 
+export interface DataFreshnessInfo {
+  data_type: string
+  last_sync_at: string | null
+  record_count: number
+  status: 'fresh' | 'recent' | 'aging' | 'stale'
+}
+
 export interface DataFreshnessResult {
   data: FreshnessData[]
   isLoading: boolean
   error: Error | null
   refresh: () => Promise<void>
+}
+
+export interface DataFreshnessHookResult {
+  freshness: DataFreshnessInfo[]
+  isLoading: boolean
+  error: Error | null
+  refresh: () => Promise<void>
+  triggerSync: (dataType: string) => Promise<void>
 }
 
 /**
@@ -24,7 +39,7 @@ export interface DataFreshnessResult {
  */
 export function useDataFreshness(
   refreshInterval: number = 5 * 60 * 1000
-): DataFreshnessResult {
+): DataFreshnessHookResult {
   const [data, setData] = useState<FreshnessData[]>([])
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [error, setError] = useState<Error | null>(null)
@@ -58,16 +73,34 @@ export function useDataFreshness(
   }, [])
 
   // Set up refresh interval
+  
+  // Add triggerSync function for specific data types
+  const triggerSync = async (dataType: string): Promise<void> => {
+    try {
+      await supabase.functions.invoke('sync-iriscrm', {
+        body: { type: dataType, scope: 'incremental' },
+      })
+      
+      // Refresh freshness data after triggering sync
+      await fetchFreshness()
+    } catch (err) {
+      console.error(`Error triggering sync for ${dataType}:`, err)
+      setError(err instanceof Error ? err : new Error(`Failed to trigger sync for ${dataType}`))
+    }
+  }
   useInterval(() => {
     fetchFreshness()
   }, refreshInterval)
 
-  return {
-    data,
-    isLoading,
-    error,
-    refresh: fetchFreshness
-  }
+  // Transform FreshnessData to DataFreshnessInfo format
+  const freshness: DataFreshnessInfo[] = data.map(item => ({
+    data_type: item.table_name,
+    last_sync_at: item.last_updated,
+    record_count: item.record_count,
+    status: item.freshness_status,
+  }))
+  
+  return { freshness, isLoading, error, refresh: fetchFreshness, triggerSync }
 }
 
 /**

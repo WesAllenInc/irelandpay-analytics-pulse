@@ -57,7 +57,7 @@ export default function LeaderboardPage() {
         // Call RPC function to refresh views
         await supabase.rpc('refresh_performance_views').then(() => {
           console.log('Materialized views refreshed');
-        }).catch(err => {
+        }).catch((err: Error) => {
           console.error('Failed to refresh materialized views:', err);
         });
       }

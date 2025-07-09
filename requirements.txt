@@ -6,3 +6,5 @@ postgrest==0.10.6
 numpy==1.24.3
 openpyxl==3.1.2
 PyJWT==2.8.0
+responses==0.25.0
+pandas==2.2.2

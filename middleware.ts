@@ -1,8 +1,8 @@
-import { NextResponse } from 'next/server';
-import type { NextRequest } from 'next/server';
-import { createSupabaseServerClient } from './lib/supabase';
-import { authRateLimiter, resetRateLimitForIP } from './lib/auth-rate-limiter';
-import { logRequest, debug, error as logError } from './lib/logging';
+import { NextResponse } from "next/server";
+import type { NextRequest } from "next/server";
+import { createSupabaseServerClient } from "./lib/supabase";
+import { authRateLimiter, resetRateLimitForIP } from "./lib/auth-rate-limiter";
+import { logRequest, debug, error as logError } from "./lib/edge-logging";
 import { validateCSRFToken, extractCSRFToken, refreshCSRFToken } from './lib/csrf';
 
 // Define public routes that don't need authentication

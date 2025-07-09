@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { useDataValidation } from '@/hooks/useDataValidation';
+import { useState } from "react"
+import { useDataValidation } from "../../hooks/useDataValidation"
 import {
   Card,
   CardContent,
@@ -7,7 +7,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "../../components/ui/card"
 import {
   Form,
   FormControl,
@@ -16,7 +16,7 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form";
+} from "../../components/ui/form"
 import {
   Select,
   SelectContent,
@@ -24,63 +24,63 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
+} from "../../components/ui/select"
 import {
   Tabs,
   TabsContent,
   TabsList,
   TabsTrigger,
-} from "@/components/ui/tabs";
-import { Button } from "@/components/ui/button";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Input } from "@/components/ui/input";
-import { zodResolver } from '@hookform/resolvers/zod';
-import { useForm } from 'react-hook-form';
-import * as z from 'zod';
-import { Loader2 } from 'lucide-react';
+} from "../../components/ui/tabs"
+import { Button } from "../../components/ui/button"
+import { Checkbox } from "../../components/ui/checkbox"
+import { Input } from "../../components/ui/input"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { useForm } from "react-hook-form"
+import * as z from "zod"
+import { Loader2 } from "lucide-react"
 
 // Form schema using zod
 const formSchema = z.object({
-  dataType: z.enum(['merchants', 'residuals', 'agents']),
+  dataType: z.enum(["merchants", "residuals", "agents"]),
   syncScope: z.string().optional(),
   sampleSize: z.number().min(10).max(10000),
-  validateAll: z.boolean().default(false),
-});
+  validateAll: z.boolean().default(false)
+})
 
 export function TriggerValidation() {
-  const { validateData, loading } = useDataValidation();
-  const [activeTab, setActiveTab] = useState('merchants');
-  const [showSyncScope, setShowSyncScope] = useState(false);
+  const { validateData, loading } = useDataValidation()
+  const [activeTab, setActiveTab] = useState("merchants")
+  const [showSyncScope, setShowSyncScope] = useState(false)
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
-      dataType: 'merchants',
+      dataType: "merchants",
       sampleSize: 100,
-      validateAll: false,
-    },
-  });
+      validateAll: false
+    }
+  })
 
   const onSubmit = async (values: z.infer<typeof formSchema>) => {
     await validateData({
       dataType: values.dataType,
       syncScope: values.syncScope,
       sampleSize: values.validateAll ? undefined : values.sampleSize,
-      validateAll: values.validateAll,
-    });
-  };
+      validateAll: values.validateAll
+    })
+  }
 
   // Update form value when tab changes
   const handleTabChange = (value: string) => {
-    setActiveTab(value);
-    form.setValue('dataType', value as any);
+    setActiveTab(value)
+    form.setValue("dataType", value as any)
     
     // Only show syncScope for residuals
-    setShowSyncScope(value === 'residuals');
-    if (value !== 'residuals') {
-      form.setValue('syncScope', undefined);
+    setShowSyncScope(value === "residuals")
+    if (value !== "residuals") {
+      form.setValue("syncScope", undefined)
     }
-  };
+  }
 
   return (
     <Card className="w-full">
@@ -205,5 +205,5 @@ export function TriggerValidation() {
         </p>
       </CardFooter>
     </Card>
-  );
+  )
 }

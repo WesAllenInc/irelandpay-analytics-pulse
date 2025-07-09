@@ -1,5 +1,5 @@
-import { useState, useEffect } from 'react';
-import { useDataValidation, ValidationIssue } from '@/hooks/useDataValidation';
+import { useState, useEffect } from "react"
+import { useDataValidation, ValidationIssue } from "../../hooks/useDataValidation"
 import {
   Card,
   CardContent,
@@ -7,7 +7,7 @@ import {
   CardFooter,
   CardHeader,
   CardTitle,
-} from "@/components/ui/card";
+} from "../../components/ui/card"
 import {
   Table,
   TableBody,
@@ -15,7 +15,7 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from "@/components/ui/table";
+} from "../../components/ui/table"
 import {
   Dialog,
   DialogContent,
@@ -23,7 +23,7 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from "@/components/ui/dialog";
+} from "../../components/ui/dialog"
 import {
   Select,
   SelectContent,
@@ -31,104 +31,104 @@ import {
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from "@/components/ui/select";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Textarea } from "@/components/ui/textarea";
+} from "../../components/ui/select"
+import { Button } from "../../components/ui/button"
+import { Badge } from "../../components/ui/badge"
+import { Skeleton } from "../../components/ui/skeleton"
+import { Textarea } from "../../components/ui/textarea"
 import {
   AlertCircle,
   AlertTriangle,
   Info,
   Check,
   XCircle,
-} from 'lucide-react';
+} from "lucide-react"
 
 interface ValidationIssuesListProps {
-  reportId: string;
+  reportId: string
 }
 
 export function ValidationIssuesList({ reportId }: ValidationIssuesListProps) {
-  const { getValidationIssues, resolveIssue, issues, currentReport, issuesLoading } = useDataValidation();
-  const [selectedIssue, setSelectedIssue] = useState<ValidationIssue | null>(null);
-  const [resolutionStatus, setResolutionStatus] = useState<'resolved' | 'ignored'>('resolved');
-  const [resolutionNotes, setResolutionNotes] = useState('');
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [isResolving, setIsResolving] = useState(false);
-  const [filter, setFilter] = useState<'all' | 'open' | 'resolved' | 'ignored'>('all');
+  const { getValidationIssues, resolveIssue, issues, currentReport, issuesLoading } = useDataValidation()
+  const [selectedIssue, setSelectedIssue] = useState<ValidationIssue | null>(null)
+  const [resolutionStatus, setResolutionStatus] = useState<"resolved" | "ignored">("resolved")
+  const [resolutionNotes, setResolutionNotes] = useState("")
+  const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isResolving, setIsResolving] = useState(false)
+  const [filter, setFilter] = useState<"all" | "open" | "resolved" | "ignored">("all")
 
   useEffect(() => {
     if (reportId) {
-      getValidationIssues(reportId);
+      getValidationIssues(reportId)
     }
-  }, [reportId, getValidationIssues]);
+  }, [reportId, getValidationIssues])
 
   // Filter issues based on resolution status
   const filteredIssues = issues.filter(issue => {
-    if (filter === 'all') return true;
-    return issue.resolution_status === filter;
-  });
+    if (filter === "all") return true
+    return issue.resolution_status === filter
+  })
 
   const handleViewIssue = (issue: ValidationIssue) => {
-    setSelectedIssue(issue);
-    setIsDialogOpen(true);
-  };
+    setSelectedIssue(issue)
+    setIsDialogOpen(true)
+  }
 
   const handleResolveIssue = async () => {
-    if (!selectedIssue) return;
+    if (!selectedIssue) return
     
-    setIsResolving(true);
+    setIsResolving(true)
     
     const success = await resolveIssue(
       selectedIssue.id,
       resolutionStatus,
       resolutionNotes
-    );
+    )
     
-    setIsResolving(false);
+    setIsResolving(false)
     
     if (success) {
-      setIsDialogOpen(false);
-      setResolutionNotes('');
+      setIsDialogOpen(false)
+      setResolutionNotes("")
     }
-  };
+  }
 
   // Get icon based on issue severity
   const getSeverityIcon = (severity: string) => {
     switch(severity) {
-      case 'critical':
-        return <AlertCircle className="h-4 w-4 text-red-600" />;
-      case 'high':
-        return <AlertTriangle className="h-4 w-4 text-orange-500" />;
-      case 'medium':
-        return <Info className="h-4 w-4 text-amber-500" />;
-      case 'low':
-        return <Info className="h-4 w-4 text-blue-500" />;
+      case "critical":
+        return <AlertCircle className="h-4 w-4 text-red-600" />
+      case "high":
+        return <AlertTriangle className="h-4 w-4 text-orange-500" />
+      case "medium":
+        return <Info className="h-4 w-4 text-amber-500" />
+      case "low":
+        return <Info className="h-4 w-4 text-blue-500" />
       default:
-        return <Info className="h-4 w-4" />;
+        return <Info className="h-4 w-4" />
     }
-  };
+  }
 
   // Get badge variant based on issue severity
   const getSeverityBadgeVariant = (severity: string) => {
     switch(severity) {
-      case 'critical': return 'destructive';
-      case 'high': return 'destructive';
-      case 'medium': return 'warning';
-      case 'low': return 'secondary';
-      default: return 'outline';
+      case "critical": return "destructive"
+      case "high": return "destructive"
+      case "medium": return "warning"
+      case "low": return "secondary"
+      default: return "outline"
     }
-  };
+  }
 
   // Get badge variant based on resolution status
   const getStatusBadgeVariant = (status: string) => {
     switch(status) {
-      case 'open': return 'outline';
-      case 'resolved': return 'success';
-      case 'ignored': return 'secondary';
-      default: return 'outline';
+      case "open": return "outline"
+      case "resolved": return "success"
+      case "ignored": return "secondary"
+      default: return "outline"
     }
-  };
+  }
 
   return (
     <>
@@ -353,5 +353,5 @@ export function ValidationIssuesList({ reportId }: ValidationIssuesListProps) {
         </DialogContent>
       </Dialog>
     </>
-  );
+  )
 }

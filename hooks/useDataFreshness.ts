@@ -1,20 +1,20 @@
-import { useState, useEffect } from 'react'
-import { createSupabaseBrowserClient } from '@/lib/supabase-browser'
-import { useInterval } from '@/hooks/useInterval'
+import { useState, useEffect } from "react"
+import { createSupabaseBrowserClient } from "../lib/supabase-browser"
+import useInterval from "./useInterval"
 
 export interface FreshnessData {
   table_name: string
   last_updated: string
   hours_since_update: number
   record_count: number
-  freshness_status: 'fresh' | 'recent' | 'aging' | 'stale'
+  freshness_status: "fresh" | "recent" | "aging" | "stale"
 }
 
 export interface DataFreshnessInfo {
   data_type: string
   last_sync_at: string | null
   record_count: number
-  status: 'fresh' | 'recent' | 'aging' | 'stale'
+  status: "fresh" | "recent" | "aging" | "stale"
 }
 
 export interface DataFreshnessResult {
@@ -51,7 +51,7 @@ export function useDataFreshness(
       setIsLoading(true)
       setError(null)
       
-      const { data, error: supabaseError } = await supabase.rpc('get_data_freshness')
+      const { data, error: supabaseError } = await supabase.rpc("get_data_freshness")
       
       if (supabaseError) {
         throw new Error(`Error fetching data freshness: ${supabaseError.message}`)
@@ -59,10 +59,25 @@ export function useDataFreshness(
       
       setData(data || [])
     } catch (err) {
-      console.error('Error in useDataFreshness:', err)
-      setError(err instanceof Error ? err : new Error('Unknown error fetching data freshness'))
+      console.error("Error in useDataFreshness:", err)
+      setError(err instanceof Error ? err : new Error("Unknown error fetching data freshness"))
     } finally {
       setIsLoading(false)
+    }
+  }
+
+  // Add triggerSync function for specific data types
+  const triggerSync = async (dataType: string): Promise<void> => {
+    try {
+      await supabase.functions.invoke("sync-iriscrm", {
+        body: { type: dataType, scope: "incremental" },
+      })
+      
+      // Refresh freshness data after triggering sync
+      await fetchFreshness()
+    } catch (err) {
+      console.error(`Error triggering sync for ${dataType}:`, err)
+      setError(err instanceof Error ? err : new Error(`Failed to trigger sync for ${dataType}`))
     }
   }
 
@@ -73,27 +88,12 @@ export function useDataFreshness(
   }, [])
 
   // Set up refresh interval
-  
-  // Add triggerSync function for specific data types
-  const triggerSync = async (dataType: string): Promise<void> => {
-    try {
-      await supabase.functions.invoke('sync-iriscrm', {
-        body: { type: dataType, scope: 'incremental' },
-      })
-      
-      // Refresh freshness data after triggering sync
-      await fetchFreshness()
-    } catch (err) {
-      console.error(`Error triggering sync for ${dataType}:`, err)
-      setError(err instanceof Error ? err : new Error(`Failed to trigger sync for ${dataType}`))
-    }
-  }
   useInterval(() => {
     fetchFreshness()
   }, refreshInterval)
 
   // Transform FreshnessData to DataFreshnessInfo format
-  const freshness: DataFreshnessInfo[] = data.map(item => ({
+  const freshness: DataFreshnessInfo[] = data.map((item: FreshnessData) => ({
     data_type: item.table_name,
     last_sync_at: item.last_updated,
     record_count: item.record_count,
@@ -110,19 +110,19 @@ export function useDataFreshness(
  */
 export function getFreshnessDescription(hours: number): string {
   if (hours < 1) {
-    return 'Updated less than an hour ago'
+    return "Updated less than an hour ago"
   } else if (hours < 24) {
-    return `Updated ${Math.floor(hours)} hour${Math.floor(hours) !== 1 ? 's' : ''} ago`
+    return `Updated ${Math.floor(hours)} hour${Math.floor(hours) !== 1 ? "s" : ""} ago`
   } else if (hours < 48) {
-    return 'Updated yesterday'
+    return "Updated yesterday"
   } else if (hours < 72) {
-    return 'Updated 2 days ago'
+    return "Updated 2 days ago"
   } else if (hours < 168) {
     return `Updated ${Math.floor(hours / 24)} days ago`
   } else if (hours < 720) {
-    return `Updated ${Math.floor(hours / 168)} week${Math.floor(hours / 168) !== 1 ? 's' : ''} ago`
+    return `Updated ${Math.floor(hours / 168)} week${Math.floor(hours / 168) !== 1 ? "s" : ""} ago`
   } else {
-    return 'Updated more than a month ago'
+    return "Updated more than a month ago"
   }
 }
 
@@ -133,15 +133,15 @@ export function getFreshnessDescription(hours: number): string {
  */
 export function getFreshnessColorClass(status: string): string {
   switch (status) {
-    case 'fresh':
-      return 'text-green-500'
-    case 'recent':
-      return 'text-blue-500'
-    case 'aging':
-      return 'text-amber-500'
-    case 'stale':
-      return 'text-red-500'
+    case "fresh":
+      return "text-green-500"
+    case "recent":
+      return "text-blue-500"
+    case "aging":
+      return "text-amber-500"
+    case "stale":
+      return "text-red-500"
     default:
-      return 'text-gray-500'
+      return "text-gray-500"
   }
 }

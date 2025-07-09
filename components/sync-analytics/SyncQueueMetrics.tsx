@@ -1,10 +1,10 @@
-import React from 'react';
-import { SyncQueueStats } from '@/hooks/useSyncAnalytics';
-import { Card, CardContent } from '@/components/ui/card';
-import { Progress } from '@/components/ui/progress';
+import React from "react"
+import { SyncQueueStats } from "../../hooks/useSyncAnalytics"
+import { Card, CardContent } from "../../components/ui/card"
+import { Progress } from "../../components/ui/progress"
 
 interface SyncQueueMetricsProps {
-  queueStats: SyncQueueStats | null;
+  queueStats: SyncQueueStats | null
 }
 
 export function SyncQueueMetrics({ queueStats }: SyncQueueMetricsProps) {
@@ -13,7 +13,7 @@ export function SyncQueueMetrics({ queueStats }: SyncQueueMetricsProps) {
       <div className="text-center p-4">
         <p className="text-muted-foreground">No queue data available</p>
       </div>
-    );
+    )
   }
 
   // Calculate percentages for the progress bars
@@ -104,13 +104,13 @@ export function SyncQueueMetrics({ queueStats }: SyncQueueMetricsProps) {
         </div>
       )}
     </div>
-  );
+  )
 }
 
 interface QueueStatCardProps {
-  label: string;
-  value: number;
-  color: string;
+  label: string
+  value: number
+  color: string
 }
 
 function QueueStatCard({ label, value, color }: QueueStatCardProps) {
@@ -124,14 +124,14 @@ function QueueStatCard({ label, value, color }: QueueStatCardProps) {
         </div>
       </CardContent>
     </Card>
-  );
+  )
 }
 
 interface QueueStatProgressProps {
-  label: string;
-  value: number;
-  percent: number;
-  color: string;
+  label: string
+  value: number
+  percent: number
+  color: string
 }
 
 function QueueStatProgress({ label, value, percent, color }: QueueStatProgressProps) {

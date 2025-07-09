@@ -1,0 +1,81 @@
+/* Chart component styling */
+
+/* Indicator styles using data attributes instead of inline styles */
+[data-chart-indicator-color] {
+  background-color: attr(data-chart-indicator-color);
+  border-color: attr(data-chart-indicator-color);
+}
+
+/* For each unique color we create a specific rule */
+[data-chart-indicator-color="#1a56db"] { background-color: #1a56db; border-color: #1a56db; }
+[data-chart-indicator-color="#7e3af2"] { background-color: #7e3af2; border-color: #7e3af2; }
+[data-chart-indicator-color="#16bdca"] { background-color: #16bdca; border-color: #16bdca; }
+[data-chart-indicator-color="#ff5a1f"] { background-color: #ff5a1f; border-color: #ff5a1f; }
+[data-chart-indicator-color="#f05252"] { background-color: #f05252; border-color: #f05252; }
+[data-chart-indicator-color="#3f83f8"] { background-color: #3f83f8; border-color: #3f83f8; }
+[data-chart-indicator-color="#0694a2"] { background-color: #0694a2; border-color: #0694a2; }
+[data-chart-indicator-color="#0e9f6e"] { background-color: #0e9f6e; border-color: #0e9f6e; }
+[data-chart-indicator-color="#057a55"] { background-color: #057a55; border-color: #057a55; }
+[data-chart-indicator-color="#c27803"] { background-color: #c27803; border-color: #c27803; }
+[data-chart-indicator-color="#9061f9"] { background-color: #9061f9; border-color: #9061f9; }
+[data-chart-indicator-color="#6875f5"] { background-color: #6875f5; border-color: #6875f5; }
+
+/* Legend item styles using data attributes */
+[data-chart-legend-color] {
+  background-color: attr(data-chart-legend-color);
+}
+
+/* For each unique color we create a specific rule */
+[data-chart-legend-color="#1a56db"] { background-color: #1a56db; }
+[data-chart-legend-color="#7e3af2"] { background-color: #7e3af2; }
+[data-chart-legend-color="#16bdca"] { background-color: #16bdca; }
+[data-chart-legend-color="#ff5a1f"] { background-color: #ff5a1f; }
+[data-chart-legend-color="#f05252"] { background-color: #f05252; }
+[data-chart-legend-color="#3f83f8"] { background-color: #3f83f8; }
+[data-chart-legend-color="#0694a2"] { background-color: #0694a2; }
+[data-chart-legend-color="#0e9f6e"] { background-color: #0e9f6e; }
+[data-chart-legend-color="#057a55"] { background-color: #057a55; }
+[data-chart-legend-color="#c27803"] { background-color: #c27803; }
+[data-chart-legend-color="#9061f9"] { background-color: #9061f9; }
+[data-chart-legend-color="#6875f5"] { background-color: #6875f5; }
+
+/* Result data attributes for sync results */
+[data-chart-result="Successful"] { fill: #10b981; }
+[data-chart-result="Failed"] { fill: #ef4444; }
+
+/* Add additional chart styling to ensure consistent appearance */
+.chart-container {
+  width: 100%;
+  height: 100%;
+  min-height: 300px;
+}
+
+/* Chart tooltip custom styling */
+.chart-tooltip {
+  background-color: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 0.375rem;
+  padding: 0.5rem 0.75rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+}
+
+/* Chart axis label styling */
+.chart-axis-label {
+  text-anchor: middle;
+  font-size: 12px;
+  fill: var(--text);
+  font-weight: 500;
+}
+
+/* Themed variables for light/dark mode */
+:root {
+  --background: #ffffff;
+  --border: rgba(229, 231, 235, 0.5);
+  --text: #111827;
+}
+
+.dark {
+  --background: #1f2937;
+  --border: rgba(75, 85, 99, 0.5);
+  --text: #f9fafb;
+}

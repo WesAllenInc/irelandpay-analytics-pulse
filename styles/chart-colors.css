@@ -1,0 +1,98 @@
+/**
+ * Chart colors system - this file provides predefined chart colors
+ * to eliminate the need for inline styles in chart components
+ */
+
+:root {
+  /* Primary chart colors */
+  --chart-blue: #3b82f6;
+  --chart-red: #ef4444;
+  --chart-green: #22c55e;
+  --chart-yellow: #eab308;
+  --chart-purple: #a855f7;
+  --chart-pink: #ec4899;
+  --chart-indigo: #6366f1;
+  --chart-gray: #6b7280;
+  --chart-orange: #f97316;
+  
+  /* Secondary chart colors */
+  --chart-slate: #475569;
+  --chart-zinc: #71717a;
+  --chart-amber: #f59e0b;
+  --chart-lime: #84cc16;
+  --chart-emerald: #10b981;
+  --chart-teal: #14b8a6;
+  --chart-cyan: #06b6d4;
+  --chart-sky: #0ea5e9;
+  --chart-violet: #8b5cf6;
+  --chart-fuchsia: #d946ef;
+  --chart-rose: #f43f5e;
+}
+
+/* Chart color classes */
+[data-chart-color="blue"] { 
+  background-color: var(--chart-blue); 
+  border-color: var(--chart-blue);
+}
+
+[data-chart-color="red"] { 
+  background-color: var(--chart-red); 
+  border-color: var(--chart-red);
+}
+
+[data-chart-color="green"] { 
+  background-color: var(--chart-green); 
+  border-color: var(--chart-green);
+}
+
+[data-chart-color="yellow"] { 
+  background-color: var(--chart-yellow); 
+  border-color: var(--chart-yellow);
+}
+
+[data-chart-color="purple"] { 
+  background-color: var(--chart-purple); 
+  border-color: var(--chart-purple);
+}
+
+[data-chart-color="pink"] { 
+  background-color: var(--chart-pink); 
+  border-color: var(--chart-pink);
+}
+
+[data-chart-color="indigo"] { 
+  background-color: var(--chart-indigo); 
+  border-color: var(--chart-indigo);
+}
+
+[data-chart-color="gray"] { 
+  background-color: var(--chart-gray); 
+  border-color: var(--chart-gray);
+}
+
+[data-chart-color="orange"] { 
+  background-color: var(--chart-orange); 
+  border-color: var(--chart-orange);
+}
+
+/* Additional colors */
+[data-chart-color="slate"] { 
+  background-color: var(--chart-slate); 
+  border-color: var(--chart-slate);
+}
+
+[data-chart-color="cyan"] { 
+  background-color: var(--chart-cyan); 
+  border-color: var(--chart-cyan);
+}
+
+[data-chart-color="violet"] { 
+  background-color: var(--chart-violet); 
+  border-color: var(--chart-violet);
+}
+
+/* For any colors not predefined, use custom color attributes */
+[data-chart-color-custom] { 
+  background-color: attr(data-chart-color-custom); 
+  border-color: attr(data-chart-color-custom);
+}

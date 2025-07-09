@@ -1,0 +1,84 @@
+/* Chart component styles */
+
+/* Basic chart indicator and legend styles */
+.chart-base {
+  position: relative;
+}
+
+/* Predefined chart colors to avoid inline styles */
+:root {
+  --chart-blue: #3b82f6;
+  --chart-red: #ef4444;
+  --chart-green: #22c55e;
+  --chart-yellow: #eab308;
+  --chart-purple: #a855f7;
+  --chart-pink: #ec4899;
+  --chart-indigo: #6366f1;
+  --chart-gray: #6b7280;
+  --chart-slate: #475569;
+  --chart-zinc: #71717a;
+  --chart-neutral: #737373;
+  --chart-stone: #78716c;
+  --chart-orange: #f97316;
+  --chart-amber: #f59e0b;
+  --chart-lime: #84cc16;
+  --chart-emerald: #10b981;
+  --chart-teal: #14b8a6;
+  --chart-cyan: #06b6d4;
+  --chart-sky: #0ea5e9;
+  --chart-violet: #8b5cf6;
+  --chart-fuchsia: #d946ef;
+  --chart-rose: #f43f5e;
+}
+
+/* Color classes for chart elements */
+.chart-blue {
+  background-color: var(--chart-blue);
+  border-color: var(--chart-blue);
+}
+
+.chart-red {
+  background-color: var(--chart-red);
+  border-color: var(--chart-red);
+}
+
+.chart-green {
+  background-color: var(--chart-green);
+  border-color: var(--chart-green);
+}
+
+.chart-yellow {
+  background-color: var(--chart-yellow);
+  border-color: var(--chart-yellow);
+}
+
+.chart-purple {
+  background-color: var(--chart-purple);
+  border-color: var(--chart-purple);
+}
+
+.chart-pink {
+  background-color: var(--chart-pink);
+  border-color: var(--chart-pink);
+}
+
+.chart-indigo {
+  background-color: var(--chart-indigo);
+  border-color: var(--chart-indigo);
+}
+
+.chart-gray {
+  background-color: var(--chart-gray);
+  border-color: var(--chart-gray);
+}
+
+.chart-orange {
+  background-color: var(--chart-orange);
+  border-color: var(--chart-orange);
+}
+
+/* For dynamic color assignment */
+.chart-color-dynamic {
+  background-color: var(--dynamic-chart-color, currentColor);
+  border-color: var(--dynamic-chart-color, currentColor);
+}

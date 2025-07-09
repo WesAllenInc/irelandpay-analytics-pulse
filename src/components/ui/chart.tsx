@@ -1,5 +1,9 @@
 import * as React from "react"
+import "@/styles/chart.css"
+import "@/styles/chart-colors.css"
+
 import * as RechartsPrimitive from "recharts"
+import { getChartColorAttributes } from "@/lib/chart-utils"
 
 import { cn } from "@/lib/utils"
 
@@ -7,7 +11,7 @@ import { cn } from "@/lib/utils"
 const THEMES = { light: "", dark: ".dark" } as const
 
 export type ChartConfig = {
-  [k in string]: {
+  [_key in string]: {
     label?: React.ReactNode
     icon?: React.ComponentType
   } & (
@@ -67,7 +71,7 @@ ChartContainer.displayName = "Chart"
 
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
   const colorConfig = Object.entries(config).filter(
-    ([_, config]) => config.theme || config.color
+    ([, config]) => config.theme || config.color
   )
 
   if (!colorConfig.length) {
@@ -206,7 +210,7 @@ const ChartTooltipContent = React.forwardRef<
                       !hideIndicator && (
                         <div
                           className={cn(
-                            "shrink-0 rounded-[2px] border-[--color-border] bg-[--color-bg]",
+                            "shrink-0 rounded-[2px]",
                             {
                               "h-2.5 w-2.5": indicator === "dot",
                               "w-1": indicator === "line",
@@ -215,12 +219,7 @@ const ChartTooltipContent = React.forwardRef<
                               "my-0.5": nestLabel && indicator === "dashed",
                             }
                           )}
-                          style={
-                            {
-                              "--color-bg": indicatorColor,
-                              "--color-border": indicatorColor,
-                            } as React.CSSProperties
-                          }
+                          {...getChartColorAttributes(indicatorColor || item.color)}
                         />
                       )
                     )}
@@ -298,10 +297,8 @@ const ChartLegendContent = React.forwardRef<
                 <itemConfig.icon />
               ) : (
                 <div
-                  className="h-2 w-2 shrink-0 rounded-[2px]"
-                  style={{
-                    backgroundColor: item.color,
-                  }}
+                  className={cn("h-2 w-2 shrink-0 rounded-[2px]")}
+                  {...getChartColorAttributes(item.color)}
                 />
               )}
               {itemConfig?.label}

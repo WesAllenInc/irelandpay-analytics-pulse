@@ -1,7 +1,8 @@
 import * as React from "react"
 import * as RechartsPrimitive from "recharts"
 
-import { cn } from "@/lib/utils"
+import { cn } from "../../../lib/utils"
+import "./chart.css"
 
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const
@@ -206,21 +207,14 @@ const ChartTooltipContent = React.forwardRef<
                       !hideIndicator && (
                         <div
                           className={cn(
-                            "shrink-0 rounded-[2px] border-[--color-border] bg-[--color-bg]",
-                            {
-                              "h-2.5 w-2.5": indicator === "dot",
-                              "w-1": indicator === "line",
-                              "w-0 border-[1.5px] border-dashed bg-transparent":
-                                indicator === "dashed",
-                              "my-0.5": nestLabel && indicator === "dashed",
-                            }
+                            "h-2.5 w-2.5 shrink-0",
+                            indicator === "dot" && "rounded-full",
+                            indicator === "line" &&
+                              "h-0.5 w-8 rounded-full",
+                            indicator === "dashed" &&
+                              "h-0.5 w-8 rounded-full border-dashed border-2 bg-transparent"
                           )}
-                          style={
-                            {
-                              "--color-bg": indicatorColor,
-                              "--color-border": indicatorColor,
-                            } as React.CSSProperties
-                          }
+                          data-chart-indicator-color={indicatorColor}
                         />
                       )
                     )}
@@ -299,9 +293,7 @@ const ChartLegendContent = React.forwardRef<
               ) : (
                 <div
                   className="h-2 w-2 shrink-0 rounded-[2px]"
-                  style={{
-                    backgroundColor: item.color,
-                  }}
+                  data-chart-legend-color={item.color}
                 />
               )}
               {itemConfig?.label}

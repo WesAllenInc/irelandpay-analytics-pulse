@@ -1,8 +1,8 @@
-import React from 'react';
-import { SyncMetrics, SyncPerformanceAnalysis } from '@/hooks/useSyncAnalytics';
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
-import { BarChart as BarChartIcon, LineChart as LineChartIcon } from 'lucide-react';
+import React from "react"
+import { SyncMetrics, SyncPerformanceAnalysis } from "../../hooks/useSyncAnalytics"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../ui/card"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "../ui/tabs"
+import { BarChart as BarChartIcon, LineChart as LineChartIcon } from "lucide-react"
 import {
   BarChart,
   Bar,
@@ -13,11 +13,14 @@ import {
   ResponsiveContainer,
   Legend,
   Cell
-} from 'recharts';
+} from "recharts"
+
+// Import chart styles
+import "../../components/components/ui/chart.css"
 
 interface SyncPerformanceChartProps {
-  metrics: SyncMetrics | null;
-  performanceAnalysis: SyncPerformanceAnalysis | null;
+  metrics: SyncMetrics | null
+  performanceAnalysis: SyncPerformanceAnalysis | null
 }
 
 export function SyncPerformanceChart({ 
@@ -35,53 +38,53 @@ export function SyncPerformanceChart({
   // Format duration in a human-readable way
   const formatDuration = (seconds: number): string => {
     if (seconds < 60) {
-      return `${Math.round(seconds)} sec`;
+      return `${Math.round(seconds)} sec`
     } else if (seconds < 3600) {
-      return `${Math.round(seconds / 60)} min`;
+      return `${Math.round(seconds / 60)} min`
     } else {
-      const hours = Math.floor(seconds / 3600);
-      const minutes = Math.floor((seconds % 3600) / 60);
-      return `${hours}h ${minutes}m`;
+      const hours = Math.floor(seconds / 3600)
+      const minutes = Math.floor((seconds % 3600) / 60)
+      return `${hours}h ${minutes}m`
     }
-  };
+  }
 
   // Data for the sync performance chart
   const syncPerformanceData = [
-    { name: 'Average Time', value: metrics.average_duration_seconds },
-    { name: 'Longest Time', value: metrics.longest_sync_seconds }
-  ];
+    { name: "Average Time", value: metrics.average_duration_seconds },
+    { name: "Longest Time", value: metrics.longest_sync_seconds }
+  ]
 
   // Data for the sync volume chart
   const syncVolumeData = [
-    { name: 'Merchants', value: performanceAnalysis.merchants_count },
-    { name: 'Residuals', value: performanceAnalysis.residuals_count }
-  ];
+    { name: "Merchants", value: performanceAnalysis.merchants_count },
+    { name: "Residuals", value: performanceAnalysis.residuals_count }
+  ]
 
   // Data for the sync results chart
   const syncResultsData = [
-    { name: 'Successful', value: metrics.successful_syncs },
-    { name: 'Failed', value: metrics.failed_syncs }
-  ];
+    { name: "Successful", value: metrics.successful_syncs },
+    { name: "Failed", value: metrics.failed_syncs }
+  ]
 
   // Custom tooltip formatter for the charts
   const renderTooltip = (params: any) => {
-    const { payload, label } = params;
+    const { payload, label } = params
     if (payload && payload.length) {
-      const data = payload[0].payload;
+      const data = payload[0].payload
 
       return (
-        <div className="bg-background p-2 border rounded-md shadow-md">
+        <div className="chart-tooltip p-2 border rounded-md">
           <p className="font-medium">{label}</p>
-          {label === 'Average Time' || label === 'Longest Time' ? (
+          {label === "Average Time" || label === "Longest Time" ? (
             <p className="text-blue-500">{formatDuration(data.value)}</p>
           ) : (
             <p className="text-blue-500">{data.value.toLocaleString()}</p>
           )}
         </div>
-      );
+      )
     }
-    return null;
-  };
+    return null
+  }
 
   return (
     <div className="space-y-4">
@@ -168,10 +171,10 @@ export function SyncPerformanceChart({
                     <YAxis 
                       tickFormatter={(value) => value.toLocaleString()}
                       label={{ 
-                        value: 'Record Count', 
+                        value: "Record Count", 
                         angle: -90, 
-                        position: 'insideLeft',
-                        style: { textAnchor: 'middle' }
+                        position: "insideLeft",
+                        className: "chart-axis-label"
                       }}
                     />
                     <Tooltip content={renderTooltip} />
@@ -202,10 +205,10 @@ export function SyncPerformanceChart({
                     <YAxis 
                       tickFormatter={(value) => value.toLocaleString()}
                       label={{ 
-                        value: 'Count', 
+                        value: "Count", 
                         angle: -90, 
-                        position: 'insideLeft',
-                        style: { textAnchor: 'middle' }
+                        position: "insideLeft",
+                        className: "chart-axis-label"
                       }}
                     />
                     <Tooltip content={renderTooltip} />
@@ -215,10 +218,11 @@ export function SyncPerformanceChart({
                       fill="#10b981"
                       name="Count"
                     >
-                      {syncPerformanceData.map((entry: {name: string, value: number}, index: number) => (
+                      {syncResultsData.map((entry: {name: string, value: number}, index: number) => (
                         <Cell 
                           key={`cell-${index}`} 
-                          fill={entry.name === 'Successful' ? '#10b981' : '#ef4444'} 
+                          fill={entry.name === "Successful" ? "#10b981" : "#ef4444"}
+                          data-chart-result={entry.name}
                         />
                       ))}
                     </Bar>

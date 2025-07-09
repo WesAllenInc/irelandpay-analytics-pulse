@@ -137,7 +137,7 @@ export function SyncRecommendations({
           </CardHeader>
           <CardContent className="space-y-3">
             {performanceAnalysis.recommendations.map((recommendation, index) => (
-              <Alert key={index} variant="outline" className="bg-amber-50 border-amber-200">
+              <Alert key={index} variant="default" className="bg-amber-50 border-amber-200">
                 <AlertDescription>{recommendation}</AlertDescription>
               </Alert>
             ))}

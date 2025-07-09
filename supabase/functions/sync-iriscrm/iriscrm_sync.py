@@ -351,8 +351,6 @@ class IRISCRMSync:
         logger.info(f"Starting residuals sync for {year}-{month}")
         
         results = {
-            "year": year,
-            "month": month,
             "total_residuals": 0,
             "residuals_added": 0,
             "residuals_updated": 0,
@@ -361,68 +359,17 @@ class IRISCRMSync:
         }
         
         try:
-            # Get residuals summary data
-            try:
-                residuals_data = self.iris_client.get_residuals_summary(year, month)
-                
-                # Get processors from the summary
-                processors = residuals_data.get('processors', [])
-                
-                for processor in processors:
-                    processor_id = processor.get('id')
-                    processor_name = processor.get('name')
-                    
-                    # Get detailed residuals for this processor
-                    try:
-                        details = self.iris_client.get_residuals_details(processor_id, year, month)
-                        merchant_rows = details.get('merchants', [])
-                        
-                        for row in merchant_rows:
-                            try:
-                                merchant_id = row.get('merchantNumber')
-                                agent_name = row.get('agent')
-                                gross_volume = row.get('volume', 0)
-                                amount = row.get('totalResidual', 0)
-                                bps = row.get('bps', 0)
-                            except Exception as e:
-                                logger.error(f"Error processing merchant row: {str(e)}")
-                                results["residuals_failed"] += 1
-                                results["errors"].append(f"Error processing merchant row: {str(e)}")
-                    except Exception as e:
-                        logger.error(f"Error getting residual details for processor {processor_id}: {str(e)}")
-                        results["errors"].append(f"Error processing processor {processor_id}: {str(e)}")
-            except Exception as e:
-                logger.error(f"Error getting residual summary: {str(e)}")
-                results["errors"].append(f"Error getting residual summary: {str(e)}")
-                return results
-                            
-                # The rest of the function is now unreachable due to the restructuring
-                # The remaining code should be removed or refactored into the new structure
-                            
-                            # Look up merchant in our database
-                            merchant_result = self.supabase.table("merchants").select("id").eq("merchant_id", merchant_id).execute()
-                            
-                            # Process merchant lookup result
-                            merchant_uuid = None
-                            if not merchant_result["data"] or len(merchant_result["data"]) == 0:
-                                # Create merchant if it doesn't exist
-                                merchant_insert = self.supabase.table("merchants").insert({
-                                    "merchant_id": merchant_id,
-                                    "dba_name": row.get('dbaName', f"Merchant {merchant_id}"),
-                                    "last_sync": datetime.now().isoformat()
-                                })
-                                merchant_uuid = merchant_insert[0]["id"]
-                            else:
-                                merchant_uuid = merchant_result["data"][0]["id"]
-                            
-                            # Look up or create agent
-                            agent_id = None
-                            if agent_name:
-                                agent_result = self.supabase.table("agents").select("id").eq("agent_name", agent_name).execute()
+            residuals_data = self.sync_residuals_with_transaction(year, month)
+            results = residuals_data
+        except Exception as e:
+            logger.error(f"Residuals sync failed: {str(e)}")
+            results["errors"].append(f"Residuals sync failed: {str(e)}")
         
-    def sync_residuals(self, year: int, month: int) -> Dict[str, Any]:
+        return results
+    
+    def sync_residuals_with_transaction(self, year: int, month: int) -> Dict[str, Any]:
         """Sync residual data for the specified year and month from IRIS CRM API to Supabase using transactions"""
-        logger.info(f"Starting residuals sync for {year}-{month}")
+        logger.info(f"Starting residuals sync with transaction for {year}-{month}")
         
         results = {
             "total_residuals": 0,

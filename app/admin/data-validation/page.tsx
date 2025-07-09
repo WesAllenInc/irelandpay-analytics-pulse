@@ -1,7 +1,7 @@
 import { Metadata } from 'next';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Alert, AlertTitle, AlertDescription } from "@/components/ui/alert";
-import { InfoCircle } from 'lucide-react';
+import { InfoIcon } from 'lucide-react';
 import { 
   ValidationReportsList,
   TriggerValidation 
@@ -18,7 +18,7 @@ export default function DataValidationPage() {
       <h1 className="text-3xl font-bold tracking-tight">Data Validation</h1>
       
       <Alert className="bg-blue-50 dark:bg-blue-950">
-        <InfoCircle className="h-4 w-4" />
+        <InfoIcon className="h-4 w-4" />
         <AlertTitle>Data Integrity Check</AlertTitle>
         <AlertDescription>
           Compare API data with database records to identify discrepancies.

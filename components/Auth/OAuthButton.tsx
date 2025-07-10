@@ -18,10 +18,15 @@ const OAuthButton: React.FC<OAuthButtonProps> = ({
 
   const handleMicrosoftSignIn = async () => {
     try {
+      // Use current window origin for consistent redirect in all environments
+      const redirectUrl = `${window.location.origin}/auth/callback`;
+      
+      console.log('Auth redirect URL:', redirectUrl);
+      
       const { data, error } = await supabase.auth.signInWithOAuth({
         provider: 'azure',
         options: {
-          redirectTo: `${window.location.origin}/auth/callback`,
+          redirectTo: redirectUrl,
           scopes: 'email profile openid'
         }
       });

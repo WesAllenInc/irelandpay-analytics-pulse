@@ -7,7 +7,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --no-warnings --experimental-vm-modules node_modules/vitest/vitest.mjs"
+    "test": "node --no-warnings --experimental-vm-modules node_modules/vitest/vitest.mjs run --config vitest.config.mjs"
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.2.4",

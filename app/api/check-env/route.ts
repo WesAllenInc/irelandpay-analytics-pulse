@@ -1,4 +1,9 @@
 import { NextResponse } from 'next/server';
+import { env, type Env } from '@/lib/env';
+
+function isServerEnv(e: Env): e is { SUPABASE_SERVICE_ROLE_KEY: string } {
+  return (e as any).SUPABASE_SERVICE_ROLE_KEY !== undefined;
+}
 
 export async function GET() {
   // Only return this in development environment
@@ -8,17 +13,13 @@ export async function GET() {
     }, { status: 403 });
   }
 
-  // Check environment variables (masking sensitive values)
+  // Check environment variables using the validated env object
   const envCheck = {
-    NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL 
-      ? 'Set ✅' : 'Missing ❌',
-    NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY 
-      ? 'Set ✅' : 'Missing ❌',
-    SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY 
-      ? 'Set ✅' : 'Missing ❌',
-    NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL 
-      ? 'Set ✅' : 'Missing ❌',
-    NEXT_PUBLIC_SUPABASE_PROJECT_ID: process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID 
+    NEXT_PUBLIC_SUPABASE_URL: env.NEXT_PUBLIC_SUPABASE_URL ? 'Set ✅' : 'Missing ❌',
+    NEXT_PUBLIC_SUPABASE_ANON_KEY: env.NEXT_PUBLIC_SUPABASE_ANON_KEY ? 'Set ✅' : 'Missing ❌',
+    SUPABASE_SERVICE_ROLE_KEY: isServerEnv(env) && env.SUPABASE_SERVICE_ROLE_KEY ? 'Set ✅' : 'Missing ❌',
+    NEXT_PUBLIC_APP_URL: env.NEXT_PUBLIC_APP_URL ? 'Set ✅' : 'Missing ❌',
+    NEXT_PUBLIC_SUPABASE_PROJECT_ID: process.env.NEXT_PUBLIC_SUPABASE_PROJECT_ID
       ? 'Set ✅' : 'Missing ❌',
   };
 

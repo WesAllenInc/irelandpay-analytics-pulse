@@ -9,7 +9,8 @@ import {
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
 import { useToast } from "@/components/ui/use-toast";
-import { CheckIcon, Spinner, XIcon } from "lucide-react";
+import { CheckIcon, Loader, XIcon } from "lucide-react";
+import { formatFileSize } from "@/lib/utils/file-utils";
 
 interface ExcelUploadStatusProps {
   fileName?: string;
@@ -64,14 +65,7 @@ export const ExcelUploadStatus: React.FC<ExcelUploadStatusProps> = ({
     return null;
   }
 
-  // Format file size to KB, MB, etc.
-  const formatFileSize = (bytes: number) => {
-    if (bytes === 0) return "0 Bytes";
-    const k = 1024;
-    const sizes = ["Bytes", "KB", "MB", "GB"];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + " " + sizes[i];
-  };
+  // Format file size is now imported from shared utility file
 
   return (
     <Card className="max-w-md mx-auto">
@@ -102,7 +96,7 @@ export const ExcelUploadStatus: React.FC<ExcelUploadStatusProps> = ({
         {status === "processing" && (
           <div className="rounded-md bg-blue-50 dark:bg-blue-950 p-3">
             <div className="flex items-center">
-              <Spinner className="mr-3 h-4 w-4 animate-spin text-blue-500" />
+              <Loader className="mr-3 h-4 w-4 animate-spin text-blue-500" />
               <div>
                 <p className="font-bold">Processing Excel Data</p>
                 <p className="text-sm">

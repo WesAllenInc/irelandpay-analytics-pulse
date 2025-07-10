@@ -1,3 +1,9 @@
+-- Standard SQL Settings
+SET ANSI_NULLS ON;
+SET QUOTED_IDENTIFIER ON;
+SET NOCOUNT ON;
+SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
+
 -- Update Merchants Table to add missing columns
 ALTER TABLE public.merchants 
 ADD COLUMN IF NOT EXISTS address TEXT DEFAULT '',

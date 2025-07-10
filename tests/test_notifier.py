@@ -23,7 +23,8 @@ class TestNotifier:
             mock_settings.SMTP_SERVER = 'smtp.example.com'
             mock_settings.SMTP_PORT = 587
             mock_settings.SMTP_USERNAME = 'test@example.com'
-            mock_settings.SMTP_PASSWORD = 'password'
+            # Use a placeholder value for test purposes
+            mock_settings.SMTP_PASSWORD = 'TEST_PASSWORD_PLACEHOLDER'
             mock_settings.EMAIL_FROM = 'reports@irelandpay.com'
             mock_settings.SLACK_WEBHOOK_URL = 'https://hooks.slack.com/services/T00000000/B00000000/XXXXXXXXXXXXXXXXXXXXXXXX'
             

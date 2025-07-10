@@ -11,6 +11,7 @@ import { Label } from '@/components/ui/label';
 import { Upload, FileSpreadsheet, BarChart3, RefreshCw } from 'lucide-react';
 import { Root as RadioGroup, Item as RadioGroupItem } from '@radix-ui/react-radio-group';
 import { ExcelUploadStatus } from './ExcelUploadStatus';
+import { formatFileSize } from '@/lib/utils/file-utils';
 
 // Initialize Supabase client
 const supabase = createSupabaseBrowserClient();
@@ -27,14 +28,7 @@ interface ProcessingResult {
   residuals?: number;
 }
 
-// Utility function
-const formatFileSize = (bytes: number): string => {
-  if (bytes === 0) return '0 Bytes';
-  const k = 1024;
-  const sizes = ['Bytes', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
-}
+// Utility function now imported from shared utility file
 
 export const UploadExcel: React.FC = () => {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -160,9 +154,9 @@ export const UploadExcel: React.FC = () => {
         setErrorMessage(result.error || "Failed to process file");
       }
       
-    } catch (error: any) {
+    } catch (error: unknown) {
       setUploadStatus("error");
-      setErrorMessage(error.message || "An unexpected error occurred");
+      setErrorMessage(error instanceof Error ? error.message : "An unexpected error occurred");
       console.error("Upload error:", error);
     } finally {
       setIsProcessing(false);

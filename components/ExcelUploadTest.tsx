@@ -1,20 +1,29 @@
 "use client"
 
 import React, { useState } from "react"
+import { createSupabaseBrowserClient } from "@/lib/supabase"
+import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
-import { Button } from "@/components/ui/button"
+import UploadExcel from "@/components/components/upload/UploadExcel"
 import { supabaseClient } from "@/lib/supabaseClient"
-import UploadExcel from "@/components/UploadExcel"
 import { FileSpreadsheet, CheckCircle2, AlertCircle } from "lucide-react"
 
 export function ExcelUploadTest() {
-  const [testResults, setTestResults] = useState<{
-    storage?: { success: boolean; message: string }
-    database?: { success: boolean; message: string }
-    api?: { success: boolean; message: string }
-  }>({})
+  // Define a more structured interface for test results
+  interface TestResult {
+    success: boolean;
+    message: string;
+  }
+  
+  interface TestResults {
+    storage?: TestResult;
+    database?: TestResult;
+    api?: TestResult;
+  }
+  
+  const [testResults, setTestResults] = useState<TestResults>({})
   const [isLoading, setIsLoading] = useState<boolean>(false)
 
   // Test if the uploads bucket exists in Supabase Storage

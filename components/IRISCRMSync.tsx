@@ -17,13 +17,24 @@ interface SyncOptions {
   forceSync?: boolean;
 }
 
+interface SyncResults {
+  merchants_count?: number;
+  residuals_count?: number;
+  volumes_count?: number;
+  updated_count?: number;
+  inserted_count?: number;
+  skipped_count?: number;
+  processing_time_ms?: number;
+  [key: string]: any; // For any additional properties
+}
+
 interface SyncStatus {
   id: string;
   status: 'in_progress' | 'completed' | 'failed';
   data_type: string;
   started_at: string;
   completed_at?: string;
-  results?: any;
+  results?: SyncResults;
   error?: string;
 }
 
@@ -68,8 +79,14 @@ const IRISCRMSync: React.FC = () => {
       const data = await response.json()
       
       if (data.success && data.data) {
+        // Define type for sync objects
+        type SyncObject = {
+          created_at: string;
+          [key: string]: any; // Other properties
+        };
+
         // Sort by created_at in descending order
-        const sortedSyncs = data.data.sort((a: any, b: any) => 
+        const sortedSyncs = data.data.sort((a: SyncObject, b: SyncObject) => 
           new Date(b.created_at).getTime() - new Date(a.created_at).getTime()
         )
         
@@ -116,9 +133,9 @@ const IRISCRMSync: React.FC = () => {
         setError(data.error || 'Failed to start sync')
         setSyncInProgress(false)
       }
-    } catch (error: any) {
+    } catch (error: unknown) {
       console.error('Error starting sync:', error)
-      setError(error.message || 'Failed to start sync')
+      setError(error instanceof Error ? error.message : 'Failed to start sync')
       setSyncInProgress(false)
     }
   }

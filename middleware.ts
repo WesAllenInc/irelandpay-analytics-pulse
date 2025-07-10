@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
 import { createSupabaseServerClient } from "./lib/supabase";
-import { authRateLimiter, resetRateLimitForIP } from "./lib/auth-rate-limiter";
+import { authRateLimiter } from "./lib/auth-rate-limiter";
 import { logRequest, debug, error as logError } from "./lib/edge-logging";
 import { validateCSRFToken, extractCSRFToken, refreshCSRFToken } from './lib/csrf';
 
@@ -41,7 +41,7 @@ async function handleMiddleware(request: NextRequest) {
     const response = NextResponse.next();
     // Still refresh CSRF token for public routes (for forms, etc.)
     if (!pathname.startsWith('/_next') && !pathname.startsWith('/static')) {
-      refreshCSRFToken();
+      void refreshCSRFToken();
     }
     return response;
   }
@@ -79,7 +79,6 @@ async function handleMiddleware(request: NextRequest) {
   }
 
   // Fetch user role if user is authenticated
-  let userData = null;
   let role = 'agent'; // Default role
   
   if (session?.user?.email) {

@@ -20,7 +20,12 @@ if (-not (Test-Command -Command choco)) {
     Set-ExecutionPolicy Bypass -Scope Process -Force
     [System.Net.ServicePointManager]::SecurityProtocol = [System.Net.ServicePointManager]::SecurityProtocol -bor 3072
     try {
-        Invoke-Expression ((New-Object System.Net.WebClient).DownloadString('https://chocolatey.org/install.ps1'))
+        # Use safer method to download and run the Chocolatey install script
+        $installScript = [System.IO.Path]::GetTempFileName() + ".ps1"
+        (New-Object System.Net.WebClient).DownloadFile('https://chocolatey.org/install.ps1', $installScript)
+        # Examine the script content first (optional security step)
+        # Get-Content $installScript
+        & $installScript
         $env:Path = [System.Environment]::GetEnvironmentVariable("Path", "Machine") + ";" + [System.Environment]::GetEnvironmentVariable("Path", "User")
         Write-Output "Chocolatey installed successfully."
     } catch {

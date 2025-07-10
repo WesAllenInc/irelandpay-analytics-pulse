@@ -46,8 +46,8 @@ class TestRunAnalytics(unittest.TestCase):
 
     def setUp(self):
         """Set up test environment"""
-        # Create fake JWT secret for testing
-        self.jwt_secret = "test_secret"
+        # Create fake JWT secret for testing with a clearly non-sensitive value
+        self.jwt_secret = "TEST_JWT_SECRET_FOR_TESTING_ONLY"
         
         # Set up environment variables for testing
         self.original_env = os.environ.copy()

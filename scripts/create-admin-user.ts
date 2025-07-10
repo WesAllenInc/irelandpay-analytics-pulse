@@ -18,7 +18,15 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 
 async function createAdminUser() {
   const email = 'jmarkey@irelandpay.com';
-  const password = 'IRLP@2025';
+  // Use password from environment variable for security
+  const password = process.env.ADMIN_PASSWORD;
+  
+  if (!password) {
+    console.error('Error: ADMIN_PASSWORD environment variable must be set');
+    console.error('For security reasons, passwords should not be hardcoded.');
+    console.error('Usage: ADMIN_PASSWORD=your_secure_password ts-node create-admin-user.ts');
+    process.exit(1);
+  }
   const name = 'John Markey';
   
   try {

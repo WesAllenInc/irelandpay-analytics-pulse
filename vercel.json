@@ -3,11 +3,6 @@
   "installCommand": "npm install",
   "framework": "nextjs",
   "outputDirectory": ".next",
-  "functions": {
-    "api/*.py": {
-      "runtime": "python@3.9"
-    }
-  },
   "git": {
     "deploymentEnabled": {
       "main": true,

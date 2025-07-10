@@ -6,7 +6,7 @@
 import { createId } from '@paralleldrive/cuid2';
 
 export type LogLevel = 'error' | 'warn' | 'info' | 'http' | 'debug';
-export type LogMetadata = Record<string, any>;
+export type LogMetadata = Record<string, unknown>;
 
 export interface LogOptions {
   level?: LogLevel;
@@ -19,7 +19,7 @@ export interface LogOptions {
 // Simple context storage for Edge Runtime
 class LoggingContext {
   private static instance: LoggingContext;
-  private context: Map<string, any> = new Map();
+  private context = new Map<string, any>();
   private currentRequestId: string | null = null;
   
   private constructor() {}
@@ -39,14 +39,14 @@ class LoggingContext {
   }
   
   public getRequestId(): string {
-    return this.currentRequestId || 'no-request-id';
+    return this.currentRequestId ?? 'no-request-id';
   }
   
-  public set(key: string, value: any): void {
+  public set(key: string, value: unknown): void {
     this.context.set(key, value);
   }
   
-  public get(key: string): any {
+  public get(key: string): unknown {
     return this.context.get(key);
   }
   
@@ -55,7 +55,7 @@ class LoggingContext {
     this.currentRequestId = null;
   }
   
-  public getContext(): Record<string, any> {
+  public getContext(): Record<string, unknown> {
     return Object.fromEntries(this.context.entries());
   }
 }
@@ -64,7 +64,7 @@ class LoggingContext {
 const loggingContext = LoggingContext.getInstance();
 
 // Simple redaction for sensitive data
-const redactSensitiveData = (data: any, redactKeys: string[] = []): any => {
+const redactSensitiveData = (data: unknown, redactKeys: string[] = []): unknown => {
   if (!data || typeof data !== 'object') return data;
   
   // Default sensitive keys to redact
@@ -74,15 +74,26 @@ const redactSensitiveData = (data: any, redactKeys: string[] = []): any => {
     ...redactKeys
   ];
 
-  const result = Array.isArray(data) ? [...data] : { ...data };
+  // Handle arrays and objects differently
+  if (Array.isArray(data)) {
+    return data.map(item => redactSensitiveData(item, redactKeys));
+  }
   
-  for (const key in result) {
-    // Check if the key should be redacted
-    if (sensitiveKeys.some(sk => key.toLowerCase().includes(sk.toLowerCase()))) {
-      result[key] = '[REDACTED]';
-    } else if (typeof result[key] === 'object' && result[key] !== null) {
-      // Recursive redaction for nested objects
-      result[key] = redactSensitiveData(result[key], redactKeys);
+  // For objects, create a new object and process each property
+  const result: Record<string, unknown> = {};
+  const objData = data as Record<string, unknown>;
+  
+  for (const key in objData) {
+    if (Object.prototype.hasOwnProperty.call(objData, key)) {
+      // Check if the key should be redacted
+      if (sensitiveKeys.some(sk => key.toLowerCase().includes(sk.toLowerCase()))) {
+        result[key] = '[REDACTED]';
+      } else if (typeof objData[key] === 'object' && objData[key] !== null) {
+        // Recursive redaction for nested objects
+        result[key] = redactSensitiveData(objData[key], redactKeys);
+      } else {
+        result[key] = objData[key];
+      }
     }
   }
   
@@ -97,7 +108,7 @@ export const log = (
   const { level = 'info', metadata = {}, redactKeys = [] } = options;
   
   // Generate or use provided request ID
-  const requestId = options.requestId || loggingContext.getRequestId();
+  const requestId = options.requestId ?? loggingContext.getRequestId();
   
   // Create the log object
   const logObject = {

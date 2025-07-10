@@ -21,6 +21,18 @@ export default defineConfig({
       '__tests__/**/*.test.tsx'
     ],
     setupFiles: ['__tests__/setup.ts'],
+    coverage: {
+      enabled: true,
+      reporter: ['text', 'json', 'lcov', 'html'],
+      reportsDirectory: './coverage',
+      exclude: [
+        'node_modules/',
+        'test/',
+        '**/*.d.ts',
+        '**/*.config.*',
+        '**/__tests__/**',
+      ]
+    }
   },
   resolve: {
     alias: {

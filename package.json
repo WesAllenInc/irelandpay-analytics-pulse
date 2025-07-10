@@ -7,7 +7,9 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --no-warnings --experimental-vm-modules node_modules/vitest/vitest.mjs run --config vitest.config.mjs"
+    "test": "node --no-warnings --experimental-vm-modules node_modules/vitest/vitest.mjs run --config vitest.config.mjs",
+    "test:coverage": "vitest run --coverage",
+    "coverage:upload": "bash <(curl -Ls https://coverage.codacy.com/get.sh)"
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.2.4",

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { env, type Env } from '@/lib/env';
 
 function isServerEnv(e: Env): e is { SUPABASE_SERVICE_ROLE_KEY: string } {
-  return (e as any).SUPABASE_SERVICE_ROLE_KEY !== undefined;
+  return (e as unknown).SUPABASE_SERVICE_ROLE_KEY !== undefined;
 }
 
 export async function GET() {

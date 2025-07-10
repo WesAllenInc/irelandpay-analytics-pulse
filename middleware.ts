@@ -74,7 +74,7 @@ async function handleMiddleware(request: NextRequest) {
   });
 
   // Only treat as authenticated if session?.user?.email exists
-  if (!session || !session.user || !session.user.email) {
+  if (!session?.user?.email) {
     return NextResponse.redirect(new URL('/auth', request.url));
   }
 
@@ -91,13 +91,13 @@ async function handleMiddleware(request: NextRequest) {
         .single();
       
       if (error) {
-        logError('[Middleware] Error fetching role', error);
+        logError('[Middleware] Error fetching role', { error: error.message });
         // If role column doesn't exist, just use the default 'agent' role
       } else if (data) {
         role = data.role || 'agent';
       }
     } catch (err) {
-      logError('[Middleware] Exception in role fetch', err instanceof Error ? err : new Error(String(err)));
+      logError('[Middleware] Exception in role fetch', { error: err instanceof Error ? err.message : String(err) });
       // Keep default role on error
     }
   }

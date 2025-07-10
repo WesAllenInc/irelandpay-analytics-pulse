@@ -55,11 +55,12 @@ export default function LeaderboardPage() {
       // If data is stale, trigger a refresh
       if (!lastRefreshed || (new Date().getTime() - new Date(lastRefreshed).getTime() > refreshThreshold)) {
         // Call RPC function to refresh views
-        await supabase.rpc('refresh_performance_views').then(() => {
+        try {
+          await supabase.rpc('refresh_performance_views');
           console.log('Materialized views refreshed');
-        }).catch((err: Error) => {
-          console.error('Failed to refresh materialized views:', err);
-        });
+        } catch (err: unknown) {
+          console.error('Failed to refresh materialized views:', err instanceof Error ? err.message : String(err));
+        }
       }
       
       // Map the data to our component's expected format
@@ -75,7 +76,7 @@ export default function LeaderboardPage() {
       setIsLoading(false);
     }
     
-    fetchLeaderboardData();
+    void fetchLeaderboardData();
   }, [selectedMonth, supabase]);
 
   // Filter agents based on search term
@@ -162,7 +163,7 @@ export default function LeaderboardPage() {
             placeholder="Search agents..."
             className="pl-8 max-w-sm"
             value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+            onChange={(e) => { setSearchTerm(e.target.value); }}
           />
         </div>
         
@@ -245,7 +246,7 @@ export default function LeaderboardPage() {
                   <TableHead className="w-[200px]">
                     <Button 
                       variant="ghost" 
-                      onClick={() => handleSortChange('name')}
+                      onClick={() => { handleSortChange('name'); }}
                       className="flex items-center gap-1 font-medium"
                     >
                       Agent 
@@ -255,7 +256,7 @@ export default function LeaderboardPage() {
                   <TableHead className="text-right">
                     <Button 
                       variant="ghost" 
-                      onClick={() => handleSortChange('merchantCount')}
+                      onClick={() => { handleSortChange('merchantCount'); }}
                       className="flex items-center gap-1 font-medium ml-auto"
                     >
                       Merchants 
@@ -265,7 +266,7 @@ export default function LeaderboardPage() {
                   <TableHead className="text-right">
                     <Button 
                       variant="ghost" 
-                      onClick={() => handleSortChange('totalVolume')}
+                      onClick={() => { handleSortChange('totalVolume'); }}
                       className="flex items-center gap-1 font-medium ml-auto"
                     >
                       Total Volume 
@@ -275,7 +276,7 @@ export default function LeaderboardPage() {
                   <TableHead className="text-right">
                     <Button 
                       variant="ghost" 
-                      onClick={() => handleSortChange('netResidual')}
+                      onClick={() => { handleSortChange('netResidual'); }}
                       className="flex items-center gap-1 font-medium ml-auto"
                     >
                       Net Residual 

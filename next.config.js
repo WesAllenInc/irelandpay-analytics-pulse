@@ -9,19 +9,10 @@ const nextConfig = {
     '@supabase/supabase-js'
   ],
   images: {
-    remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: 'images.unsplash.com'
-      },
-      {
-        protocol: 'https',
-        hostname: 'source.unsplash.com'
-      },
-      {
-        protocol: 'https',
-        hostname: '*.supabase.co'
-      }
+    domains: [
+      'images.unsplash.com',
+      'source.unsplash.com',
+      'supabase.co'
     ]
   },
   webpack: (config, { isServer }) => {

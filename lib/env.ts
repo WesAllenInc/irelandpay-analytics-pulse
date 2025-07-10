@@ -42,13 +42,22 @@ function validateEnv(): ServerEnv | ClientEnv {
     // Use process.env values or undefined for type safety
     const schema = isServer ? serverEnvSchema : baseEnvSchema;
 
-    const env = schema.parse({
-      NEXT_PUBLIC_SUPABASE_URL: process.env.NEXT_PUBLIC_SUPABASE_URL,
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY,
+    const rawEnv = {
+      NEXT_PUBLIC_SUPABASE_URL:
+        process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.supabase_url,
+      NEXT_PUBLIC_SUPABASE_ANON_KEY:
+        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.supabase_anon_key,
       NODE_ENV: process.env.NODE_ENV,
-      NEXT_PUBLIC_APP_URL: process.env.NEXT_PUBLIC_APP_URL,
-      ...(isServer && { SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY }),
-    });
+      NEXT_PUBLIC_APP_URL:
+        process.env.NEXT_PUBLIC_APP_URL || process.env.app_url,
+      ...(isServer && {
+        SUPABASE_SERVICE_ROLE_KEY:
+          process.env.SUPABASE_SERVICE_ROLE_KEY ||
+          process.env.supabase_service_role_key,
+      }),
+    };
+
+    const env = schema.parse(rawEnv);
     
     return env;
   } catch (error) {

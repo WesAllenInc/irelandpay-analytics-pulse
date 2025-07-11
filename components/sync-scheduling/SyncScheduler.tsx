@@ -1,3 +1,5 @@
+'use client';
+
 import React, { useState, useEffect } from 'react';
 import { useIncrementalSync } from '@/hooks/useIncrementalSync';
 import { useSupabaseClient } from '@/hooks/useSupabaseClient';
@@ -390,7 +392,12 @@ export function SyncScheduler({ className }: SyncSchedulerProps) {
               ) : (
                 <div className="text-center py-8">
                   <p className="text-muted-foreground mb-4">No sync schedules configured</p>
-                  <Button onClick={() => document.querySelector('[data-value="create"]')?.click()}>
+                  <Button onClick={() => {
+                    const element = document.querySelector('[data-value="create"]');
+                    if (element instanceof HTMLElement) {
+                      element.click();
+                    }
+                  }}>
                     Create Your First Schedule
                   </Button>
                 </div>

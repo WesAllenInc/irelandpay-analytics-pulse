@@ -1,6 +1,8 @@
+'use client';
+
 import { useState, useEffect } from 'react';
 import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
-import { useInterval } from '@/hooks/useInterval';
+import useInterval from '@/hooks/useInterval';
 
 export interface ApiRateLimit {
   service: string;

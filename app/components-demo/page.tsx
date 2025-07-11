@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Button } from "@/components/ui/button"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { MetricCard } from "@/components/ui/metric-card"
-import { ExcelUploadTest } from "@/components/ExcelUploadTest"
 import { Toaster } from "@/components/ui/toaster"
 import { 
   ArrowUpRight, 
@@ -99,7 +98,9 @@ export default function ComponentsDemo() {
           </TabsContent>
           
           <TabsContent value="excel" className="mt-6">
-            <ExcelUploadTest />
+            <div className="p-4 border rounded bg-gray-100">
+              <p className="text-gray-600">Excel handling has been removed from the project. The application now uses API-based data sync.</p>
+            </div>
           </TabsContent>
           
           <TabsContent value="ui" className="mt-6">

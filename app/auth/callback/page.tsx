@@ -1,4 +1,4 @@
-'use client';
+'use client'; // Explicitly using page.tsx to handle auth callbacks
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { Buffer } from 'buffer';
-import { ingestResiduals, ingestVolumes } from '@/lib/ingestion';
+import { ingestResiduals, ingestVolumes } from '@/lib/legacy-ingestion';
 import { z } from 'zod';
 import { errorResponse, successResponse } from '@/lib/api-utils';
 import { logRequest, logError } from '@/lib/logging';

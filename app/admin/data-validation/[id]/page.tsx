@@ -29,18 +29,20 @@ async function getReport(reportId: string) {
 import { Metadata } from 'next';
 
 type Props = {
-  params: { id: string }
+  params: Promise<{ id: string }>
 }
 
 // Define proper metadata for dynamic routes
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  const resolvedParams = await params;
   return {
-    title: `Data Validation Report ${params.id}`,
+    title: `Data Validation Report ${resolvedParams.id}`,
   }
 }
 
 export default async function ReportDetailPage({ params }: Props) {
-  const report = await getReport(params.id);
+  const resolvedParams = await params;
+  const report = await getReport(resolvedParams.id);
   
   if (!report) {
     notFound();

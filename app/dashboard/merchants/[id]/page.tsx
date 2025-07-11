@@ -11,14 +11,28 @@ import { DataFreshness } from '@/components/merchants/data-freshness'
 import { ComparisonToggle } from '@/components/merchants/comparison-toggle'
 import { MerchantStateInitializer } from '@/components/merchants/merchant-state-initializer'
 
-export default async function MerchantDetailPage({ params }: { params: { id: string } }) {
+// Define proper type for Next.js 15 dynamic route params
+type Props = {
+  params: Promise<{ id: string }>
+}
+
+// Add metadata generation for consistency
+export async function generateMetadata({ params }: Props): Promise<{ title: string }> {
+  const resolvedParams = await params;
+  return {
+    title: `Merchant: ${resolvedParams.id}`,
+  }
+}
+
+export default async function MerchantDetailPage({ params }: Props) {
+  const resolvedParams = await params;
   const supabase = await createClient()
   
   // Fetch merchant data
   const { data: merchant } = await supabase
     .from('master_data_mv')
     .select('*')
-    .eq('mid', params.id)
+    .eq('mid', resolvedParams.id)
     .order('volume_month', { ascending: false })
     .limit(1)
     .single()
@@ -38,7 +52,7 @@ export default async function MerchantDetailPage({ params }: { params: { id: str
   const { data: volumeData } = await supabase
     .from('merchant_data')
     .select('month, total_volume, total_txns')
-    .eq('mid', params.id)
+    .eq('mid', resolvedParams.id)
     .gte('month', twoYearsAgo)
     .order('month')
   
@@ -46,7 +60,7 @@ export default async function MerchantDetailPage({ params }: { params: { id: str
   const { data: profitData } = await supabase
     .from('residual_data')
     .select('payout_month, net_profit')
-    .eq('mid', params.id)
+    .eq('mid', resolvedParams.id)
     .gte('payout_month', twoYearsAgo)
     .order('payout_month')
   
@@ -54,7 +68,7 @@ export default async function MerchantDetailPage({ params }: { params: { id: str
   const { data: masterData } = await supabase
     .from('master_data_mv')
     .select('*')
-    .eq('mid', params.id)
+    .eq('mid', resolvedParams.id)
     .order('volume_month')
   
   // Format data for charts

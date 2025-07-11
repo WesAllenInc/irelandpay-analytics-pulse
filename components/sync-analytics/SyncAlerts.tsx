@@ -1,3 +1,5 @@
+"use client"
+
 import React, { useState } from 'react';
 import { SyncAlert, useSyncAlerts } from '@/hooks/useSyncAlerts';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';

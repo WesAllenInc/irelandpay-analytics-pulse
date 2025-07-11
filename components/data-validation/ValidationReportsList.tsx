@@ -1,3 +1,5 @@
+"use client"
+
 import { useState, useEffect } from 'react';
 import { useDataValidation, ValidationReport } from '@/hooks/useDataValidation';
 import {

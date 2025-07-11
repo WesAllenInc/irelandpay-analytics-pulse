@@ -34,4 +34,4 @@ const nextConfig = {
   experimental: {}
 };
 
-module.exports = nextConfig;
+export default nextConfig;

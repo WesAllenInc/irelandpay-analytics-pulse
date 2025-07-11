@@ -1,127 +1,165 @@
 import { createSupabaseServiceClient } from '../lib/supabase';
 
-
 export interface IngestionResult {
-  fileName: string;
-  fileType: 'residuals' | 'volumes';
+  dataSource: string;
+  dataType: 'residuals' | 'volumes';
   totalRows: number;
   rowsSuccess: number;
   rowsFailed: number;
-  errorLog: Record<number, any>;
+  errorLog: Record<number, string>;
 }
 
-export function parseDateFromFilename(fileName: string): string {
-  const match = fileName.match(/_([A-Za-z]+)(\d{4})_/);
-  if (match) {
-    const monthName = match[1];
-    const year = match[2];
-    const date = new Date(`${monthName} 1, ${year}`);
-    return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`;
-  }
-  return new Date().toISOString().split('T')[0];
+export interface ResidualsData {
+  month: string;
+  year: number;
+  data: Array<{
+    merchantId: string;
+    amount: number;
+    processingDate: string;
+    agentId?: string;
+  }>;
 }
 
-export async function ingestResiduals(buffer: any, fileName: string): Promise<IngestionResult> {
+export interface VolumesData {
+  month: string;
+  year: number;
+  data: Array<{
+    merchantId: string;
+    volume: number;
+    processingDate: string;
+    transactions?: number;
+  }>;
+}
+
+/**
+ * Ingests residuals data from the API
+ * @param data Residuals data received from API
+ * @returns Processing result with stats
+ */
+export async function ingestResiduals(data: ResidualsData): Promise<IngestionResult> {
   const supabase = createSupabaseServiceClient();
+  const processingDate = new Date().toISOString();
+  const dataSource = `API-${data.month}-${data.year}`;
   
   try {
-    // Upload the file to Supabase storage
-    const fileKey = `residuals/${Date.now()}_${fileName}`;
-    const { error: uploadError } = await supabase
-      .storage
-      .from('uploads')
-      .upload(fileKey, buffer);
-      
-    if (uploadError) {
-      throw new Error(`Error uploading file: ${uploadError.message}`);
+    // Log the ingestion attempt
+    console.log(`Processing ${data.data.length} residual records from ${dataSource}`);
+    
+    let rowsSuccess = 0;
+    let rowsFailed = 0;
+    const errorLog: Record<number, string> = {};
+    
+    // Process each residual record
+    for (let i = 0; i < data.data.length; i++) {
+      const record = data.data[i];
+      try {
+        const { error } = await supabase
+          .from('residuals')
+          .insert({
+            merchant_id: record.merchantId,
+            amount: record.amount,
+            processing_date: record.processingDate || processingDate,
+            agent_id: record.agentId || null,
+            month: data.month,
+            year: data.year,
+            source: dataSource
+          });
+          
+        if (error) {
+          rowsFailed++;
+          errorLog[i] = `Database error: ${error.message}`;
+        } else {
+          rowsSuccess++;
+        }
+      } catch (err: any) {
+        rowsFailed++;
+        errorLog[i] = `Processing error: ${err.message}`;
+      }
     }
     
-    // Call the Python Edge Function
-    const { data, error } = await supabase
-      .functions
-      .invoke('excel-parser-py', {
-        body: JSON.stringify({
-          fileKey,
-          fileType: 'residuals',
-          fileName
-        })
-      });
-      
-    if (error) {
-      throw new Error(`Edge function error: ${error.message}`);
-    }
-    
-    // Return the result from the Python function
     return {
-      fileName,
-      fileType: 'residuals',
-      totalRows: data.totalRows,
-      rowsSuccess: data.rowsSuccess,
-      rowsFailed: data.rowsFailed,
-      errorLog: data.errorLog
+      dataSource,
+      dataType: 'residuals',
+      totalRows: data.data.length,
+      rowsSuccess,
+      rowsFailed,
+      errorLog
     };
-    
   } catch (err: any) {
     console.error('Error in ingestResiduals:', err);
     return {
-      fileName,
-      fileType: 'residuals',
-      totalRows: 0,
+      dataSource,
+      dataType: 'residuals',
+      totalRows: data.data?.length || 0,
       rowsSuccess: 0,
-      rowsFailed: 0,
+      rowsFailed: data.data?.length || 0,
       errorLog: { 0: err.message }
     };
   }
 }
 
-export async function ingestVolumes(buffer: any, fileName: string): Promise<IngestionResult> {
+/**
+ * Ingests processing volumes data from the API
+ * @param data Volumes data received from API
+ * @returns Processing result with stats
+ */
+export async function ingestVolumes(data: VolumesData): Promise<IngestionResult> {
   const supabase = createSupabaseServiceClient();
+  const processingDate = new Date().toISOString();
+  const dataSource = `API-${data.month}-${data.year}`;
   
   try {
-    // Upload the file to Supabase storage
-    const fileKey = `volumes/${Date.now()}_${fileName}`;
-    const { error: uploadError } = await supabase
-      .storage
-      .from('uploads')
-      .upload(fileKey, buffer);
-      
-    if (uploadError) {
-      throw new Error(`Error uploading file: ${uploadError.message}`);
+    // Log the ingestion attempt
+    console.log(`Processing ${data.data.length} volume records from ${dataSource}`);
+    
+    let rowsSuccess = 0;
+    let rowsFailed = 0;
+    const errorLog: Record<number, string> = {};
+    
+    // Process each volume record
+    for (let i = 0; i < data.data.length; i++) {
+      const record = data.data[i];
+      try {
+        const { error } = await supabase
+          .from('volumes')
+          .insert({
+            merchant_id: record.merchantId,
+            volume: record.volume,
+            processing_date: record.processingDate || processingDate,
+            transactions: record.transactions || null,
+            month: data.month,
+            year: data.year,
+            source: dataSource
+          });
+          
+        if (error) {
+          rowsFailed++;
+          errorLog[i] = `Database error: ${error.message}`;
+        } else {
+          rowsSuccess++;
+        }
+      } catch (err: any) {
+        rowsFailed++;
+        errorLog[i] = `Processing error: ${err.message}`;
+      }
     }
     
-    // Call the Python Edge Function
-    const { data, error } = await supabase
-      .functions
-      .invoke('excel-parser-py', {
-        body: JSON.stringify({
-          fileKey,
-          fileType: 'volumes',
-          fileName
-        })
-      });
-      
-    if (error) {
-      throw new Error(`Edge function error: ${error.message}`);
-    }
-    
-    // Return the result from the Python function
     return {
-      fileName,
-      fileType: 'volumes',
-      totalRows: data.totalRows,
-      rowsSuccess: data.rowsSuccess,
-      rowsFailed: data.rowsFailed,
-      errorLog: data.errorLog
+      dataSource,
+      dataType: 'volumes',
+      totalRows: data.data.length,
+      rowsSuccess,
+      rowsFailed,
+      errorLog
     };
-    
   } catch (err: any) {
     console.error('Error in ingestVolumes:', err);
     return {
-      fileName,
-      fileType: 'volumes',
-      totalRows: 0,
+      dataSource,
+      dataType: 'volumes',
+      totalRows: data.data?.length || 0,
       rowsSuccess: 0,
-      rowsFailed: 0,
+      rowsFailed: data.data?.length || 0,
       errorLog: { 0: err.message }
     };
   }

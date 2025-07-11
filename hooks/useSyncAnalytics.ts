@@ -1,6 +1,8 @@
+"use client"
+
 import { useState, useEffect } from "react"
 import { createSupabaseBrowserClient } from "../lib/supabase-browser"
-import { useInterval } from "./useInterval"
+import useInterval from "./useInterval"
 
 export interface SyncMetrics {
   total_syncs: number

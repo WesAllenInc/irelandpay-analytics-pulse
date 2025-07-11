@@ -1,6 +1,5 @@
 import { cookies } from 'next/headers';
 import { NextRequest, NextResponse } from 'next/server';
-import { randomBytes, createHash } from 'crypto';
 
 // Constants for CSRF implementation
 const CSRF_SECRET = process.env.CSRF_SECRET || 'ireland-pay-analytics-csrf-secret';
@@ -19,8 +18,12 @@ interface CSRFTokenPayload {
  * Generate a CSRF token and set it as a cookie
  */
 export async function generateCSRFToken(): Promise<string> {
-  // Generate a random token
-  const randomToken = randomBytes(32).toString('hex');
+  // Generate a random token using Web Crypto API
+  const randomBuffer = new Uint8Array(32);
+  crypto.getRandomValues(randomBuffer);
+  const randomToken = Array.from(randomBuffer)
+    .map(b => b.toString(16).padStart(2, '0'))
+    .join('');
   
   // Create a payload with expiration time
   const payload: CSRFTokenPayload = {
@@ -28,14 +31,20 @@ export async function generateCSRFToken(): Promise<string> {
     expires: Date.now() + TOKEN_EXPIRY
   };
   
-  // Serialize and encrypt the payload
+  // Serialize the payload
   const serializedPayload = JSON.stringify(payload);
-  const signature = createHash('sha256')
-    .update(`${serializedPayload}${CSRF_SECRET}`)
-    .digest('hex');
+  
+  // Create signature using Web Crypto API
+  const encoder = new TextEncoder();
+  const data = encoder.encode(`${serializedPayload}${CSRF_SECRET}`);
+  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
+  
+  // Convert hash to hex string
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  const signature = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
   
   // Create the final token (payload + signature)
-  const csrfToken = `${Buffer.from(serializedPayload).toString('base64')}.${signature}`;
+  const csrfToken = `${btoa(serializedPayload)}.${signature}`;
   
   // Set the token as a cookie
   const cookieStore = await cookies();

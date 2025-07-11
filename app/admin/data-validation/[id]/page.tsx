@@ -1,4 +1,4 @@
-import { createServerComponentClient } from '@supabase/auth-helpers-nextjs';  
+import { createSupabaseServerClient } from '@/lib/supabase';  
 import { cookies } from 'next/headers';
 import { ValidationIssuesList } from '@/components/data-validation';
 import { ArrowLeft } from 'lucide-react';
@@ -9,7 +9,7 @@ import { notFound } from 'next/navigation';
 
 // Get report details from Supabase
 async function getReport(reportId: string) {
-  const supabase = createServerComponentClient({ cookies });
+  const supabase = createSupabaseServerClient();
   
   const { data, error } = await supabase
     .from('validation_report_summaries')

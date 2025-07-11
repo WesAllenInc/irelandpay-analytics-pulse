@@ -1,9 +1,33 @@
 import { NextResponse } from 'next/server';
-import { Buffer } from 'buffer';
-import { ingestResiduals, ingestVolumes } from '@/lib/ingestion';
+import { ingestResiduals, ingestVolumes, ResidualsData, VolumesData } from '@/lib/ingestion';
 import { z } from 'zod';
 import { errorResponse, successResponse } from '@/lib/api-utils';
 import { logRequest, logError } from '@/lib/logging';
+
+// Define schemas for request validation
+const ResidualsDataSchema = z.object({
+  dataType: z.literal('residuals'),
+  month: z.string(),
+  year: z.number(),
+  data: z.array(z.object({
+    merchantId: z.string(),
+    amount: z.number(),
+    processingDate: z.string().optional(),
+    agentId: z.string().optional()
+  }))
+});
+
+const VolumesDataSchema = z.object({
+  dataType: z.literal('volumes'),
+  month: z.string(),
+  year: z.number(),
+  data: z.array(z.object({
+    merchantId: z.string(),
+    volume: z.number(),
+    processingDate: z.string().optional(),
+    transactions: z.number().optional()
+  }))
+});
 
 // Define schema for the response
 const IngestionResponseSchema = z.object({
@@ -17,38 +41,46 @@ export async function POST(request: Request) {
   });
   
   try {
-    const form = await request.formData();
+    const body = await request.json();
     const results: any[] = [];
     
-    // Validate that at least one file is present
-    if ([...form.values()].filter(value => value instanceof File).length === 0) {
-      return errorResponse('No files provided for ingestion', 400);
+    // Check if this is residuals or volumes data based on the dataType field
+    const dataType = body.dataType?.toLowerCase();
+    
+    if (!dataType) {
+      return errorResponse('Missing dataType field. Must be either "residuals" or "volumes".', 400);
     }
     
-    for (const [_, value] of form.entries()) {
-      if (value instanceof File) {
-        // Validate file type (can be expanded based on requirements)
-        const validTypes = ['text/csv', 'application/vnd.ms-excel', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet'];
-        if (!validTypes.includes(value.type) && !value.name.match(/\.(csv|xls|xlsx)$/i)) {
-          return errorResponse(`Invalid file type: ${value.type}. Only CSV and Excel files are supported.`, 400);
-        }
-        
-        const buffer = Buffer.from(await value.arrayBuffer());
-        const fileName = value.name;
-        let result;
-        
-        try {
-          if (fileName.toLowerCase().includes('residual')) {
-            result = await ingestResiduals(buffer, fileName);
-          } else {
-            result = await ingestVolumes(buffer, fileName);
-          }
-          results.push(result);
-        } catch (error) {
-          logError(`Error processing file ${fileName}`, error instanceof Error ? error : new Error(String(error)));
-          return errorResponse(`Error processing file ${fileName}: ${error instanceof Error ? error.message : 'Unknown error'}`, 500);
-        }
+    if (dataType === 'residuals') {
+      // Validate residuals data structure
+      const validation = ResidualsDataSchema.safeParse(body);
+      if (!validation.success) {
+        return errorResponse(`Invalid residuals data format: ${validation.error.message}`, 400);
       }
+      
+      try {
+        const result = await ingestResiduals(body as ResidualsData);
+        results.push(result);
+      } catch (error) {
+        logError(`Error processing residuals data`, error instanceof Error ? error : new Error(String(error)));
+        return errorResponse(`Error processing residuals data: ${error instanceof Error ? error.message : 'Unknown error'}`, 500);
+      }
+    } else if (dataType === 'volumes') {
+      // Validate volumes data structure
+      const validation = VolumesDataSchema.safeParse(body);
+      if (!validation.success) {
+        return errorResponse(`Invalid volumes data format: ${validation.error.message}`, 400);
+      }
+      
+      try {
+        const result = await ingestVolumes(body as VolumesData);
+        results.push(result);
+      } catch (error) {
+        logError(`Error processing volumes data`, error instanceof Error ? error : new Error(String(error)));
+        return errorResponse(`Error processing volumes data: ${error instanceof Error ? error.message : 'Unknown error'}`, 500);
+      }
+    } else {
+      return errorResponse(`Invalid dataType: ${dataType}. Must be either "residuals" or "volumes".`, 400);
     }
     
     // Validate response

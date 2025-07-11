@@ -1,15 +1,16 @@
 import js from "@eslint/js";
 import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
-import tseslint from "@typescript-eslint/eslint-plugin";
+import { typescript } from "@typescript-eslint/eslint-plugin";
 
 // Remove the react-refresh import since it's causing issues
 // Fix for Vercel build error - Updated package import
 
-export default tseslint.config(
+export default [
   { ignores: ["dist"] },
+  js.configs.recommended,
+  ...typescript.configs.recommended,
   {
-    extends: [js.configs.recommended, ...tseslint.configs.recommended],
     files: ["**/*.{ts,tsx}"],
     languageOptions: {
       ecmaVersion: 2020,
@@ -25,4 +26,4 @@ export default tseslint.config(
       "@typescript-eslint/no-unused-vars": "off",
     },
   }
-);
+];

@@ -25,12 +25,8 @@ async function getReport(reportId: string) {
 }
 
 // Server component to render the page
-// Fixed type definition for Next.js 15 compatibility
-type PageProps = {
-  params: { id: string }
-}
-
-export default async function ReportDetailPage({ params }: PageProps) {
+// Use the built-in Next.js 15 PageProps pattern without custom types
+export default async function ReportDetailPage({ params }: { params: { id: string } }) {
   const report = await getReport(params.id);
   
   if (!report) {

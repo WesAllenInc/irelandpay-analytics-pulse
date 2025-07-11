@@ -1,4 +1,9 @@
 /** @type {import('next').NextConfig} */
+import path from 'path';
+import { fileURLToPath } from 'url';
+
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
+
 const nextConfig = {
   reactStrictMode: true,
   basePath: '',
@@ -17,7 +22,6 @@ const nextConfig = {
   },
   webpack: (config, { isServer }) => {
     // Alias all Supabase auth helpers to our compatibility layer with proper absolute path
-    const path = require('path');
     config.resolve.alias['@supabase/auth-helpers-nextjs'] = path.join(__dirname, 'lib/supabase-compat.ts');
     
     // Add more stable compilation options for Node.js v20

@@ -25,7 +25,11 @@ async function getReport(reportId: string) {
 }
 
 // Server component to render the page
-export default async function ReportDetailPage({ params }: { params: { id: string } }) {
+type PageProps = {
+  params: { id: string }
+}
+
+export default async function ReportDetailPage({ params }: PageProps) {
   const report = await getReport(params.id);
   
   if (!report) {

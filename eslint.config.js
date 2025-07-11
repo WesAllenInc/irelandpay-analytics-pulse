@@ -1,7 +1,7 @@
 import js from "@eslint/js";
 import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
-import tseslint from "typescript-eslint";
+import tseslint from "@typescript-eslint/eslint-plugin";
 
 // Remove the react-refresh import since it's causing issues
 

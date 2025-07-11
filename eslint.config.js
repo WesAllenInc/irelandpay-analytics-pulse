@@ -9,7 +9,8 @@ import tseslintPlugin from "@typescript-eslint/eslint-plugin";
 export default [
   { ignores: ["dist"] },
   js.configs.recommended,
-  ...tseslintPlugin.configs.recommended,
+  // Fix for tseslintPlugin.configs.recommended not being iterable
+  tseslintPlugin.configs.recommended,
   {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {

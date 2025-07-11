@@ -25,6 +25,7 @@ async function getReport(reportId: string) {
 }
 
 // Server component to render the page
+// Fixed type definition for Next.js 15 compatibility
 type PageProps = {
   params: { id: string }
 }

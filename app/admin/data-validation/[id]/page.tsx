@@ -25,8 +25,21 @@ async function getReport(reportId: string) {
 }
 
 // Server component to render the page
-// Use the built-in Next.js 15 PageProps pattern without custom types
-export default async function ReportDetailPage({ params }: { params: { id: string } }) {
+// Next.js 15 with proper params handling
+import { Metadata } from 'next';
+
+type Props = {
+  params: { id: string }
+}
+
+// Define proper metadata for dynamic routes
+export async function generateMetadata({ params }: Props): Promise<Metadata> {
+  return {
+    title: `Data Validation Report ${params.id}`,
+  }
+}
+
+export default async function ReportDetailPage({ params }: Props) {
   const report = await getReport(params.id);
   
   if (!report) {

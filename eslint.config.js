@@ -1,15 +1,15 @@
 import js from "@eslint/js";
 import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
-import { typescript } from "@typescript-eslint/eslint-plugin";
+import tseslintPlugin from "@typescript-eslint/eslint-plugin";
 
-// Remove the react-refresh import since it's causing issues
-// Fix for Vercel build error - Updated package import
+// Fix for Vercel build error - Import as CommonJS module
+// @typescript-eslint/eslint-plugin is a CommonJS module that doesn't support named exports
 
 export default [
   { ignores: ["dist"] },
   js.configs.recommended,
-  ...typescript.configs.recommended,
+  ...tseslintPlugin.configs.recommended,
   {
     files: ["**/*.{ts,tsx}"],
     languageOptions: {

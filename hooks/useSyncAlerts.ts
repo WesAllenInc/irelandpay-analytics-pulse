@@ -78,13 +78,13 @@ export function useSyncAlerts(
         // Check for new alerts to show toast notifications
         if (lastFetchTime && showToasts) {
           const newAlerts = alertData.filter(
-            alert => new Date(alert.created_at) > lastFetchTime
+            (alert: SyncAlert) => new Date(alert.created_at) > lastFetchTime
           );
 
           // Show toast for new critical and error alerts
           newAlerts
-            .filter(alert => ['critical', 'error'].includes(alert.severity))
-            .forEach(alert => {
+            .filter((alert: SyncAlert) => ['critical', 'error'].includes(alert.severity))
+            .forEach((alert: SyncAlert) => {
               toast({
                 title: alert.title,
                 description: alert.message,

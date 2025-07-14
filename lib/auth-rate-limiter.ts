@@ -29,9 +29,20 @@ function getClientIP(request: NextRequest): string {
     return forwardedFor.split(',')[0].trim();
   }
 
+  // Try to get IP from other headers
+  const realIP = request.headers.get('x-real-ip');
+  if (realIP) {
+    return realIP;
+  }
+
   // Fallback to connection remote address
-  // In Next.js, we use IP from NextRequest.ip
-  return request.ip || 'unknown-ip';
+  // In Next.js 15, we need to use a different approach
+  const cfConnectingIP = request.headers.get('cf-connecting-ip');
+  if (cfConnectingIP) {
+    return cfConnectingIP;
+  }
+
+  return 'unknown-ip';
 }
 
 /**

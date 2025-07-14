@@ -29,10 +29,12 @@ export default function SyncAnalyticsPage() {
       <SyncAnalyticsDashboard />
       
       {/* Additional Monitoring Components */}
+      {/* Temporarily disabled for debugging
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mt-8">
         <SyncAlerts maxHeight="500px" />
         <ApiMonitor />
       </div>
+      */}
     </div>
   );
 }

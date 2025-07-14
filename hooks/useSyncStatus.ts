@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { createSupabaseBrowserClient } from '@/lib/supabase-compat';
+import { createClientComponentClient } from '@/lib/supabase-compat';
 import { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
 export type SyncStatus = {
@@ -59,7 +59,7 @@ export const useSyncStatus = ({
   subscribeToLogs = true,
   subscribeToTransactions = true
 } = {}) => {
-  const supabase = createSupabaseBrowserClient();
+  const supabase = createClientComponentClient();
   
   const [currentSync, setCurrentSync] = useState<SyncStatus | null>(null);
   const [syncHistory, setSyncHistory] = useState<SyncLogEntry[]>([]);
@@ -146,7 +146,7 @@ export const useSyncStatus = ({
             'postgres_changes',
             { event: 'INSERT', schema: 'public', table: 'sync_logs' },
             (payload: RealtimePostgresChangesPayload<SyncLogEntry>) => {
-              setSyncHistory(prev => [payload.new, ...prev.slice(0, 9)]);
+              setSyncHistory(prev => [payload.new as SyncLogEntry, ...prev.slice(0, 9)]);
             }
           )
           .subscribe();

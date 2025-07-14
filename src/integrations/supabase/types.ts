@@ -23,7 +23,6 @@ export interface Database {
           mid: string
           datasource?: string | null
           merchant_dba?: string | null
-          mid?: string
           month?: string | null
           total_txns?: number | null
           total_volume?: number | null

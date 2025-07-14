@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '@/integrations/supabase/client';
-import type { Database } from '@/integrations/supabase/types';
+import { supabase } from '../integrations/supabase/client';
+import type { Database } from '../integrations/supabase/types';
 
 interface Merchant {
   mid: string;
@@ -49,7 +49,8 @@ export function useDashboardData(selectedMerchant: Merchant | null, dateRange: {
 
       if (data) {
         // Group by month and sum values
-        const monthlyData = data.reduce((acc: { [key: string]: { volume: number; netProfit: number; transactions: number } }, row: MasterDataRow) => {
+        type Row = { volume_month: string; merchant_volume: number; net_profit: number; payout_transactions: number };
+        const monthlyData = data.reduce((acc: { [key: string]: { volume: number; netProfit: number; transactions: number } }, row: Row) => {
           const month = row.volume_month;
           if (!acc[month]) {
             acc[month] = { volume: 0, netProfit: 0, transactions: 0 };

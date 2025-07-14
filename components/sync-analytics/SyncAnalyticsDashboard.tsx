@@ -1,3 +1,5 @@
+"use client";
+
 import React from 'react';
 import { useSyncAnalytics } from '@/hooks/useSyncAnalytics';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
@@ -30,7 +32,7 @@ export function SyncAnalyticsDashboard({
     error, 
     refresh 
   } = useSyncAnalytics(refreshInterval);
-
+  
   // Format duration in a human-readable way
   const formatDuration = (seconds: number): string => {
     if (seconds < 60) {

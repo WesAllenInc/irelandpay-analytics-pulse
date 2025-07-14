@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createSupabaseBrowserClient } from '@/lib/supabase-browser';
+import { createClientComponentClient } from '@/lib/supabase-compat';
 import useInterval from '@/hooks/useInterval';
 
 export interface ApiRateLimit {
@@ -44,7 +44,7 @@ export function useApiUsageMonitor(
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const supabase = createSupabaseBrowserClient();
+  const supabase = createClientComponentClient();
 
   const fetchApiUsage = async (): Promise<void> => {
     try {
@@ -64,7 +64,7 @@ export function useApiUsageMonitor(
       if (limitData && limitData.length > 0) {
         // Group by service and endpoint, taking the most recent entry
         const limitMap = new Map<string, ApiRateLimit>();
-        limitData.forEach((item) => {
+        limitData.forEach((item: any) => {
           const key = `${item.service}_${item.endpoint}`;
           if (!limitMap.has(key)) {
             limitMap.set(key, {

@@ -9,7 +9,7 @@
  * @returns The total volume
  */
 export function calculateTotalVolume(volumes: Array<{ volume: number } | number>): number {
-  return volumes.reduce((sum, item) => {
+  return volumes.reduce((sum: number, item) => {
     // Handle both object with volume property and direct number values
     const value = typeof item === 'object' && item !== null ? (item as { volume: number }).volume : item as number;
     return sum + (value || 0);
@@ -22,7 +22,7 @@ export function calculateTotalVolume(volumes: Array<{ volume: number } | number>
  * @returns The total residual
  */
 export function calculateTotalResidual(residuals: Array<{ residual: number } | number>): number {
-  return residuals.reduce((sum, item) => {
+  return residuals.reduce((sum: number, item) => {
     // Handle both object with residual property and direct number values
     const value = typeof item === 'object' && item !== null ? (item as { residual: number }).residual : item as number;
     return sum + (value || 0);

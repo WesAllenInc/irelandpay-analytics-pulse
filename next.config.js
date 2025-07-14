@@ -13,6 +13,12 @@ const nextConfig = {
     '@supabase/auth-helpers-react',
     '@supabase/supabase-js'
   ],
+  // Exclude Supabase Edge Functions from Next.js compilation
+  pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
+  experimental: {
+    // Exclude directories from compilation
+    excludeDefaultMomentLocales: false,
+  },
   images: {
     domains: [
       'images.unsplash.com',
@@ -31,6 +37,12 @@ const nextConfig = {
       'net': false,
       'tls': false
     };
+
+    // Exclude Supabase Edge Functions from compilation
+    config.module.rules.push({
+      test: /supabase\/functions/,
+      use: 'ignore-loader'
+    });
 
     return config;
   },

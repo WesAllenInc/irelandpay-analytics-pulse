@@ -1,7 +1,7 @@
 "use client"
 
 import { useState, useEffect } from "react"
-import { createSupabaseBrowserClient } from "../lib/supabase-browser"
+import { createClientComponentClient } from "../lib/supabase-compat"
 import useInterval from "./useInterval"
 
 export interface SyncMetrics {
@@ -57,7 +57,7 @@ export function useSyncAnalytics(
   const [isLoading, setIsLoading] = useState<boolean>(true)
   const [error, setError] = useState<Error | null>(null)
 
-  const supabase = createSupabaseBrowserClient()
+  const supabase = createClientComponentClient()
 
   const fetchAnalytics = async (): Promise<void> => {
     try {

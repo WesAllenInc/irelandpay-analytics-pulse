@@ -19,6 +19,9 @@ Object.defineProperty(window, 'matchMedia', {
 
 // Mock IntersectionObserver
 global.IntersectionObserver = class IntersectionObserver {
+  root = null;
+  rootMargin = '';
+  thresholds = [];
   constructor(callback: IntersectionObserverCallback) {}
   disconnect() { return null; }
   observe() { return null; }

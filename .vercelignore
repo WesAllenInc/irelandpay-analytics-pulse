@@ -24,6 +24,9 @@ examples
 .vercel
 dist
 
+# Supabase Edge Functions (Deno files)
+supabase/
+
 # Log files
 *.log
 npm-debug.log*

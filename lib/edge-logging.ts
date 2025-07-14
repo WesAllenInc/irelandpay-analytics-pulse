@@ -110,13 +110,16 @@ export const log = (
   // Generate or use provided request ID
   const requestId = options.requestId ?? loggingContext.getRequestId();
   
+  // Redact metadata safely for spreading
+  const redacted = redactSensitiveData(metadata, redactKeys);
+
   // Create the log object
   const logObject = {
     timestamp: new Date().toISOString(),
     level,
     message,
     requestId,
-    ...redactSensitiveData(metadata, redactKeys)
+    ...(typeof redacted === 'object' && !Array.isArray(redacted) && redacted !== null ? redacted : {})
   };
   
   // Simple console output

@@ -6,7 +6,7 @@ import { Analytics } from "@vercel/analytics/next";
 import Providers from './providers';
 import './globals.css';
 import { StagewiseToolbar } from '@stagewise/toolbar-next';
-import { ReactPlugin } from '@stagewise-plugins/react';
+import ReactPlugin from '@stagewise-plugins/react';
 
 import { Button } from '@/components/ui/button';
 import { Toaster } from '@/components/ui/toaster';

@@ -11,6 +11,9 @@ tests
 *.test.js
 *.spec.js
 
+# Example files
+examples
+
 # Local environment files
 .env.local
 .env.development.local

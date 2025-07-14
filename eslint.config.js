@@ -12,6 +12,8 @@ export default [
       globals: {
         ...globals.browser,
         ...globals.node,
+        // Explicitly define AudioWorkletGlobalScope to avoid whitespace issues
+        AudioWorkletGlobalScope: "readonly",
       },
     },
     plugins: {

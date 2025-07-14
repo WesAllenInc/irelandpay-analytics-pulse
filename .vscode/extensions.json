@@ -1,5 +1,7 @@
 {
     "recommendations": [
-        "sainnhe.gruvbox-material"
+        "sainnhe.gruvbox-material",
+        "github.vscode-github-actions",
+        "stagewise.stagewise-vscode-extension"
     ]
 }

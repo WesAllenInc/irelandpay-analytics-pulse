@@ -18,12 +18,8 @@ tests
 .env.production.local
 
 # Build artifacts
-.next
 .vercel
 dist
-
-# Legacy code
-src
 
 # Log files
 *.log

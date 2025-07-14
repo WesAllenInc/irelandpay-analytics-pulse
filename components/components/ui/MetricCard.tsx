@@ -1,6 +1,6 @@
 import React from "react";
 import { FiArrowUpRight, FiArrowDownRight } from "react-icons/fi";
-import { createChart } from "lightweight-charts";
+import { createChart, ColorType } from "lightweight-charts";
 
 export interface MetricCardProps {
   title: string;
@@ -37,7 +37,7 @@ export default function MetricCard({
     const chart = createChart(chartRef.current, {
       width: chartRef.current.offsetWidth,
       height: 36,
-      layout: { background: { type: 'solid', color: 'transparent' }, textColor: '#169B62' },
+      layout: { background: { type: ColorType.Solid, color: 'transparent' }, textColor: '#169B62' },
       grid: { vertLines: { visible: false }, horzLines: { visible: false } },
       rightPriceScale: { visible: false },
       timeScale: { visible: false },
@@ -45,7 +45,7 @@ export default function MetricCard({
     });
     const series = chart.addLineSeries({ color: '#169B62', lineWidth: 2 });
     series.setData(
-      sparklineData.map((val, idx) => ({ time: idx + 1, value: val }))
+      sparklineData.map((val, idx) => ({ time: (idx + 1) as any, value: val }))
     );
     return () => chart.remove();
   }, [sparklineData]);

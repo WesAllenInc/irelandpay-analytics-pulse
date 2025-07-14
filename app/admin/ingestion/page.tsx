@@ -92,7 +92,7 @@ export default function IngestionPage() {
           <ul className="list-disc pl-5">
             {results.map((r, idx) => (
               <li key={idx}>
-                {r.fileName}: {r.rowsSuccess}/{r.totalRows} success, {r.rowsFailed} failed
+                {r.dataSource}: {r.rowsSuccess}/{r.totalRows} success, {r.rowsFailed} failed
               </li>
             ))}
           </ul>

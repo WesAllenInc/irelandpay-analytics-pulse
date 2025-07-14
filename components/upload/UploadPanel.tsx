@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Progress } from '@/components/ui/progress';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { createSupabaseBrowserClient } from '@/lib/supabase';
-import { ingestResiduals, ingestVolumes } from '@/lib/ingestion';
+import { ingestResiduals, ingestVolumes } from '@/lib/legacy-ingestion';
 import { CheckCircle, AlertCircle, Upload, FileSpreadsheet } from 'lucide-react';
 
 type UploadStatus = 'idle' | 'uploading' | 'processing' | 'success' | 'error';

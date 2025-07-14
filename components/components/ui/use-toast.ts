@@ -1,5 +1,5 @@
-// NOTE: This file depends on the hooks version of use-toast in '../../hooks/use-toast'.
-import { useToast as baseUseToast, toast as baseToast } from "../../hooks/use-toast";
+// NOTE: This file depends on the hooks version of use-toast in '../../../hooks/hooks/use-toast'.
+import { useToast as baseUseToast, toast as baseToast } from "../../../hooks/hooks/use-toast";
 import { FiCheckCircle, FiXCircle, FiAlertTriangle, FiInfo, FiUpload } from "react-icons/fi";
 import React from "react";
 

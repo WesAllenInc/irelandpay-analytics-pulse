@@ -1,5 +1,5 @@
 import React from 'react';
-import { useDataFreshness, getFreshnessDescription, getFreshnessColorClass, FreshnessData } from '@/hooks/useDataFreshness';
+import { useDataFreshness, getFreshnessDescription, getFreshnessColorClass, DataFreshnessInfo } from '@/hooks/useDataFreshness';
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Badge } from '@/components/ui/badge';
@@ -23,12 +23,12 @@ export function DataFreshnessIndicator({
   size = 'md',
   className
 }: DataFreshnessIndicatorProps) {
-  const { data, isLoading, error, refresh } = useDataFreshness();
+  const { freshness, isLoading, error, refresh } = useDataFreshness();
   
   // Filter data if tableName is provided
   const freshnessData = tableName 
-    ? data.filter(item => item.table_name === tableName)
-    : data;
+    ? freshness.filter(item => item.data_type === tableName)
+    : freshness;
     
   const getFreshnessIcon = (status: string) => {
     switch (status) {
@@ -45,12 +45,12 @@ export function DataFreshnessIndicator({
     }
   };
   
-  const getTimeDisplay = (item: FreshnessData) => {
+  const getTimeDisplay = (item: DataFreshnessInfo) => {
     try {
       return (
         <div className="flex items-center gap-1">
           <Clock className="h-3 w-3" />
-          <span>{formatDistanceToNow(new Date(item.last_updated), { addSuffix: true })}</span>
+          <span>{formatDistanceToNow(new Date(item.last_sync_at || ''), { addSuffix: true })}</span>
         </div>
       );
     } catch (e) {
@@ -58,24 +58,24 @@ export function DataFreshnessIndicator({
     }
   };
   
-  const renderFreshnessItem = (item: FreshnessData) => {
-    const colorClass = getFreshnessColorClass(item.freshness_status);
+  const renderFreshnessItem = (item: DataFreshnessInfo) => {
+    const colorClass = getFreshnessColorClass(item.status);
     
     return (
       <div 
-        key={item.table_name}
+        key={item.data_type}
         className="flex justify-between items-center py-2 border-b last:border-0"
       >
         <div>
           <p className="font-medium capitalize">
-            {item.table_name}
+            {item.data_type}
           </p>
           <p className={cn("text-xs", colorClass)}>
-            {getFreshnessDescription(item.hours_since_update)}
+            {item.last_sync_at ? getFreshnessDescription((Date.now() - new Date(item.last_sync_at).getTime()) / (1000 * 60 * 60)) : 'Never updated'}
           </p>
         </div>
         <div className="flex flex-col items-end gap-1">
-          {getFreshnessIcon(item.freshness_status)}
+          {getFreshnessIcon(item.status)}
           {size !== 'sm' && getTimeDisplay(item)}
         </div>
       </div>

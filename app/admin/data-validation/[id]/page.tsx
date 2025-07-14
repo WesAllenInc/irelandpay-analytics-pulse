@@ -159,7 +159,7 @@ export default async function ReportDetailPage({ params }: Props) {
         </div>
         
         <div className="md:col-span-3">
-          <ValidationIssuesList reportId={params.id} />
+          <ValidationIssuesList reportId={resolvedParams.id} />
         </div>
       </div>
     </div>

@@ -84,7 +84,7 @@ export default async function MerchantDetailPage({ params }: Props) {
   })) || []
   
   // Calculate basis points data (profit / volume * 10000)
-  const bpsData = masterData?.map(item => {
+  const bpsData = (masterData?.map(item => {
     // Find matching volume data for the same month
     const volumeItem = volumeData?.find(v => v.month === item.volume_month)
     
@@ -95,10 +95,10 @@ export default async function MerchantDetailPage({ params }: Props) {
       }
     }
     return null
-  }).filter(Boolean) || []
+  }).filter(Boolean) || []) as { time: any; value: number }[]
   
   // Calculate profit per transaction
-  const profitPerTxnData = masterData?.map(item => {
+  const profitPerTxnData = (masterData?.map(item => {
     if (item.net_profit && item.total_txns > 0) {
       return {
         time: item.volume_month!,
@@ -106,10 +106,10 @@ export default async function MerchantDetailPage({ params }: Props) {
       }
     }
     return null
-  }).filter(Boolean) || []
+  }).filter(Boolean) || []) as { time: any; value: number }[]
   
   // Calculate correlation data for scatter plot
-  const correlationData = masterData?.map(item => {
+  const correlationData = (masterData?.map(item => {
     if (item.net_profit && item.merchant_volume) {
       return {
         x: item.merchant_volume,
@@ -118,7 +118,7 @@ export default async function MerchantDetailPage({ params }: Props) {
       }
     }
     return null
-  }).filter(Boolean) || []
+  }).filter(Boolean) || []) as { x: any; y: any; time: any }[]
   
   // Calculate moving averages
   const calculateMovingAverage = (data: any[], period: number) => {
@@ -139,8 +139,8 @@ export default async function MerchantDetailPage({ params }: Props) {
     }).filter(Boolean)
   }
   
-  const threeMonthMA = calculateMovingAverage(profitChartData, 3)
-  const twelveMonthMA = calculateMovingAverage(profitChartData, 12)
+  const threeMonthMA = calculateMovingAverage(profitChartData, 3) as { time: any; value: number }[]
+  const twelveMonthMA = calculateMovingAverage(profitChartData, 12) as { time: any; value: number }[]
   
   // Calculate data freshness
   const lastVolumeUpdate = volumeData && volumeData.length > 0 
@@ -159,7 +159,7 @@ export default async function MerchantDetailPage({ params }: Props) {
     ? differenceInDays(currentDate, lastProfitUpdate) 
     : null
     
-  const isProfitDataStale = profitDataAge && profitDataAge > 35
+  const isProfitDataStale = !!(profitDataAge && profitDataAge > 35)
   
   // Prepare metrics for display
   const currentMonthVolume = volumeData && volumeData.length > 0 
@@ -289,13 +289,13 @@ export default async function MerchantDetailPage({ params }: Props) {
           id="profit-chart"
           additionalSeries={[
             { 
-              data: threeMonthMA, 
+              data: threeMonthMA.filter((d): d is { time: any; value: number } => d !== null), 
               title: '3-Month MA', 
               color: '#FF9800',
               type: 'line'
             },
             { 
-              data: twelveMonthMA, 
+              data: twelveMonthMA.filter((d): d is { time: any; value: number } => d !== null), 
               title: '12-Month MA', 
               color: '#E91E63',
               type: 'line'
@@ -326,7 +326,7 @@ export default async function MerchantDetailPage({ params }: Props) {
           margin: masterData?.map(item => ({
             time: item.volume_month!,
             value: item.profit_margin || 0
-          })) || []
+          })).filter((d): d is { time: any; value: number } => d !== null) || []
         }}
       />
       

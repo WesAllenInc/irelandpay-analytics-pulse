@@ -61,7 +61,7 @@ export function MerchantTable({ merchants }: MerchantTableProps) {
       key: 'status',
       label: 'Status',
       render: (row) => {
-        let variant: string
+        let variant: "default" | "success" | "destructive" | "secondary" | "outline" | "warning"
         let label: string
         if (row.profit_margin == null) {
           variant = 'outline'

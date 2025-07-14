@@ -4,7 +4,7 @@
 import { useState } from 'react';
 
 const ReportsPage = () => {
-  const [dateRange, setDateRange] = useState({ from: null, to: null });
+  const [dateRange, setDateRange] = useState({ from: '', to: '' });
 
   const reportData = [
     { date: '2025-05-01', merchant: 'Merchant A', volume: '$22,000', residual: '$480' },
@@ -80,7 +80,7 @@ const ReportsPage = () => {
                   <tr key={idx}>
                     {tableColumns.map((col) => (
                       <td key={`${idx}-${col.accessor}`} className="py-2 px-4 border-b border-gray-200">
-                        {row[col.accessor]}
+                        {row[col.accessor as keyof typeof row]}
                       </td>
                     ))}
                   </tr>

@@ -63,8 +63,8 @@ export default function TradingViewChart({
             borderColor: '#2a2a2a',
             timeVisible: true,
             secondsVisible: false,
-            tickMarkFormatter: (time) => {
-              const date = new Date(time as string)
+            tickMarkFormatter: (time: number) => {
+              const date = new Date(time * 1000)
               return date.toLocaleDateString('en-US', { 
                 month: 'short', 
                 day: 'numeric' 

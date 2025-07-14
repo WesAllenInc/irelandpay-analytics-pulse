@@ -1,30 +1,25 @@
 import js from "@eslint/js";
 import globals from "globals";
 import reactHooks from "eslint-plugin-react-hooks";
-import tseslintPlugin from "@typescript-eslint/eslint-plugin";
-
-// Fix for Vercel build error - Import as CommonJS module
-// @typescript-eslint/eslint-plugin is a CommonJS module that doesn't support named exports
 
 export default [
-  { ignores: ["dist"] },
+  { ignores: ["dist", "node_modules", ".next"] },
   js.configs.recommended,
-  // Fix for tseslintPlugin.configs.recommended not being iterable
-  tseslintPlugin.configs.recommended,
   {
-    files: ["**/*.{ts,tsx}"],
+    files: ["**/*.{js,jsx,ts,tsx}"],
     languageOptions: {
       ecmaVersion: 2020,
-      globals: globals.browser,
+      globals: {
+        ...globals.browser,
+        ...globals.node,
+      },
     },
     plugins: {
       "react-hooks": reactHooks,
-      // Remove the react-refresh plugin
     },
     rules: {
       ...reactHooks.configs.recommended.rules,
-      // Remove the react-refresh rule
-      "@typescript-eslint/no-unused-vars": "off",
+      "no-unused-vars": "off",
     },
-  }
+  },
 ];

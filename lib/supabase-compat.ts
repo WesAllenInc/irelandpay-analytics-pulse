@@ -7,7 +7,6 @@
 import { createBrowserClient } from '@supabase/ssr'
 import { createClient } from '@supabase/supabase-js'
 import type { Database } from '@/types/database'
-import type { CookieOptions } from '@supabase/auth-helpers-shared'
 
 // Singleton pattern to avoid multiple client instances
 let browserClient: ReturnType<typeof createBrowserClient<Database>> | null = null

@@ -15,7 +15,7 @@
 Ireland Pay Analytics Pulse is a comprehensive analytics platform designed to provide a virtual window into your business data. The platform enables users to upload financial data (merchant and residual information), visualize key metrics through interactive charts and dashboards, and generate insights to support business decisions.
 
 ### Key Capabilities
-- **Data Ingestion**: Upload and process merchant and residual Excel files
+- **Automated Data Sync**: Synchronize merchant and residual data from IRIS CRM
 - **Interactive Analytics**: Visualize business performance through dynamic charts and reports
 - **Role-Based Access**: Agent and administrative views for different user types
 - **Commission Management**: Track agent commission and performance metrics
@@ -64,11 +64,11 @@ The Ireland Pay Analytics platform is built on a modern, scalable architecture u
 - Export functionality for accounting payout summaries
 - Drill-down capability to view individual agent's merchants
 
-### 3. Data Upload & Processing
-- Excel file upload for merchant and residual data
+### 3. Automated Data Synchronization
+- IRIS CRM integration for automated data retrieval
+- Real-time synchronization of merchant and residual data
 - Validation and error handling for data integrity
-- Automatic processing and storage in Supabase
-- Status tracking and notifications for upload progress
+- Status tracking and notifications for sync progress
 
 ### 4. Analytics & Reporting
 - Interactive charts for visualizing trends
@@ -83,12 +83,12 @@ The Ireland Pay Analytics platform is built on a modern, scalable architecture u
 
 ## Data Flow & Integration
 
-### Data Ingestion Process
-1. **Upload**: Users upload Excel files through the `UploadExcel` component
-2. **Storage**: Files are stored in Supabase Storage in either 'merchants' or 'residuals' buckets
-3. **Processing**: API routes (`/api/process-excel`, `/api/process-merchant-excel`, `/api/process-residual-excel`) handle data extraction and validation
-4. **Database Storage**: Processed data is stored in respective Supabase tables
-5. **Feedback**: Users receive real-time feedback on processing status and results
+### Data Synchronization Process
+1. **IRIS CRM Integration**: Automated connection to IRIS CRM API for data retrieval
+2. **Data Processing**: API routes (`/api/sync-iriscrm`) handle data extraction and validation
+3. **Database Storage**: Processed data is stored in respective Supabase tables
+4. **Real-time Updates**: Data is automatically synchronized on a scheduled basis
+5. **Feedback**: Users receive real-time feedback on sync status and results
 
 ### Database Schema
 - **merchants**: Stores merchant information (MID, DBA name, etc.)
@@ -100,7 +100,6 @@ The Ireland Pay Analytics platform is built on a modern, scalable architecture u
 ### Integration with Supabase
 - Authentication using Supabase Auth
 - Database access through Supabase client
-- File storage in Supabase Storage buckets
 - Real-time notifications and updates (where applicable)
 
 ## Development Guide
@@ -185,7 +184,7 @@ Required environment variables for deployment:
 The Ireland Pay Analytics project currently has implemented:
 - ✅ Next.js application with TypeScript and Tailwind CSS
 - ✅ Supabase integration for backend services
-- ✅ Data upload and processing functionality
+- ✅ IRIS CRM integration for automated data synchronization
 - ✅ Basic dashboard views for agents and admins
 - ✅ Chart components for data visualization
 

@@ -5,7 +5,6 @@ import { usePathname } from 'next/navigation'
 import {
   Users,
   BarChart3,
-  Upload,
   ChevronLeft,
   ChevronRight,
   FileSpreadsheet,
@@ -45,11 +44,7 @@ export function AdminSidebar() {
       href: '/admin/data-validation',
       icon: ShieldCheck,
     },
-    {
-      name: 'Residual Upload',
-      href: '/admin/upload',
-      icon: Upload,
-    },
+
     {
       name: 'Excel Reports',
       href: '/admin/reports',

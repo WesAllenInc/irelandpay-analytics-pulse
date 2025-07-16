@@ -97,14 +97,11 @@ The application uses the following database schema:
 
 ### Next.js API Routes
 
-- `/api/process-excel`: Processes Excel files for both merchant and residual data
-- `/api/process-merchant-excel`: Processes merchant Excel files specifically
-- `/api/process-residual-excel`: Processes residual Excel files specifically
+- `/api/sync-iriscrm`: Synchronizes merchant and residual data from IRIS CRM
 
 ### Supabase Edge Functions
 
-- `processMerchantExcel`: Processes merchant Excel files uploaded to Supabase Storage
-- `processResidualExcel`: Processes residual Excel files uploaded to Supabase Storage
+- `sync-iriscrm`: Handles IRIS CRM data synchronization and processing
 
 ## Environment Variables
 
@@ -128,8 +125,7 @@ The application uses the following database schema:
 
    
 ```bash
-npx supabase functions deploy processMerchantExcel
-npx supabase functions deploy processResidualExcel
+npx supabase functions deploy sync-iriscrm
 ```
 
 1. Install dependencies and start the app:

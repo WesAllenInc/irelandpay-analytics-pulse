@@ -6,7 +6,7 @@ import { useStore } from '@/lib/store'
 import { useEffect } from 'react'
 import type { Database } from '@/types/database'
 import { StagewiseToolbarWrapper } from '@/components/ui/stagewise-toolbar'
-import { Home, Users, BarChart3, Upload, Settings } from 'lucide-react'
+import { Home, Users, BarChart3, Settings } from 'lucide-react'
 import { NavBar } from '@/components/ui/tubelight-navbar'
 import { FloatingPaths } from '@/components/ui/background-paths'
 
@@ -42,7 +42,6 @@ export default function DashboardLayout({
     { name: 'Dashboard', url: '/dashboard', icon: Home },
     { name: 'Merchants', url: '/dashboard/merchants', icon: Users },
     { name: 'Analytics', url: '/dashboard/analytics', icon: BarChart3 },
-    { name: 'Upload', url: '/dashboard/upload', icon: Upload },
     { name: 'Settings', url: '/dashboard/settings', icon: Settings }
   ]
 

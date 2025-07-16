@@ -198,7 +198,7 @@ export function AgentDashboard({ agentId }: { agentId: string }) {
 // Server Component Example (for documentation purposes)
 export const ServerComponentExample = `
 // In app/agents/[agentId]/page.tsx (Server Component)
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseServerClient } from '../lib/supabase/server';
 import logger from '@/lib/logging'; // Server-side logger
 import { AgentDashboard } from '@/components/AgentDashboard';
 

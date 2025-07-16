@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { testSupabaseConnection } from '@/lib/supabase/test-connection';
+import { testSupabaseConnection } from '../../../lib/supabase/test-connection';
 
 export async function GET() {
   const result = await testSupabaseConnection();

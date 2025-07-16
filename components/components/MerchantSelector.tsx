@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { createClient } from '@/lib/supabase/client';
+import { createClient } from '../../lib/supabase/client';
 
 const supabase = createClient();
 import { Input } from '@/components/ui/input';

@@ -1,4 +1,4 @@
-import { createClient } from '../../../../lib/supabase/server'
+import { createSupabaseServerClient } from '@/lib/supabase'
 import { notFound } from 'next/navigation'
 import { format, subMonths, subYears, parseISO, differenceInDays } from 'date-fns'
 
@@ -26,7 +26,7 @@ export async function generateMetadata({ params }: Props): Promise<{ title: stri
 
 export default async function MerchantDetailPage({ params }: Props) {
   const resolvedParams = await params;
-  const supabase = await createClient()
+  const supabase = createSupabaseServerClient()
   
   // Fetch merchant data
   const { data: merchant } = await supabase

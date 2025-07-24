@@ -23,14 +23,11 @@ interface MerchantChartProps {
 }
 
 export const MerchantChart: React.FC<MerchantChartProps> = ({ title, data, type, xKey, yKey }) => {
-  // Debug logging
-  console.log('MerchantChart rendering:', { title, data, type, xKey, yKey });
-
   if (!data || data.length === 0) {
     return (
-      <div className="w-full bg-white dark:bg-gray-900 rounded-xl shadow p-4 mb-4">
-        <div className="text-base font-semibold mb-2 text-gray-800 dark:text-white">{title}</div>
-        <div className="w-full h-64 flex items-center justify-center text-gray-500">
+      <div className="w-full bg-transparent rounded-xl p-3 mb-4">
+        <div className="text-sm font-medium mb-2 text-gray-300">{title}</div>
+        <div className="w-full h-48 flex items-center justify-center text-gray-400 text-sm">
           No data available
         </div>
       </div>
@@ -38,27 +35,27 @@ export const MerchantChart: React.FC<MerchantChartProps> = ({ title, data, type,
   }
 
   return (
-    <div className="w-full bg-white dark:bg-gray-900 rounded-xl shadow p-4 mb-4 border border-gray-200">
-      <div className="text-base font-semibold mb-2 text-gray-800 dark:text-white">{title}</div>
-      <div className="w-full h-64 border border-gray-300 bg-white">
+    <div className="w-full bg-transparent rounded-xl p-3 mb-4">
+      <div className="text-sm font-medium mb-2 text-gray-300">{title}</div>
+      <div className="w-full h-48">
         <ResponsiveContainer width="100%" height="100%">
           {type === 'line' ? (
-            <LineChart data={data} margin={{ top: 16, right: 24, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey={xKey} />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Line type="monotone" dataKey={yKey} stroke="#2563eb" strokeWidth={3} dot={{ r: 3 }} />
+            <LineChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey={xKey} tick={{ fontSize: 10, fill: '#9CA3AF' }} />
+              <YAxis tick={{ fontSize: 10, fill: '#9CA3AF' }} />
+              <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px', color: '#F9FAFB' }} />
+              <Legend wrapperStyle={{ fontSize: 10, color: '#9CA3AF' }} />
+              <Line type="monotone" dataKey={yKey} stroke="#60A5FA" strokeWidth={2} dot={{ r: 2, fill: '#60A5FA' }} />
             </LineChart>
           ) : (
-            <BarChart data={data} margin={{ top: 16, right: 24, left: 0, bottom: 0 }}>
-              <CartesianGrid strokeDasharray="3 3" />
-              <XAxis dataKey={xKey} />
-              <YAxis />
-              <Tooltip />
-              <Legend />
-              <Bar dataKey={yKey} fill="#2563eb" radius={[4, 4, 0, 0]} />
+            <BarChart data={data} margin={{ top: 8, right: 16, left: 0, bottom: 8 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
+              <XAxis dataKey={xKey} tick={{ fontSize: 10, fill: '#9CA3AF' }} />
+              <YAxis tick={{ fontSize: 10, fill: '#9CA3AF' }} />
+              <Tooltip contentStyle={{ backgroundColor: '#1F2937', border: 'none', borderRadius: '8px', color: '#F9FAFB' }} />
+              <Legend wrapperStyle={{ fontSize: 10, color: '#9CA3AF' }} />
+              <Bar dataKey={yKey} fill="#60A5FA" radius={[2, 2, 0, 0]} />
             </BarChart>
           )}
         </ResponsiveContainer>

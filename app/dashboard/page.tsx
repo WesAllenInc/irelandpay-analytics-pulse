@@ -117,7 +117,7 @@ export default async function DashboardPage() {
         <MerchantChart
           title="Monthly Volume Trend"
           data={volumeTrend}
-          type="line"
+          type="bar"
           xKey="month"
           yKey="volume"
         />

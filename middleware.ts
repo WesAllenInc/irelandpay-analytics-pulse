@@ -5,6 +5,9 @@ import { authRateLimiter } from "./lib/auth-rate-limiter";
 import { logRequest, debug, error as logError } from "./lib/edge-logging";
 import { validateCSRFToken, extractCSRFToken, refreshCSRFToken } from './lib/csrf';
 
+// DEVELOPMENT/DEMO MODE: Set to true to bypass authentication for demo purposes
+const DEMO_MODE = true;
+
 // Define public routes that don't need authentication
 const publicRoutes = [
   '/auth',
@@ -19,6 +22,11 @@ const publicRoutes = [
 ];
 
 export async function middleware(request: NextRequest) {
+  // DEMO MODE: Bypass all authentication checks
+  if (DEMO_MODE) {
+    return NextResponse.next();
+  }
+
   // Auth-specific rate limiting for login endpoints
   if (request.nextUrl.pathname.startsWith('/auth/login') || request.nextUrl.pathname.startsWith('/api/auth/login')) {
     return authRateLimiter(request, async () => {

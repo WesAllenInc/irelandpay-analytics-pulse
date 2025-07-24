@@ -1,3 +1,5 @@
+'use client';
+
 import React from 'react';
 import {
   ResponsiveContainer,
@@ -21,10 +23,24 @@ interface MerchantChartProps {
 }
 
 export const MerchantChart: React.FC<MerchantChartProps> = ({ title, data, type, xKey, yKey }) => {
+  // Debug logging
+  console.log('MerchantChart rendering:', { title, data, type, xKey, yKey });
+
+  if (!data || data.length === 0) {
+    return (
+      <div className="w-full bg-white dark:bg-gray-900 rounded-xl shadow p-4 mb-4">
+        <div className="text-base font-semibold mb-2 text-gray-800 dark:text-white">{title}</div>
+        <div className="w-full h-64 flex items-center justify-center text-gray-500">
+          No data available
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="w-full bg-white dark:bg-gray-900 rounded-xl shadow p-4 mb-4">
+    <div className="w-full bg-white dark:bg-gray-900 rounded-xl shadow p-4 mb-4 border border-gray-200">
       <div className="text-base font-semibold mb-2 text-gray-800 dark:text-white">{title}</div>
-      <div className="w-full h-64">
+      <div className="w-full h-64 border border-gray-300 bg-white">
         <ResponsiveContainer width="100%" height="100%">
           {type === 'line' ? (
             <LineChart data={data} margin={{ top: 16, right: 24, left: 0, bottom: 0 }}>

@@ -1,119 +1,155 @@
-# Ireland Pay Analytics - Deployment Checklist
+# Ireland Pay Analytics Pulse - Deployment Checklist
 
-This checklist will help ensure your Vercel deployment with Supabase integration works correctly.
+This checklist will help ensure your Vercel deployment with Supabase integration and Iris CRM API works correctly.
 
-## 1. Verify Vercel Secrets
+## 1. Pre-Deployment Setup
 
+### Environment Variables
 - [ ] Log in to your [Vercel Dashboard](https://vercel.com/dashboard)
 - [ ] Select your project "irelandpay-analytics-pulse"
 - [ ] Go to "Settings" > "Environment Variables"
 - [ ] Verify the following secrets are set:
-  - [ ] `supabase_url` - [ https://ainmbbtycciukbjjdjtl.supabase.co ](https://ainmbbtycciukbjjdjtl.supabase.co)
-  - [ ] `supabase_anon_key` - Your Supabase anonymous key
-  - [ ] `supabase_service_role_key` - Your Supabase service role key (for admin operations)
-  - [ ] `app_url` - Your deployed app URL (e.g., https://irelandpay-analytics-pulse.vercel.app)
-  - [ ] `supabase_project_id` - ainmbbtycciukbjjdjtl
 
-### Testing Environment Variables
+#### Required Variables:
+- [ ] `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
+- [ ] `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anonymous key
+- [ ] `SUPABASE_SERVICE_ROLE_KEY` - Your Supabase service role key
+- [ ] `NEXT_PUBLIC_APP_URL` - Your deployed app URL (e.g., https://irelandpay-analytics-pulse.vercel.app)
+- [ ] `NEXT_PUBLIC_SUPABASE_PROJECT_ID` - Your Supabase project ID
 
-After deployment, test if environment variables are correctly loaded:
-1. Visit: `https://your-deployment-url/api/check-env` (only works in development mode)
-2. Check if all environment variables are marked as "Set ✅"
+#### Optional Variables (for full functionality):
+- [ ] `IRIS_CRM_API_KEY` - Iris CRM API key (for real data integration)
+- [ ] `IRIS_CRM_BASE_URL` - Iris CRM API base URL
+- [ ] `CSRF_SECRET` - Random string for CSRF protection
+- [ ] `SUPABASE_JWT_SECRET` - Supabase JWT secret
 
-## 2. Database Type Safety
+#### Email Configuration (optional):
+- [ ] `SMTP_HOST` - SMTP server host
+- [ ] `SMTP_PORT` - SMTP server port
+- [ ] `SMTP_SECURE` - SMTP security setting
+- [ ] `SMTP_USER` - SMTP username
+- [ ] `SMTP_PASSWORD` - SMTP password
+- [ ] `SMTP_FROM` - From email address
 
-Ensure your database types are up-to-date with your Supabase schema:
+## 2. Build and Deploy
 
-1. Install dependencies if needed:
-   ```bash
-   npm install -g supabase
-   ```
+### Local Build Test
+```bash
+# Install dependencies
+npm install
 
-2. Run the type generation script:
-   ```bash
-   node scripts/update-supabase-types.js
-   ```
+# Run build locally to catch any issues
+npm run build
 
-3. Compare the generated types with your existing types:
-   - Check `types/supabase-generated.ts` (newly generated)
-   - Compare with `types/database.ts` (your current types)
-   - Update `types/database.ts` if there are differences
+# Test the build locally
+npm start
+```
 
-4. Verify your database schema matches what's expected in your code:
-   - Check for missing tables or columns
-   - Verify data types match
-   - Ensure relationships are correctly defined
+### Deploy to Vercel
+```bash
+# Deploy using Vercel CLI
+vercel --prod
 
-## 3. Supabase Edge Functions
+# Or connect your GitHub repository to Vercel for automatic deployments
+```
 
-Ensure your Edge Functions are properly deployed:
+## 3. Post-Deployment Verification
 
-1. Install the Supabase CLI if not already installed:
-   ```bash
-   npm install -g supabase
-   ```
+### Core Functionality Tests
+- [ ] **Homepage**: Visit your deployed URL and verify it loads
+- [ ] **Demo Mode**: Verify authentication bypass works (demo mode enabled)
+- [ ] **Dashboard**: Test `/dashboard` page with analytics components
+- [ ] **Analytics**: Test `/analytics` page with charts and filters
+- [ ] **Iris Test**: Test `/iris-test` page with simulated API data
 
-2. Login to Supabase:
-   ```bash
-   supabase login
-   ```
+### Analytics Components
+- [ ] **KPI Cards**: Verify MerchantAnalyticsCard components display correctly
+- [ ] **Charts**: Test MerchantChart components (line and bar charts)
+- [ ] **Tables**: Verify MerchantTable with sorting and CSV export
+- [ ] **Responsive Design**: Test on mobile and desktop
 
-3. Deploy your Edge Functions:
-   ```bash
-   node scripts/deploy-edge-functions.js
-   ```
+### API Endpoints
+- [ ] **Test API**: Visit `/api/test-iriscrm` to verify simulated data generation
+- [ ] **Environment Check**: Test `/api/check-env` (if available)
+- [ ] **Supabase Connection**: Verify database connectivity
 
-4. Verify each function is deployed:
-   - Check in the [Supabase Dashboard](https://app.supabase.com) > Edge Functions
-   - Verify the following functions exist:
-     - [ ] `processResidualExcel`
-     - [ ] `processMerchantExcel`
-     - [ ] `parse-excel` (if used)
-     - [ ] `metrics` (if used)
+## 4. Database Setup (if using real Supabase)
 
-5. Test each function with sample data
+### Supabase Configuration
+- [ ] Verify your Supabase project is active
+- [ ] Check database tables exist:
+  - [ ] `merchant_data`
+  - [ ] `agents`
+  - [ ] `sync_status`
+  - [ ] `merchant_user_map`
 
-## 4. Test Authentication Flow
+### Edge Functions (if using real Iris CRM)
+- [ ] Deploy Supabase Edge Functions:
+  ```bash
+  supabase functions deploy sync-iriscrm
+  ```
+- [ ] Verify functions are accessible in Supabase Dashboard
 
-Test the complete sign-in/sign-out process after deployment:
+## 5. Performance Optimization
 
-1. Run the authentication test script:
-   ```bash
-   # First install Playwright if needed
-   npm install playwright
-   
-   # Run the test script
-   node scripts/test-auth-flow.js
-   ```
+### Build Optimization
+- [ ] Check bundle size in Vercel deployment logs
+- [ ] Verify images are optimized
+- [ ] Test loading performance
 
-2. Manual testing steps:
-   - [ ] Visit your deployed site
-   - [ ] Sign in with valid credentials
-   - [ ] Verify you're redirected to the correct page based on your role
-   - [ ] Check if user data is loaded correctly
-   - [ ] Sign out
-   - [ ] Verify you're redirected to the auth page
+### Analytics Optimization
+- [ ] Verify charts load efficiently
+- [ ] Test data fetching performance
+- [ ] Check for any console errors
 
-## 5. Final Deployment Verification
+## 6. Security Verification
 
-- [ ] Test Excel file uploads for both merchant and residual data
-- [ ] Verify data is correctly processed and stored in Supabase
-- [ ] Check dashboard visualizations with the processed data
-- [ ] Test responsive design on different devices
-- [ ] Verify all navigation links work correctly
+### Authentication
+- [ ] Verify demo mode is working correctly
+- [ ] Test CSRF protection (if enabled)
+- [ ] Check environment variables are not exposed
+
+### API Security
+- [ ] Verify API endpoints are properly protected
+- [ ] Test rate limiting (if implemented)
+- [ ] Check for any exposed sensitive data
+
+## 7. Final Testing
+
+### User Experience
+- [ ] Test navigation between all pages
+- [ ] Verify responsive design on different screen sizes
+- [ ] Test chart interactions and data filtering
+- [ ] Verify CSV export functionality
+
+### Data Flow
+- [ ] Test simulated Iris CRM data generation
+- [ ] Verify analytics components display data correctly
+- [ ] Test month selection and data updates
 
 ## Troubleshooting
 
-If you encounter issues:
+### Common Issues:
+1. **Build Failures**: Check for TypeScript errors or missing dependencies
+2. **Environment Variables**: Verify all required variables are set in Vercel
+3. **Chart Rendering**: Check browser console for Recharts errors
+4. **API Errors**: Verify API endpoints are accessible
 
-1. Check Vercel deployment logs for errors
-2. Verify Supabase connection in the browser console
-3. Test API endpoints directly to isolate frontend vs. backend issues
-4. Check Supabase logs for Edge Function errors
-5. Verify database permissions and RLS policies
+### Debug Steps:
+1. Check Vercel deployment logs
+2. Test locally with `npm run build && npm start`
+3. Verify environment variables in Vercel dashboard
+4. Check browser console for client-side errors
 
 ## Notes
 
-- Remember that Supabase Edge Functions have a cold start time on the first invocation
-- Ensure your database has the correct tables and views as defined in your types
-- For production deployments, consider setting up monitoring and alerts
+- The application includes demo mode for testing without real Iris CRM credentials
+- All analytics components are optimized for dark backgrounds
+- Charts use Recharts library with responsive design
+- CSV export functionality is included in merchant tables
+- The application is ready for production with real Iris CRM integration
+
+## Deployment URL
+
+Your application will be available at:
+`https://irelandpay-analytics-pulse.vercel.app` (or your custom domain)

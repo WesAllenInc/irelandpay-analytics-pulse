@@ -3,6 +3,11 @@
   "installCommand": "npm install",
   "framework": "nextjs",
   "outputDirectory": ".next",
+  "functions": {
+    "app/api/**/*.ts": {
+      "maxDuration": 30
+    }
+  },
   "env": {
     "NEXT_PUBLIC_SUPABASE_URL": "${NEXT_PUBLIC_SUPABASE_URL}",
     "NEXT_PUBLIC_SUPABASE_ANON_KEY": "${NEXT_PUBLIC_SUPABASE_ANON_KEY}",
@@ -11,6 +16,7 @@
     "NEXT_PUBLIC_SUPABASE_PROJECT_ID": "${NEXT_PUBLIC_SUPABASE_PROJECT_ID}",
     "CSRF_SECRET": "${CSRF_SECRET}",
     "IRIS_CRM_API_KEY": "${IRIS_CRM_API_KEY}",
+    "IRIS_CRM_BASE_URL": "${IRIS_CRM_BASE_URL}",
     "SMTP_HOST": "${SMTP_HOST}",
     "SMTP_PORT": "${SMTP_PORT}",
     "SMTP_SECURE": "${SMTP_SECURE}",
@@ -27,7 +33,6 @@
     "TEST_ADMIN_EMAIL": "${TEST_ADMIN_EMAIL}",
     "TEST_ADMIN_PASSWORD": "${TEST_ADMIN_PASSWORD}",
     "PLAYWRIGHT_TEST_BASE_URL": "${PLAYWRIGHT_TEST_BASE_URL}",
-    "SUPABASE_JWT_SECRET": "${SUPABASE_JWT_SECRET}",
-    "IRIS_CRM_BASE_URL": "${IRIS_CRM_BASE_URL}"
+    "SUPABASE_JWT_SECRET": "${SUPABASE_JWT_SECRET}"
   }
 }

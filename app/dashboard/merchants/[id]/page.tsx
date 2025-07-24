@@ -10,6 +10,8 @@ import { VolumeToProfit } from '@/components/merchants/volume-to-profit'
 import { DataFreshness } from '@/components/merchants/data-freshness'
 import { ComparisonToggle } from '@/components/merchants/comparison-toggle'
 import { MerchantStateInitializer } from '@/components/merchants/merchant-state-initializer'
+import { MerchantAnalyticsCard } from '@/components/analytics/MerchantAnalyticsCard';
+import { MerchantChart } from '@/components/analytics/MerchantChart';
 
 // Define proper type for Next.js 15 dynamic route params
 type Props = {
@@ -247,6 +249,18 @@ export default async function MerchantDetailPage({ params }: Props) {
     }
   }
 
+  // Calculate lifetime averages
+  const lifetimeAvgVolume = volumeData && volumeData.length > 0
+    ? volumeData.reduce((sum, v) => sum + v.total_volume, 0) / volumeData.length
+    : 0;
+  const lifetimeAvgProfit = profitData && profitData.length > 0
+    ? profitData.reduce((sum, p) => sum + p.net_profit, 0) / profitData.length
+    : 0;
+
+  // Up/down indicators for current month vs lifetime average
+  const volumeVsAvgChange = lifetimeAvgVolume > 0 ? ((currentMonthVolume - lifetimeAvgVolume) / lifetimeAvgVolume) * 100 : 0;
+  const profitVsAvgChange = lifetimeAvgProfit > 0 ? ((currentMonthProfit - lifetimeAvgProfit) / lifetimeAvgProfit) * 100 : 0;
+
   return (
     <div className="space-y-6">
       {/* Initialize client state */}
@@ -255,7 +269,6 @@ export default async function MerchantDetailPage({ params }: Props) {
         volumeData={volumeChartData}
         profitData={profitChartData}
       />
-      
       {/* Merchant header with actions */}
       <MerchantHeader 
         merchant={merchant} 
@@ -265,14 +278,42 @@ export default async function MerchantDetailPage({ params }: Props) {
           isProfitDataStale: isProfitDataStale || false
         }}
       />
-      
       {/* Comparison toggle buttons */}
       <ComparisonToggle />
-      
-      {/* Metrics cards */}
+      {/* KPI Cards for Lifetime Avg Volume/Profit */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <MerchantAnalyticsCard
+          title="Lifetime Avg Volume"
+          value={lifetimeAvgVolume}
+          change={volumeVsAvgChange}
+          unit="$"
+        />
+        <MerchantAnalyticsCard
+          title="Lifetime Avg Profit"
+          value={lifetimeAvgProfit}
+          change={profitVsAvgChange}
+          unit="$"
+        />
+      </div>
+      {/* Charts */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+        <MerchantChart
+          title="Monthly Volume"
+          data={volumeChartData.map(d => ({ ...d, month: d.time, volume: d.value }))}
+          type="line"
+          xKey="month"
+          yKey="volume"
+        />
+        <MerchantChart
+          title="Monthly Profit"
+          data={profitChartData.map(d => ({ ...d, month: d.time, profit: d.value }))}
+          type="line"
+          xKey="month"
+          yKey="profit"
+        />
+      </div>
+      {/* Existing metrics and analysis sections */}
       <MerchantMetrics metrics={metrics} />
-      
-      {/* Interactive charts */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <InteractiveChart 
           data={volumeChartData} 
@@ -305,7 +346,6 @@ export default async function MerchantDetailPage({ params }: Props) {
           alertMessage="Profit decline >10% MoM"
         />
       </div>
-      
       {/* Profit Analysis Section */}
       <ProfitAnalysis 
         profitData={profitChartData}
@@ -316,7 +356,6 @@ export default async function MerchantDetailPage({ params }: Props) {
         }}
         isProfitDecline={isProfitDecline}
       />
-      
       {/* Volume to Profit Correlation */}
       <VolumeToProfit 
         correlationData={correlationData}
@@ -329,7 +368,6 @@ export default async function MerchantDetailPage({ params }: Props) {
           })).filter((d): d is { time: any; value: number } => d !== null) || []
         }}
       />
-      
       {/* Data Freshness Indicators */}
       <DataFreshness 
         volumeDataAge={volumeDataAge || 0}

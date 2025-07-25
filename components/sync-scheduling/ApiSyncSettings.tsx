@@ -23,7 +23,7 @@ import {
   XCircle,
   Loader2
 } from 'lucide-react'
-import { useToast } from '@/hooks/use-toast'
+import { useToast } from '@/components/ui/use-toast'
 import { createClientComponentClient } from '@/lib/supabase-compat'
 
 // Types

@@ -17,7 +17,15 @@ const generateDemoData = (year: number, month: number) => {
 
   // Generate daily transaction data for the month
   const daysInMonth = new Date(year, month, 0).getDate();
-  const dailyData = [];
+  const dailyData: Array<{
+    date: string;
+    merchant_id: string;
+    merchant_name: string;
+    volume: number;
+    profit: number;
+    bps: number;
+    transactions: number;
+  }> = [];
   
   for (let day = 1; day <= daysInMonth; day++) {
     const date = `${year}-${month.toString().padStart(2, '0')}-${day.toString().padStart(2, '0')}`;

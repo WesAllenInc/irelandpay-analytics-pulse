@@ -17,11 +17,12 @@ const demoMerchants = [
   { merchant_id: 'demo-10', name: 'Demo Merchant 10', total_volume: 1100000, net_profit: 11000, bps: 100 },
 ];
 
-export default async function AnalyticsPage({ searchParams }: { searchParams?: { month?: string; volume?: string; bps?: string } }) {
+export default async function AnalyticsPage({ searchParams }: { searchParams?: Promise<{ month?: string; volume?: string; bps?: string }> }) {
   let merchants = demoMerchants;
-  const month = searchParams?.month || new Date().toISOString().slice(0, 7);
-  const volumeThreshold = Number(searchParams?.volume) || 0;
-  const bpsThreshold = Number(searchParams?.bps) || 0;
+  const resolvedParams = await searchParams;
+  const month = resolvedParams?.month || new Date().toISOString().slice(0, 7);
+  const volumeThreshold = Number(resolvedParams?.volume) || 0;
+  const bpsThreshold = Number(resolvedParams?.bps) || 0;
 
   try {
     const supabase = createSupabaseServerClient();

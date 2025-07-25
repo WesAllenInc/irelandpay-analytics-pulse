@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
-import { supabase } from '../integrations/supabase/client';
-import type { Database } from '../integrations/supabase/types';
+import { createClientComponentClient } from '@/lib/supabase-compat';
+import type { Database } from '@/types/database';
 
 interface Merchant {
   mid: string;
@@ -18,6 +18,7 @@ interface MetricsData {
 type MasterDataRow = Database['public']['Views']['master_data']['Row'];
 
 export function useDashboardData(selectedMerchant: Merchant | null, dateRange: { from: string; to: string }) {
+  const supabase = createClientComponentClient();
   const [volumeData, setVolumeData] = useState<{ time: string; value: number }[]>([]);
   const [netData, setNetData] = useState<{ time: string; value: number }[]>([]);
   const [loading, setLoading] = useState(false);

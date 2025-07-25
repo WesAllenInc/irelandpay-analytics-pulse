@@ -1,8 +1,8 @@
 
 import React, { useState, useEffect } from 'react';
-import { createClient } from '../../lib/supabase/client';
+import { createClientComponentClient } from '@/lib/supabase-compat';
 
-const supabase = createClient();
+const supabase = createClientComponentClient();
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown } from 'lucide-react';
@@ -50,7 +50,7 @@ export function MerchantSelector({ onMerchantSelect, selectedMerchant }: Merchan
       if (error) throw error;
 
       // Remove duplicates by mid
-      const uniqueMerchants = data?.reduce((acc: Merchant[], current) => {
+      const uniqueMerchants = data?.reduce((acc: Merchant[], current: { mid: string; merchant_dba: string | null }) => {
         const exists = acc.find(item => item.mid === current.mid);
         if (!exists) {
           acc.push({

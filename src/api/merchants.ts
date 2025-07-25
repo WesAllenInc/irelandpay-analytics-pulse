@@ -1,10 +1,11 @@
-import { supabase } from '../integrations/supabase/client';
+import { createClientComponentClient } from '@/lib/supabase-compat';
 
 /**
  * Fetches all merchants from the database
  * @returns Array of merchants with their mid and merchant_dba
  */
 export async function getMerchants() {
+  const supabase = createClientComponentClient();
   try {
     const { data, error } = await supabase
       .from('merchant_data')

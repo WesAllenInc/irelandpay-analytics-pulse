@@ -1,4 +1,4 @@
-import { supabase } from '../integrations/supabase/client';
+import { createClientComponentClient } from '@/lib/supabase-compat';
 
 /**
  * Interface for metrics query parameters
@@ -24,6 +24,7 @@ export interface MetricsData {
  * @returns Array of metrics data
  */
 export async function getMetrics(params: MetricsQueryParams): Promise<MetricsData[]> {
+  const supabase = createClientComponentClient();
   try {
     // Convert YYYY-MM format to YYYY-MM-DD format for date comparison
     const fromDate = `${params.from}-01`;

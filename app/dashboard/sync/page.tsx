@@ -1,6 +1,6 @@
 import React from 'react'
 import { Metadata } from 'next'
-import IRISCRMSync from '@/components/IRISCRMSync'
+import IrelandPayCRMSync from '@/components/IrelandPayCRMSync'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 
 export const metadata: Metadata = {
@@ -20,7 +20,7 @@ export default function SyncPage() {
 
       <div className="grid gap-8 md:grid-cols-2">
         <div>
-          <IRISCRMSync />
+          <IrelandPayCRMSync />
         </div>
         
         <div className="space-y-8">

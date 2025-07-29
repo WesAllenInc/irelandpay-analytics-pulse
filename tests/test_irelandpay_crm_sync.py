@@ -7,8 +7,8 @@ import json
 from datetime import datetime
 
 # Import the module to test
-from lib.iriscrm_sync import (
-    IRISCRMSyncManager,
+from lib.irelandpay_crm_sync import (
+    IrelandPayCRMSyncManager,
     CircuitBreaker,
     RetryableError,
     FatalError,
@@ -22,12 +22,12 @@ from lib.iriscrm_sync import (
 @pytest.fixture(autouse=True)
 def mock_env_vars():
     with patch.dict(os.environ, {
-        "IRIS_CRM_API_KEY": "test_api_key",
-        "IRIS_MAX_RETRIES": "2",
-        "IRIS_BACKOFF_BASE_MS": "10",
-        "IRIS_TIMEOUT_SECONDS": "5",
-        "IRIS_CIRCUIT_MAX_FAILURES": "3",
-        "IRIS_CIRCUIT_RESET_SECONDS": "30"
+        "IRELANDPAY_CRM_API_KEY": "test_api_key",
+        "IRELANDPAY_MAX_RETRIES": "2",
+        "IRELANDPAY_BACKOFF_BASE_MS": "10",
+        "IRELANDPAY_TIMEOUT_SECONDS": "5",
+        "IRELANDPAY_CIRCUIT_MAX_FAILURES": "3",
+        "IRELANDPAY_CIRCUIT_RESET_SECONDS": "30"
     }):
         yield
 
@@ -69,9 +69,9 @@ def mock_iris_client():
 @pytest.fixture
 def sync_manager(mock_supabase, mock_iris_client):
     # Mock the createSupabaseServiceClient and IRISCRMClient
-    with patch('lib.iriscrm_sync.createSupabaseServiceClient', return_value=mock_supabase):
-        with patch('lib.iriscrm_sync.IRISCRMClient', return_value=mock_iris_client):
-            manager = IRISCRMSyncManager()
+    with patch('lib.irelandpay_crm_sync.createSupabaseServiceClient', return_value=mock_supabase):
+        with patch('lib.irelandpay_crm_sync.IrelandPayCRMClient', return_value=mock_iris_client):
+            manager = IrelandPayCRMSyncManager()
             # Reset circuit breaker state before each test
             CircuitBreaker._instance = None
             CircuitBreaker._failures = 0

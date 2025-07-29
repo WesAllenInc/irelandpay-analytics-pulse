@@ -40,7 +40,7 @@ interface SyncStatus {
   error?: string;
 }
 
-const IRISCRMSync: React.FC = () => {
+const IrelandPayCRMSync: React.FC = () => {
   // State
   const [selectedTab, setSelectedTab] = useState<string>('sync')
   const [syncOptions, setSyncOptions] = useState<SyncOptions>({
@@ -77,7 +77,7 @@ const IRISCRMSync: React.FC = () => {
   // Fetch sync status
   const fetchSyncStatus = async () => {
     try {
-      const response = await fetch('/api/sync-iriscrm')
+      const response = await fetch('/api/sync-irelandpay-crm')
       const data = await response.json()
       
       if (data.success && data.data) {
@@ -118,7 +118,7 @@ const IRISCRMSync: React.FC = () => {
     try {
       setSyncInProgress(true)
       
-      const response = await fetch('/api/sync-iriscrm', {
+      const response = await fetch('/api/sync-irelandpay-crm', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -190,9 +190,9 @@ const IRISCRMSync: React.FC = () => {
   return (
     <Card className="w-full">
       <CardHeader>
-        <CardTitle>IRIS CRM Data Sync</CardTitle>
+        <CardTitle>Ireland Pay CRM Data Sync</CardTitle>
         <CardDescription>
-          Sync merchant, residual, and transaction data from IRIS CRM API
+          Sync merchant, residual, and transaction data from Ireland Pay CRM API
         </CardDescription>
       </CardHeader>
       
@@ -382,4 +382,4 @@ const IRISCRMSync: React.FC = () => {
   )
 }
 
-export default IRISCRMSync
+export default IrelandPayCRMSync

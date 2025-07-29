@@ -20,12 +20,12 @@ interface QueuedJobResponse {
   estimatedStart?: string;
 }
 
-const IRIS_CRM_API_KEY = Deno.env.get('IRIS_CRM_API_KEY')
+const IRELANDPAY_CRM_API_KEY = Deno.env.get('IRELANDPAY_CRM_API_KEY')
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
-if (!IRIS_CRM_API_KEY) {
-  console.error('Missing IRIS_CRM_API_KEY environment variable')
+if (!IRELANDPAY_CRM_API_KEY) {
+  console.error('Missing IRELANDPAY_CRM_API_KEY environment variable')
 }
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
@@ -33,13 +33,13 @@ if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
 }
 
 /**
- * Execute Python-based IRIS CRM sync
- * This uses the iriscrm_sync.py module to handle the actual synchronization
+ * Execute Python-based Ireland Pay CRM sync
+ * This uses the irelandpay_crm_sync.py module to handle the actual synchronization
  */
 async function executePythonSync(options: SyncOptions) {
   try {
     // The Python script path
-    const scriptPath = './iriscrm_sync.py'
+    const scriptPath = './irelandpay_crm_sync.py'
     
     // Generate command arguments based on options
     const args = ['python', scriptPath]
@@ -64,7 +64,7 @@ async function executePythonSync(options: SyncOptions) {
     const command = new Deno.Command('python', {
       args: args.slice(1), // Skip the 'python' command as it's already included
       env: {
-        'IRIS_CRM_API_KEY': IRIS_CRM_API_KEY || '',
+        'IRELANDPAY_CRM_API_KEY': IRELANDPAY_CRM_API_KEY || '',
         'SUPABASE_URL': SUPABASE_URL || '',
         'SUPABASE_SERVICE_ROLE_KEY': SUPABASE_SERVICE_ROLE_KEY || '',
       }

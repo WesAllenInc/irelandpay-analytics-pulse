@@ -2,20 +2,20 @@ import { NextResponse } from 'next/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
 
 /**
- * Check IRIS CRM API connection status
+ * Check Ireland Pay CRM API connection status
  */
 export async function GET() {
   const supabase = createSupabaseServiceClient()
   
   try {
     // Check if we have the required environment variables
-    const hasApiKey = !!process.env.IRIS_CRM_API_KEY
-    const hasBaseUrl = !!process.env.IRIS_CRM_BASE_URL
+    const hasApiKey = !!process.env.IRELANDPAY_CRM_API_KEY
+    const hasBaseUrl = !!process.env.IRELANDPAY_CRM_BASE_URL
     
     if (!hasApiKey || !hasBaseUrl) {
       return NextResponse.json({
         success: false,
-        error: 'IRIS CRM API credentials not configured',
+        error: 'Ireland Pay CRM API credentials not configured',
         details: {
           hasApiKey,
           hasBaseUrl

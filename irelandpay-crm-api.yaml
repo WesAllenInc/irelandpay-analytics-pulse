@@ -1,0 +1,177 @@
+openapi: 3.0.3
+info:
+  title: Ireland Pay API
+  description: >
+    # Introduction
+    Welcome to Ireland Pay's API! The API is organized around `REST`. All requests should be made over `SSL`. All request and response bodies, including errors, are encoded in `JSON`.
+
+    # Open API
+    The Open API provides numerous functions to access or to update your CRM lead and merchant data using simple REST calls.
+
+    ### You can use the E-Signature API to:
+    - [Generate an e-signature document](https://crm.ireland-pay.com/api#/paths/~1leads~1{leadId}~1signatures~1{applicationId}~1generate/post)
+    - [Send an e-signature document](https://crm.ireland-pay.com/api#/paths/~1leads~1{leadId}~1signatures~1{applicationId}~1send/post)
+    - [Download an e-signature document](https://crm.ireland-pay.com/api#/paths/~1leads~1signatures~1{applicationId}~1download/get)
+    - [Get a list of all lead e-signatures documents](https://crm.ireland-pay.com/api#/paths/~1leads~1{leadId}~1signatures/get)
+    - [Get a list of available applications](https://crm.ireland-pay.com/api#/paths/~1leads~1applications/get)
+
+    ### You can use the Helpdesk API to:
+    - [Create a new ticket](https://crm.ireland-pay.com/api#/paths/~1helpdesk/post)
+    - [Get a list of helpdesk tickets](https://crm.ireland-pay.com/api#/paths/~1helpdesk/get)
+    - [Add a ticket comment](https://crm.ireland-pay.com/api#/paths/~1helpdesk~1{ticketId}~1comment/post)
+    - [Get detailed ticket information](https://crm.ireland-pay.com/api#/paths/~1helpdesk~1{ticketId}/get)
+    - [Update a ticket](https://crm.ireland-pay.com/api#/paths/~1helpdesk~1{ticketId}/patch)
+    - [Delete a ticket](https://crm.ireland-pay.com/api#/paths/~1helpdesk~1{ticketId}/delete)
+
+    ### You can use the Lead API to:
+    - [Create a lead](https://crm.ireland-pay.com/api#/paths/~1leads/post)
+    - [Get a list of leads](https://crm.ireland-pay.com/api#/paths/~1leads/get)
+    - [Get detailed lead information](https://crm.ireland-pay.com/api#/paths/~1leads~1{leadId}/get)
+    - [Update a lead](https://crm.ireland-pay.com/api#/paths/~1leads~1{leadId}/patch)
+    - [Get lead information from a specific tab](https://crm.ireland-pay.com/api#/paths/~1leads~1{leadId}~1tabs~1{tabId}~1fields/get)
+
+    ### You can use the Merchant API to:
+    - [Get a list of merchants](https://crm.ireland-pay.com/api#/paths/~1merchants/get)
+    - [Get detailed merchant information](https://crm.ireland-pay.com/api#/paths/~1merchants~1{merchantNumber}/get)
+    - [Update an existing merchant](https://crm.ireland-pay.com/api#/paths/~1merchants~1{merchantNumber}/patch)
+    - [Get a list of batches and transactions](https://crm.ireland-pay.com/api#/paths/~1merchants~1{merchantNumber}~1transactions/get)
+
+    ### You can use the Residuals API to:
+    - [Get residuals summary data](https://crm.ireland-pay.com/api#/paths/~1residuals~1reports~1summary~1{year}~1{month}/get)
+    - [Get residuals summary with merchant rows](https://crm.ireland-pay.com/api#/paths/~1residuals~1reports~1summary~1rows~1{processor_id}~1{year}~1{month}/get)
+    - [Get residuals details with merchant rows](https://crm.ireland-pay.com/api#/paths/~1residuals~1reports~1details~1{processor_id}~1{year}~1{month}/get)
+    - [Get residuals line items](https://crm.ireland-pay.com/api#/paths/~1residuals~1lineitems~1{year}~1{month}/get)
+    - [Get residuals templates](https://crm.ireland-pay.com/api#/paths/~1residuals~1templates~1/get)
+
+    # Generate an API token
+    When you send an API request, you will need to include an API token in your request in order to authenticate your account.
+
+    The tokens are generated in the CRM by each user individually, and each user may create one or more tokens.
+
+    To generate a new API Token, open your user settings page by clicking on your username in the top-right corner, and clicking on the ** Settings ** link or you can use the link.
+
+    `[CLIENT URL HERE]/settings`
+
+    Then open the ** API Settings ** tab, click ** Create New API Token **, configure your token's settings as needed, and click ** Add New Token **:
+
+    ** Note: ** The created tokens will inherit the user's permissions to assigned merchants, leads, groups and processors.
+
+    # Using the API
+    Authentication to the API is performed via `X-API-KEY` header. Requests not properly authenticated will return a `401` error code.
+
+    `curl -X GET "[CLIENT URL HERE]/api/v1/leads" -H "accept: application/json" -H "X-API-KEY: [YOURKEY]"`
+
+    Note that all requests should be made over `SSL`. All request and response bodies, including errors, are encoded in JSON.
+
+    The API returns standard HTTP success or error status codes. In case of errors, additional information about what went wrong will be encoded in the response as JSON.
+
+    By default, you can make `500` requests per minute. Check the returned HTTP headers of any API request to see your current rate limit status.
+
+    Each GET "List" request will return 1,000 matching results. A maximum of 500,000 results can be returned per minute using a pagination parameter in these requests.
+
+    # Authentication
+    Authenticate your account by including your secret key in API requests.
+    Do not share your secret API keys in publicly accessible areas, client-side code, and so forth.
+    Authentication to the API is performed via `X-API-KEY` header.
+    Requests not properly authenticated will return a `401` error code.
+
+    # Errors
+    Our API returns standard `HTTP` success or error status codes.
+    For errors, we will also include extra information about what went wrong encoded in the response as `JSON`.
+
+    # Limiting
+    You can make `500` requests per minute.
+    If you will reach a limit you will get a `429: Too Many Attempts.` response from the server.
+    Check the returned `HTTP` headers of any API request to see your current rate limit status.
+
+    Headers description:
+    * `X-RateLimit-Limit` tells you the max number of requests you're allowed to make within this application's time period
+    * `X-RateLimit-Remaining` tells you how many requests you have left within this current time period
+    * `Retry-After` tells you how many seconds to wait until you try again. (you'll only get `Retry-After` if you've hit the limit).
+
+  version: 1.23.0
+  contact:
+    email: "support@ireland-pay.com"
+  x-logo:
+    url: 
+
+servers:
+- url: https://crm.ireland-pay.com/api/v1
+  description: Ireland Pay CRM Production API
+
+tags:
+- name: "E-Signature"
+  description: "Connect with the E-Signature API to create workflows that send specific documents for e-signature documents."
+- name: "Helpdesk"
+  description: "Connect with the Helpdesk API to work with your ticket data."
+- name: "Leads"
+  description: "Connect with the Leads API to interact with your lead data."
+- name: "Merchants"
+  description: "Populate your data warehouse programmatically through this Merchants API and interact with your merchant services portfolio."
+- name: "Residuals"
+  description: "Populate your data warehouse programmatically through this Residuals API and interact with your monthly residuals income calculations."
+- name: "Web Forms"
+  description: "Connect with the WebForms API to interact with your web form data."
+
+components:
+  securitySchemes:
+    Token:
+      type: apiKey
+      in: header
+      name: X-API-KEY
+      description: Authentication token
+  responses:
+    UnauthorizedError:
+      description: API key is missing or invalid
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Unauthenticated"
+    ForbiddenError:
+      description: Not enough permissions
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Access denied"
+    NotFoundError:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Not found"
+    ValidationError:
+      description: Validation exception
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Validation exception"
+    ServerError:
+      description: Unexpected server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: "Unexpected server error"
+
+# Note: This is a placeholder file containing the basic structure
+# The full API specification would include all endpoints, schemas, and examples
+# from the original Ireland Pay CRM API documentation 

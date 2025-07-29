@@ -49,7 +49,7 @@ function logError(message: string, error?: unknown) {
 export type { SyncRequest as SyncOptions, SyncResponse } from '@/lib/iriscrm-utils'
 
 /**
- * Trigger a sync operation with IRIS CRM API
+ * Trigger a sync operation with Ireland Pay CRM API
  */
 export async function POST(request: Request) {
   const supabase = createSupabaseServiceClient()
@@ -110,7 +110,7 @@ export async function POST(request: Request) {
       })
       
       // Start the sync operation with resilient execution
-      const { data, error } = await supabase.functions.invoke('sync-iriscrm', {
+      const { data, error } = await supabase.functions.invoke('sync-irelandpay-crm', {
         body: JSON.stringify({
           dataType,
           year,
@@ -119,18 +119,18 @@ export async function POST(request: Request) {
         })
       })
       
-      if (error) throw new Error(`Error invoking sync-iriscrm function: ${error.message}`)
+      if (error) throw new Error(`Error invoking sync-irelandpay-crm function: ${error.message}`)
       return data
     })
     
     // Check if we got an error response
     if (typeof functionResult === 'object' && 'success' in functionResult && !functionResult.success) {
-      logError('Error invoking sync-iriscrm function', new Error(functionResult.details || 'Unknown error'))
+      logError('Error invoking sync-irelandpay-crm function', new Error(functionResult.details || 'Unknown error'))
       
       // Return a 503 Service Unavailable for API issues
       return NextResponse.json({
         success: false,
-        error: 'IRIS API unavailable',
+        error: 'Ireland Pay CRM API unavailable',
         details: functionResult.details
       }, { status: 503 })
     }

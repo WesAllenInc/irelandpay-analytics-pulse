@@ -8,7 +8,7 @@ import {
   getAgentPayoutAvg 
 } from '@/lib/queries/dashboardMetrics';
 import { createSupabaseServerClient } from '@/lib/supabase';
-import { getMerchantSummary } from '@/lib/queries/merchantData';
+import { getMerchantSummary, getMerchantSummaryWithRange } from '@/lib/queries/merchantData';
 
 export async function GET(request: NextRequest) {
   try {
@@ -65,7 +65,7 @@ export async function GET(request: NextRequest) {
       getEstimatedProfit(daysInPeriod),
       getPortfolioBPSAvg(),
       getAgentPayoutAvg(),
-      getMerchantSummary()
+      getMerchantSummaryWithRange(startDate, endDate)
     ]);
 
     // Prepare KPI data

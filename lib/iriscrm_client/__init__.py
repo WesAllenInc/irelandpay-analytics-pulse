@@ -1,6 +1,6 @@
 """
 IRIS CRM API Client Package
 """
-from .client import IRISCRMClient
+from .client import IrelandPayCRMClient
 
-__all__ = ["IRISCRMClient"]
+__all__ = ["IrelandPayCRMClient"]

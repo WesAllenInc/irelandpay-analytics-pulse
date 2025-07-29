@@ -10,7 +10,7 @@ from datetime import datetime
 from typing import Dict, List, Any, Optional, Union
 
 
-class IRISCRMClient:
+class IrelandPayCRMClient:
     """
     Client for interacting with the IRIS CRM API.
     
@@ -18,7 +18,7 @@ class IRISCRMClient:
     the endpoints we need to replace the Excel upload functionality.
     """
     
-    BASE_URL = "https://iriscrm.com/api/v1"
+    BASE_URL = "https://crm.ireland-pay.com/api/v1"
     
     def __init__(self, api_key: str, base_url: Optional[str] = None):
         """

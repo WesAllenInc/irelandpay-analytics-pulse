@@ -9,6 +9,108 @@ export type Json =
 export interface Database {
   public: {
     Tables: {
+      merchants: {
+        Row: {
+          id: string
+          merchant_id: string
+          dba_name: string
+          processor: string | null
+          agent_id: string | null
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          merchant_id: string
+          dba_name: string
+          processor?: string | null
+          agent_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          merchant_id?: string
+          dba_name?: string
+          processor?: string | null
+          agent_id?: string | null
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      merchant_processing_volumes: {
+        Row: {
+          id: string
+          merchant_id: string
+          processing_month: string
+          gross_volume: number
+          transaction_count: number
+          avg_ticket: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          merchant_id: string
+          processing_month: string
+          gross_volume: number
+          transaction_count: number
+          avg_ticket: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          merchant_id?: string
+          processing_month?: string
+          gross_volume?: number
+          transaction_count?: number
+          avg_ticket?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
+      residuals: {
+        Row: {
+          id: string
+          merchant_id: string
+          processing_month: string
+          net_residual: number
+          fees_deducted: number
+          final_residual: number
+          office_bps: number
+          agent_bps: number
+          processor_residual: number
+          created_at: string
+          updated_at: string
+        }
+        Insert: {
+          id?: string
+          merchant_id: string
+          processing_month: string
+          net_residual: number
+          fees_deducted: number
+          final_residual: number
+          office_bps: number
+          agent_bps: number
+          processor_residual: number
+          created_at?: string
+          updated_at?: string
+        }
+        Update: {
+          id?: string
+          merchant_id?: string
+          processing_month?: string
+          net_residual?: number
+          fees_deducted?: number
+          final_residual?: number
+          office_bps?: number
+          agent_bps?: number
+          processor_residual?: number
+          created_at?: string
+          updated_at?: string
+        }
+      }
       merchant_data: {
         Row: {
           id: string

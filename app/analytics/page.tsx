@@ -148,6 +148,7 @@ export default async function AnalyticsPage({ searchParams }: { searchParams?: P
           volume: m.total_volume,
           profit: m.net_profit,
           bps: m.bps,
+          processor: 'Unknown', // Add default processor value
           merchantId: m.merchant_id
         }))} />
       </div>

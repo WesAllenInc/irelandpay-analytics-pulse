@@ -22,10 +22,10 @@ logging.basicConfig(
 logger = logging.getLogger('iriscrm_sync')
 
 # IRIS CRM API Client (simplified version for Edge Function)
-class IRISCRMClient:
-    """Simplified IRIS CRM API Client for Edge Functions"""
+class IrelandPayCRMClient:
+    """Ireland Pay CRM API Client for Edge Functions"""
     
-    BASE_URL = "https://iriscrm.com/api/v1"
+    BASE_URL = "https://crm.ireland-pay.com/api/v1"
     
     def __init__(self, api_key: str):
         self.api_key = api_key
@@ -37,7 +37,7 @@ class IRISCRMClient:
         })
     
     def _make_request(self, method: str, endpoint: str, params: Dict = None, data: Dict = None) -> Dict:
-        """Make a request to the IRIS CRM API"""
+        """Make a request to the Ireland Pay CRM API"""
         url = f"{self.BASE_URL}{endpoint}"
         
         try:
@@ -188,18 +188,18 @@ class TableQuery:
             return {"data": None, "error": str(e)}
 
 # Main sync functionality
-class IRISCRMSync:
+class IrelandPayCRMSync:
     """Handles synchronization between IRIS CRM API and Supabase database"""
     
     def __init__(self):
         # Get API key from environment variables
-        api_key = os.environ.get('IRIS_CRM_API_KEY')
+        api_key = os.environ.get('IRELANDPAY_CRM_API_KEY')
         
         if not api_key:
-            raise ValueError("IRIS_CRM_API_KEY environment variable is not set")
+            raise ValueError("IRELANDPAY_CRM_API_KEY environment variable is not set")
         
         # Initialize API client
-        self.client = IRISCRMClient(api_key)
+        self.client = IrelandPayCRMClient(api_key)
         
         # Get Supabase credentials
         supabase_url = os.environ.get('SUPABASE_URL')

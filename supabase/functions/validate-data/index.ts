@@ -68,8 +68,8 @@ serve(async (req: Request) => {
     const supabase = createClient(supabaseUrl, supabaseKey);
     
     // API credentials
-    const apiBaseUrl = Deno.env.get('IRIS_CRM_API_URL') ?? '';
-    const apiKey = Deno.env.get('IRIS_CRM_API_KEY') ?? '';
+    const apiBaseUrl = Deno.env.get('IRELANDPAY_CRM_BASE_URL') ?? '';
+    const apiKey = Deno.env.get('IRELANDPAY_CRM_API_KEY') ?? '';
     
     if (!apiBaseUrl || !apiKey) {
       return new Response(

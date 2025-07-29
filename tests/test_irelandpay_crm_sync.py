@@ -68,7 +68,7 @@ def mock_iris_client():
 
 @pytest.fixture
 def sync_manager(mock_supabase, mock_iris_client):
-    # Mock the createSupabaseServiceClient and IRISCRMClient
+    # Mock the createSupabaseServiceClient and IrelandPayCRMClient
     with patch('lib.irelandpay_crm_sync.createSupabaseServiceClient', return_value=mock_supabase):
         with patch('lib.irelandpay_crm_sync.IrelandPayCRMClient', return_value=mock_iris_client):
             manager = IrelandPayCRMSyncManager()

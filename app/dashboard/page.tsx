@@ -12,14 +12,14 @@ import {
 } from '@/lib/queries/dashboardMetrics';
 import { getMerchantSummary } from '@/lib/queries/merchantData';
 
-// Demo data for when Supabase is not available
-const demoMerchantStats = [
-  { merchant_id: 'demo-1', name: 'Demo Merchant 1', total_volume: 1250000, net_profit: 12500, bps: 100 },
-  { merchant_id: 'demo-2', name: 'Demo Merchant 2', total_volume: 890000, net_profit: 8900, bps: 100 },
-  { merchant_id: 'demo-3', name: 'Demo Merchant 3', total_volume: 2100000, net_profit: 21000, bps: 100 },
-  { merchant_id: 'demo-4', name: 'Demo Merchant 4', total_volume: 750000, net_profit: 7500, bps: 100 },
-  { merchant_id: 'demo-5', name: 'Demo Merchant 5', total_volume: 1800000, net_profit: 18000, bps: 100 },
-];
+  // Demo data for when Supabase is not available
+  const demoMerchantStats = [
+    { merchant_id: 'demo-1', name: 'Demo Merchant 1', volume: 1250000, profit: 12500, bps: 100, processor: 'Stripe' },
+    { merchant_id: 'demo-2', name: 'Demo Merchant 2', volume: 890000, profit: 8900, bps: 100, processor: 'Square' },
+    { merchant_id: 'demo-3', name: 'Demo Merchant 3', volume: 2100000, profit: 21000, bps: 100, processor: 'PayPal' },
+    { merchant_id: 'demo-4', name: 'Demo Merchant 4', volume: 750000, profit: 7500, bps: 100, processor: 'Stripe' },
+    { merchant_id: 'demo-5', name: 'Demo Merchant 5', volume: 1800000, profit: 18000, bps: 100, processor: 'Square' },
+  ];
 
 // Demo chart data
 const demoVolumeData = Array.from({ length: 30 }, (_, i) => ({

@@ -103,9 +103,10 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({ initialData 
           <div className="bg-white dark:bg-gray-900 rounded-xl shadow">
             <MerchantTable merchants={data.merchantStats.map(m => ({
               name: m.name,
-              volume: m.total_volume,
-              profit: m.net_profit,
+              volume: m.volume,
+              profit: m.profit,
               bps: m.bps,
+              processor: m.processor,
               merchantId: m.merchant_id
             }))} />
           </div>

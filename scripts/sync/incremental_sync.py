@@ -29,8 +29,8 @@ supabase_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY")
 supabase_client = create_client(supabase_url, supabase_key)
 
 # IRIS CRM API Configuration
-IRIS_CRM_API_KEY = os.environ.get("IRIS_CRM_API_KEY")
-IRIS_CRM_BASE_URL = "https://iriscrm.com/api/v1"
+IRELANDPAY_CRM_API_KEY = os.environ.get("IRELANDPAY_CRM_API_KEY")
+IRELANDPAY_CRM_BASE_URL = "https://crm.ireland-pay.com/api/v1"
 
 class IncrementalSync:
     """
@@ -148,7 +148,7 @@ class IncrementalSync:
             since_timestamp = self.last_sync_time.strftime("%Y-%m-%dT%H:%M:%S")
             
             # Make the API request
-            headers = {"Authorization": f"Bearer {IRIS_CRM_API_KEY}"}
+            headers = {"Authorization": f"Bearer {IRELANDPAY_CRM_API_KEY}"}
             params = {since_param: since_timestamp, "include_deleted": "true"}
             
             response = self.client.get(

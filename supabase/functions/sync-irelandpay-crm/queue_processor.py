@@ -180,7 +180,7 @@ class QueueProcessor:
             
             # Create sync client
             sync_client = IrisCrmSync(
-                api_key=os.environ.get("IRIS_CRM_API_KEY"),
+                api_key=os.environ.get("IRELANDPAY_CRM_API_KEY"),
                 supabase_url=self.supabase_url,
                 supabase_key=self.supabase_key,
                 transaction_client=transaction_client

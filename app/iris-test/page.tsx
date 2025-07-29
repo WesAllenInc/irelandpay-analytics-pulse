@@ -201,34 +201,26 @@ export default function IrisTestPage() {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <MerchantChart
           title="Daily Volume Trend"
-          data={dailyVolumeData}
+          data={dailyVolumeData.map(d => ({ x: d.date, y: d.volume }))}
           type="line"
-          xKey="date"
-          yKey="volume"
         />
         <MerchantChart
           title="Daily Profit Trend"
-          data={dailyProfitData}
+          data={dailyProfitData.map(d => ({ x: d.date, y: d.profit }))}
           type="line"
-          xKey="date"
-          yKey="profit"
         />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         <MerchantChart
           title="Top 5 Merchants by Volume"
-          data={topMerchantsByVolume}
+          data={topMerchantsByVolume.map(m => ({ x: m.name, y: m.volume }))}
           type="bar"
-          xKey="name"
-          yKey="volume"
         />
         <MerchantChart
           title="Merchant BPS Distribution"
-          data={data.merchants.map(m => ({ name: m.name, bps: m.bps }))}
+          data={data.merchants.map(m => ({ x: m.name, y: m.bps }))}
           type="bar"
-          xKey="name"
-          yKey="bps"
         />
       </div>
 

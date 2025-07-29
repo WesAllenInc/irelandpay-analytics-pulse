@@ -71,12 +71,12 @@ export default async function AnalyticsPage({ searchParams }: { searchParams?: P
   const topByVolume = [...merchants]
     .sort((a, b) => b.total_volume - a.total_volume)
     .slice(0, 10)
-    .map(m => ({ name: m.name, volume: m.total_volume }));
+    .map(m => ({ x: m.name, y: m.total_volume }));
 
   const topByProfit = [...merchants]
     .sort((a, b) => b.net_profit - a.net_profit)
     .slice(0, 10)
-    .map(m => ({ name: m.name, profit: m.net_profit }));
+    .map(m => ({ x: m.name, y: m.net_profit }));
 
   return (
     <div className="container mx-auto py-8 space-y-6">
@@ -133,15 +133,11 @@ export default async function AnalyticsPage({ searchParams }: { searchParams?: P
           title="Top 10 Merchants by Volume"
           data={topByVolume}
           type="bar"
-          xKey="name"
-          yKey="volume"
         />
         <MerchantChart
           title="Top 10 Merchants by Profit"
           data={topByProfit}
           type="bar"
-          xKey="name"
-          yKey="profit"
         />
       </div>
 

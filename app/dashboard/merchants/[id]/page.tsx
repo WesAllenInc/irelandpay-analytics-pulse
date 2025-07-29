@@ -299,17 +299,13 @@ export default async function MerchantDetailPage({ params }: Props) {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
         <MerchantChart
           title="Monthly Volume"
-          data={volumeChartData.map(d => ({ ...d, month: d.time, volume: d.value }))}
+          data={volumeChartData.map(d => ({ x: d.time, y: d.value }))}
           type="line"
-          xKey="month"
-          yKey="volume"
         />
         <MerchantChart
           title="Monthly Profit"
-          data={profitChartData.map(d => ({ ...d, month: d.time, profit: d.value }))}
+          data={profitChartData.map(d => ({ x: d.time, y: d.value }))}
           type="line"
-          xKey="month"
-          yKey="profit"
         />
       </div>
       {/* Existing metrics and analysis sections */}

@@ -3,11 +3,11 @@
 import { MerchantChart } from '@/components/analytics/MerchantChart';
 
 const testData = [
-  { name: 'Jan', value: 100 },
-  { name: 'Feb', value: 200 },
-  { name: 'Mar', value: 150 },
-  { name: 'Apr', value: 300 },
-  { name: 'May', value: 250 },
+  { x: 'Jan', y: 100 },
+  { x: 'Feb', y: 200 },
+  { x: 'Mar', y: 150 },
+  { x: 'Apr', y: 300 },
+  { x: 'May', y: 250 },
 ];
 
 export default function ChartTestPage() {
@@ -20,16 +20,12 @@ export default function ChartTestPage() {
           title="Test Line Chart"
           data={testData}
           type="line"
-          xKey="name"
-          yKey="value"
         />
         
         <MerchantChart
           title="Test Bar Chart"
           data={testData}
           type="bar"
-          xKey="name"
-          yKey="value"
         />
       </div>
       

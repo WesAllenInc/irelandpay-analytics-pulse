@@ -96,33 +96,34 @@ export async function GET(request: NextRequest) {
       }
     ];
 
-    // Prepare chart data
-    const volumeData = dailyTotals.map(item => ({
+    // Prepare daily data (always current month)
+    const dailyData = dailyTotals.map(item => ({
       x: item.day,
       y: item.totalVolume
     }));
 
-    const profitData = dailyTotals.map(item => ({
-      x: item.day,
-      y: (item.totalVolume * (portfolioBPSAvg / 10000)) // Estimate profit based on BPS
-    }));
-
-    // For different timeframes, create appropriate data
-    let monthlyVolumeData = [];
-    let monthlyProfitData = [];
+    // Prepare timeframe-specific chart data for Volume and Profit charts only
+    let volumeChartData = [];
+    let profitChartData = [];
 
     if (timeframe === 'Monthly') {
       // Use daily data for monthly view
-      monthlyVolumeData = volumeData;
-      monthlyProfitData = profitData;
+      volumeChartData = dailyTotals.map(item => ({
+        x: item.day,
+        y: item.totalVolume
+      }));
+      profitChartData = dailyTotals.map(item => ({
+        x: item.day,
+        y: (item.totalVolume * (portfolioBPSAvg / 10000)) // Estimate profit based on BPS
+      }));
     } else {
       // For other timeframes, create monthly aggregated data
       const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
-      monthlyVolumeData = months.map((month, index) => ({
+      volumeChartData = months.map((month, index) => ({
         x: month,
         y: Math.random() * 2000000 + 1000000 // Demo data for now
       }));
-      monthlyProfitData = months.map((month, index) => ({
+      profitChartData = months.map((month, index) => ({
         x: month,
         y: Math.random() * 20000 + 10000 // Demo data for now
       }));
@@ -130,9 +131,9 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json({
       kpis,
-      volumeData: monthlyVolumeData,
-      profitData: monthlyProfitData,
-      dailyData: volumeData,
+      volumeData: volumeChartData,
+      profitData: profitChartData,
+      dailyData: dailyData,
       merchantStats
     });
 

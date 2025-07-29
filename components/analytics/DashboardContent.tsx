@@ -21,16 +21,21 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({ initialData 
   const [data, setData] = useState(initialData);
   const [loading, setLoading] = useState(false);
 
-  const fetchDataForTimeframe = async (timeframe: Timeframe) => {
+  const fetchChartDataForTimeframe = async (timeframe: Timeframe) => {
     setLoading(true);
     try {
       const response = await fetch(`/api/dashboard-metrics?timeframe=${timeframe}`);
       if (response.ok) {
         const newData = await response.json();
-        setData(newData);
+        // Only update the chart data, keep KPI cards and other data static
+        setData(prevData => ({
+          ...prevData,
+          volumeData: newData.volumeData,
+          profitData: newData.profitData
+        }));
       }
     } catch (error) {
-      console.error('Error fetching dashboard data:', error);
+      console.error('Error fetching chart data:', error);
     } finally {
       setLoading(false);
     }
@@ -38,7 +43,10 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({ initialData 
 
   useEffect(() => {
     if (selectedTimeframe !== 'Monthly') {
-      fetchDataForTimeframe(selectedTimeframe);
+      fetchChartDataForTimeframe(selectedTimeframe);
+    } else {
+      // Reset to initial data for monthly view
+      setData(initialData);
     }
   }, [selectedTimeframe]);
 
@@ -67,14 +75,14 @@ export const DashboardContent: React.FC<DashboardContentProps> = ({ initialData 
           {/* Charts */}
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
             <MerchantChart
-              title="Total Volume"
+              title={`Total Volume (${selectedTimeframe})`}
               data={data.volumeData}
               type="bar"
               highlightIndex={selectedTimeframe === 'Monthly' ? data.volumeData.length - 1 : undefined}
               highlightColor="#EF4444"
             />
             <MerchantChart
-              title="Total Profit"
+              title={`Total Profit (${selectedTimeframe})`}
               data={data.profitData}
               type="line"
               highlightIndex={selectedTimeframe === 'Monthly' ? data.profitData.length - 1 : undefined}

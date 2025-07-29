@@ -16,8 +16,7 @@ const nextConfig = {
   // Exclude Supabase Edge Functions from Next.js compilation
   pageExtensions: ['tsx', 'ts', 'jsx', 'js'],
   experimental: {
-    // Exclude directories from compilation
-    excludeDefaultMomentLocales: false,
+    // Next.js 15.3.4 configuration
   },
   images: {
     domains: [
@@ -26,6 +25,10 @@ const nextConfig = {
       'supabase.co'
     ]
   },
+  // Add output configuration for better static generation
+  output: 'standalone',
+  // Disable static generation for problematic pages
+  trailingSlash: false,
   webpack: (config, { isServer }) => {
     // Alias all Supabase auth helpers to our compatibility layer with proper absolute path
     config.resolve.alias['@supabase/auth-helpers-nextjs'] = path.join(__dirname, 'lib/supabase-compat.ts');
@@ -45,9 +48,7 @@ const nextConfig = {
     });
 
     return config;
-  },
-  // Next.js 15.3.4 no longer supports serverExternalPackages
-  experimental: {}
+  }
 };
 
 export default nextConfig;

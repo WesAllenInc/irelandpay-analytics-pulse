@@ -16,6 +16,10 @@ export function useSupabaseClient(): SupabaseClient {
   
   // Return client or throw an error if not initialized
   if (!client) {
+    // During SSR/static generation, return a dummy client to prevent build errors
+    if (typeof window === 'undefined') {
+      return createSupabaseBrowserClient();
+    }
     throw new Error('Supabase client not initialized');
   }
   

@@ -12,7 +12,11 @@ export default [
       globals: {
         ...globals.browser,
         ...globals.node,
-        ...globals.es2020
+        ...globals.es2020,
+        // Add other common globals to prevent similar issues
+        "globalThis": "readonly",
+        "console": "readonly",
+        "process": "readonly"
       },
     },
     plugins: {

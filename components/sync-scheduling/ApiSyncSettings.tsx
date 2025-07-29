@@ -24,7 +24,7 @@ import {
   Loader2
 } from 'lucide-react'
 import { useToast } from '@/components/ui/use-toast'
-import { createClientComponentClient } from '@/lib/supabase-compat'
+import { useSupabaseClient } from '@/hooks/useSupabaseClient'
 
 // Types
 interface SyncSchedule {
@@ -52,7 +52,7 @@ interface SyncConfig {
 }
 
 const ApiSyncSettings: React.FC = () => {
-  const supabase = createClientComponentClient()
+  const supabase = useSupabaseClient()
   const { toast } = useToast()
   
   // State

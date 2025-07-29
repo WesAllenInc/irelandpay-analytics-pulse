@@ -9,6 +9,7 @@ import { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import ApiSyncSettings from '@/components/sync-scheduling/ApiSyncSettings';
 
+// Force redeploy - API Sync tab should now work properly
 const SettingsPage = () => {
   const [profile, setProfile] = useState({
     name: 'Jane Doe',

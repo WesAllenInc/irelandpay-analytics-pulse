@@ -1,5 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest';
-import { DataTransformer } from '../../irelandpay_analytics/ingest/transformer';
+
+// Mock the Python DataTransformer module
+vi.mock('../../irelandpay_analytics/ingest/transformer', () => ({
+  DataTransformer: vi.fn().mockImplementation(() => ({
+    normalize_column_names: vi.fn(),
+    clean_merchant_data: vi.fn(),
+    clean_residual_data: vi.fn(),
+    transform_data: vi.fn(),
+    merge_merchant_residual_data: vi.fn()
+  }))
+}));
 
 // Mock pandas and numpy dependencies
 vi.mock('pandas', () => ({
@@ -11,9 +21,11 @@ vi.mock('pandas', () => ({
 }));
 
 describe('DataTransformer Integration Tests', () => {
-  let transformer: DataTransformer;
+  let transformer: any;
   
   beforeEach(() => {
+    // Import the mocked DataTransformer
+    const { DataTransformer } = vi.importMock('../../irelandpay_analytics/ingest/transformer');
     transformer = new DataTransformer();
     
     // Mock DataTransformer methods

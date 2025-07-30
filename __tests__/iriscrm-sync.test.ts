@@ -58,13 +58,13 @@ describe('IRIS CRM Sync API', () => {
     vi.resetAllMocks()
   })
 
-  describe('POST /api/sync-iriscrm', () => {
+  describe('POST /api/sync-irelandpay-crm', () => {
     it('should start a new sync operation', async () => {
       // Dynamically import the API route
-      const { POST } = await import('@/app/api/sync-iriscrm/route')
+      const { POST } = await import('@/app/api/sync-irelandpay-crm/route')
       
       // Mock request with sync options
-      const request = new Request('http://localhost:3000/api/sync-iriscrm', {
+      const request = new Request('http://localhost:3000/api/sync-irelandpay-crm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -107,10 +107,10 @@ describe('IRIS CRM Sync API', () => {
 
     it('should return conflict error if a sync is already in progress', async () => {
       // Dynamically import the API route
-      const { POST } = await import('@/app/api/sync-iriscrm/route')
+      const { POST } = await import('@/app/api/sync-irelandpay-crm/route')
       
       // Mock request
-      const request = new Request('http://localhost:3000/api/sync-iriscrm', {
+      const request = new Request('http://localhost:3000/api/sync-irelandpay-crm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ dataType: 'merchants' })
@@ -141,10 +141,10 @@ describe('IRIS CRM Sync API', () => {
 
     it('should force sync even if one is already in progress when forceSync=true', async () => {
       // Dynamically import the API route
-      const { POST } = await import('@/app/api/sync-iriscrm/route')
+      const { POST } = await import('@/app/api/sync-irelandpay-crm/route')
       
       // Mock request with forceSync option
-      const request = new Request('http://localhost:3000/api/sync-iriscrm', {
+      const request = new Request('http://localhost:3000/api/sync-irelandpay-crm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -179,7 +179,7 @@ describe('IRIS CRM Sync API', () => {
   describe('GET /api/sync-iriscrm', () => {
     it('should fetch sync status history', async () => {
       // Dynamically import the API route
-      const { GET } = await import('@/app/api/sync-iriscrm/route')
+      const { GET } = await import('@/app/api/sync-irelandpay-crm/route')
       
       // Mock request
       const request = new Request('http://localhost:3000/api/sync-iriscrm')
@@ -225,7 +225,7 @@ describe('IRIS CRM Sync API', () => {
 
     it('should fetch specific sync status by ID', async () => {
       // Dynamically import the API route
-      const { GET } = await import('@/app/api/sync-iriscrm/route')
+      const { GET } = await import('@/app/api/sync-irelandpay-crm/route')
       
       // Mock request with syncId parameter
       const request = new Request('http://localhost:3000/api/sync-iriscrm?syncId=specific-sync-id')
@@ -261,7 +261,7 @@ describe('IRIS CRM Sync API', () => {
 
     it('should handle errors when fetching sync status', async () => {
       // Dynamically import the API route
-      const { GET } = await import('@/app/api/sync-iriscrm/route')
+      const { GET } = await import('@/app/api/sync-irelandpay-crm/route')
       
       // Mock request
       const request = new Request('http://localhost:3000/api/sync-iriscrm')

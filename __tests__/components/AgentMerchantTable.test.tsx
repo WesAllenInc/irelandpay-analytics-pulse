@@ -36,26 +36,26 @@ describe('AgentMerchantTable Component', () => {
   let appendChildMock: ReturnType<typeof vi.fn>;
   let removeChildMock: ReturnType<typeof vi.fn>;
   let clickMock: ReturnType<typeof vi.fn>;
-  let createElement: typeof document.createElement;
   
   // Setup mocks
   beforeEach(() => {
-    // Save original createElement to restore later
-    createElement = document.createElement;
+    // Store original createElement
+    const createElement = document.createElement;
     
-    // Mock link element and its methods
+    // Create a mock link element for CSV download
     const mockLink = {
-      setAttribute: vi.fn(),
-      style: {},
+      href: '',
+      download: '',
       click: vi.fn()
     };
     
-    // Mock document methods
+    // Mock document methods properly
     document.createElement = vi.fn().mockImplementation((tag) => {
       if (tag === 'a') {
         return mockLink;
       }
-      return createElement(tag);
+      // For other elements, use the original createElement
+      return createElement.call(document, tag);
     });
     
     clickMock = mockLink.click;
@@ -74,7 +74,6 @@ describe('AgentMerchantTable Component', () => {
   
   // Clean up mocks
   afterEach(() => {
-    document.createElement = createElement;
     vi.restoreAllMocks();
   });
   

@@ -100,14 +100,14 @@ describe('Resilient IRIS CRM Sync', () => {
 
   describe('CircuitBreaker', () => {
     it('should initially be closed', async () => {
-      const { CircuitBreaker } = await import('@/app/api/sync-iriscrm/route')
+      const { CircuitBreaker } = await import('@/app/api/sync-irelandpay-crm/route')
       const circuitBreaker = CircuitBreaker.getInstance()
       
       expect(circuitBreaker.isOpen()).toBe(false)
     })
 
     it('should open after max failures', async () => {
-      const { CircuitBreaker, RetryableError } = await import('@/app/api/sync-iriscrm/route')
+      const { CircuitBreaker, RetryableError } = await import('@/app/api/sync-irelandpay-crm/route')
       const circuitBreaker = CircuitBreaker.getInstance()
       
       // Record failures up to the max threshold
@@ -120,7 +120,7 @@ describe('Resilient IRIS CRM Sync', () => {
     })
 
     it('should reset after the reset timeout', async () => {
-      const { CircuitBreaker } = await import('@/app/api/sync-iriscrm/route')
+      const { CircuitBreaker } = await import('@/app/api/sync-irelandpay-crm/route')
       const circuitBreaker = CircuitBreaker.getInstance()
       
       // Mock the current time for testing
@@ -157,14 +157,14 @@ describe('Resilient IRIS CRM Sync', () => {
 
   describe('Error Categorization', () => {
     it('should categorize network errors as retryable', async () => {
-      const { isRetryableError } = await import('@/app/api/sync-iriscrm/route')
+      const { isRetryableError } = await import('@/app/api/sync-irelandpay-crm/route')
       
       const networkError = new Error('Network Error')
       expect(isRetryableError(networkError)).toBe(true)
     })
 
     it('should categorize HTTP 5xx errors as retryable', async () => {
-      const { isRetryableError } = await import('@/app/api/sync-iriscrm/route')
+      const { isRetryableError } = await import('@/app/api/sync-irelandpay-crm/route')
       
       const serverError = new Error('Server Error')
       ;(serverError as any).response = { status: 503 }
@@ -173,7 +173,7 @@ describe('Resilient IRIS CRM Sync', () => {
     })
 
     it('should categorize HTTP 4xx errors as non-retryable', async () => {
-      const { isRetryableError } = await import('@/app/api/sync-iriscrm/route')
+      const { isRetryableError } = await import('@/app/api/sync-irelandpay-crm/route')
       
       const clientError = new Error('Client Error')
       ;(clientError as any).response = { status: 400 }
@@ -185,7 +185,7 @@ describe('Resilient IRIS CRM Sync', () => {
   describe('Resilient Execution', () => {
     it('should succeed on first attempt', async () => {
       // Import the function directly from the module
-      const { executeWithResilience } = await import('@/app/api/sync-iriscrm/route')
+      const { executeWithResilience } = await import('@/app/api/sync-irelandpay-crm/route')
       
       // Create a mock function that succeeds
       const mockOperation = vi.fn().mockResolvedValue({ success: true, data: 'test data' })
@@ -208,7 +208,7 @@ describe('Resilient IRIS CRM Sync', () => {
         return { success: true, data: 'recovered' }
       })
       
-      const { executeWithResilience } = await import('@/app/api/sync-iriscrm/route')
+      const { executeWithResilience } = await import('@/app/api/sync-irelandpay-crm/route')
       
       // Create a mock function that fails once then succeeds
       const mockOperation = vi.fn()
@@ -224,7 +224,7 @@ describe('Resilient IRIS CRM Sync', () => {
     })
 
     it('should abort retries for non-retryable errors', async () => {
-      const { executeWithResilience, FatalError } = await import('@/app/api/sync-iriscrm/route')
+      const { executeWithResilience, FatalError } = await import('@/app/api/sync-irelandpay-crm/route')
       
       // Mock implementation that throws a fatal error
       const mockOperation = vi.fn().mockImplementation(() => {
@@ -241,7 +241,7 @@ describe('Resilient IRIS CRM Sync', () => {
 
     it('should handle circuit breaker open state', async () => {
       // Import all required components
-      const module = await import('@/app/api/sync-iriscrm/route')
+      const module = await import('@/app/api/sync-irelandpay-crm/route')
       const { executeWithResilience, CircuitBreaker } = module
       
       // Force circuit breaker to open
@@ -267,7 +267,7 @@ describe('Resilient IRIS CRM Sync', () => {
       const timeoutError = new Error('timeout of 1000ms exceeded')
       ;(timeoutError as any).code = 'ECONNABORTED'
       
-      const { executeWithResilience } = await import('@/app/api/sync-iriscrm/route')
+      const { executeWithResilience } = await import('@/app/api/sync-irelandpay-crm/route')
       
       // Create a mock operation that times out
       const mockOperation = vi.fn().mockRejectedValue(timeoutError)
@@ -284,10 +284,10 @@ describe('Resilient IRIS CRM Sync', () => {
   describe('API Route Integration', () => {
     it('should handle retry in POST handler', async () => {
       // Import the API route
-      const { POST } = await import('@/app/api/sync-iriscrm/route')
+      const { POST } = await import('@/app/api/sync-irelandpay-crm/route')
       
       // Reset any circuit breaker state
-      const { CircuitBreaker } = await import('@/app/api/sync-iriscrm/route')
+      const { CircuitBreaker } = await import('@/app/api/sync-irelandpay-crm/route')
       vi.resetModules() // Ensure fresh circuit breaker instance
       
       // Mock request
@@ -338,14 +338,14 @@ describe('Resilient IRIS CRM Sync', () => {
 
     it('should handle circuit open in GET handler with 503 status', async () => {
       // Import and force circuit breaker open
-      const module = await import('@/app/api/sync-iriscrm/route')
+      const module = await import('@/app/api/sync-irelandpay-crm/route')
       const circuitBreaker = module.CircuitBreaker.getInstance()
       for (let i = 0; i < 3; i++) {
         circuitBreaker.recordFailure()
       }
       
       // Import the API route
-      const { GET } = await import('@/app/api/sync-iriscrm/route')
+      const { GET } = await import('@/app/api/sync-irelandpay-crm/route')
       
       // Mock request
       const request = new Request('http://localhost:3000/api/sync-iriscrm')

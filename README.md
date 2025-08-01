@@ -1,153 +1,132 @@
-# IrelandPay Analytics Pulse
+# Ireland Pay Analytics Pulse
 
-## Project info
+A comprehensive analytics and CRM integration platform for Ireland Pay, providing real-time merchant data analysis, automated sync capabilities, and advanced reporting features.
 
-IrelandPay Analytics Pulse is a merchant analytics dashboard that provides insights into transaction volumes and net profits. The application integrates with Supabase for data storage and retrieval.
+## Features
 
-## How can I edit this code?
+- **Real-time Analytics**: Live merchant performance tracking and insights
+- **CRM Integration**: Seamless sync with Ireland Pay CRM system
+- **Automated Reporting**: Scheduled reports and data archiving
+- **Admin Dashboard**: Comprehensive management interface
+- **Agent Portal**: Dedicated agent analytics and merchant management
+- **Data Validation**: Automated data quality checks and validation
 
-There are several ways of editing your application.
+## Quick Start
 
-### Use your preferred IDE
+1. **Clone the repository**
+   ```bash
+   git clone https://github.com/WesAllenInc/irelandpay-analytics-pulse.git
+   cd irelandpay-analytics-pulse
+   ```
 
-If you want to work locally using your own IDE, you can clone this repo and push changes.
+2. **Install dependencies**
+   ```bash
+   npm install
+   ```
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+3. **Set up environment variables**
+   ```bash
+   cp .env.example .env.local
+   # Edit .env.local with your configuration
+   ```
 
-Follow these steps:
+4. **Run the development server**
+   ```bash
+   npm run dev
+   ```
 
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
-npm run dev
-```
-
-### Edit a file directly in GitHub
-
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
-
-### Use GitHub Codespaces
-
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
-
-## What technologies are used for this project?
-
-This project is built with:
-
-- Next.js 15+ with App Router
-- TypeScript
-- React 18
-- shadcn/ui and Radix UI components
-- Tailwind CSS
-- Supabase (PostgreSQL database, Storage, Edge Functions, and Authentication)
-- Lightweight Charts v3.8.0 and Recharts (for data visualization)
-- Zustand (for state management)
-- XLSX (for Excel file processing)
-
-## Database Schema
-
-The application uses the following database schema:
-
-### merchants
-
-- `mid` (TEXT, Primary Key): Merchant ID
-- `datasource` (TEXT): Source of the merchant data
-- `merchant_dba` (TEXT): Merchant's doing business as name
-
-### merchant_metrics
-
-- `mid` (TEXT): Merchant ID (Foreign Key to merchants.mid)
-- `month` (DATE): Month of the data
-- `total_txns` (INT): Total number of transactions
-- `total_volume` (NUMERIC): Total transaction volume
-- `source_file` (TEXT): Source file that provided this data
-- Primary Key: (mid, month)
-
-### residual_payouts
-
-- `mid` (TEXT): Merchant ID (Foreign Key to merchants.mid)
-- `merchant_dba` (TEXT): Merchant's doing business as name
-- `payout_month` (DATE): Month of the payout
-- `transactions` (INT): Number of transactions
-- `sales_amount` (NUMERIC): Total sales amount
-- `income` (NUMERIC): Income amount
-- `expenses` (NUMERIC): Expenses amount
-- `net_profit` (NUMERIC): Net profit
-- `bps` (NUMERIC): Basis points
-- `commission_pct` (NUMERIC): Commission percentage
-- `agent_net` (NUMERIC): Agent net amount
-- `source_file` (TEXT): Source file that provided this data
-- Primary Key: (mid, payout_month)
-
-## API Endpoints
-
-### Next.js API Routes
-
-- `/api/sync-iriscrm`: Synchronizes merchant and residual data from IRIS CRM
-
-### Supabase Edge Functions
-
-- `sync-iriscrm`: Handles IRIS CRM data synchronization and processing
+5. **Open your browser**
+   Navigate to [http://localhost:3000](http://localhost:3000)
 
 ## Environment Variables
 
-- `NEXT_PUBLIC_SUPABASE_URL`: URL of your Supabase project
-- `NEXT_PUBLIC_SUPABASE_ANON_KEY`: Anonymous key for Supabase authentication
-- `SUPABASE_SERVICE_ROLE_KEY`: Service role key for admin operations (only used in secure server contexts)
-- `NEXT_PUBLIC_SUPABASE_PROJECT_ID`: Project ID for Supabase (used in deployment rewrites)
+### Required Variables
+- `NEXT_PUBLIC_SUPABASE_URL` - Your Supabase project URL
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY` - Your Supabase anonymous key
+- `SUPABASE_SERVICE_ROLE_KEY` - Your Supabase service role key
+- `IRELANDPAY_CRM_API_KEY` - Ireland Pay CRM API key
+- `IRELANDPAY_CRM_BASE_URL` - Ireland Pay CRM base URL
 
-## How can I deploy this project?
+### Optional Variables
+- `NEXT_PUBLIC_APP_URL` - Your application URL
+- `CSRF_SECRET` - CSRF protection secret
+- `NEXT_PUBLIC_SUPABASE_PROJECT_ID` - Your Supabase project ID
 
-### Local Setup & Development
+## Deployment
 
-1. Copy `.env.example` to `.env.local` and populate all variables:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
-   - `NEXT_PUBLIC_APP_URL`
-   - `NEXT_PUBLIC_SUPABASE_PROJECT_ID`
+This application is configured for deployment on Vercel with automatic deployments from the main branch.
 
-1. Deploy Supabase Edge Functions:
+### Vercel Deployment
+- **Framework**: Next.js 15.3.4
+- **Build Command**: `npm run vercel-build`
+- **Output Directory**: `.next`
+- **Node Version**: 18.x or higher
 
-   
-```bash
-npx supabase functions deploy sync-iriscrm
+### Environment Setup
+1. Connect your GitHub repository to Vercel
+2. Set all required environment variables in Vercel dashboard
+3. Deploy automatically on push to main branch
+
+## Development
+
+### Available Scripts
+- `npm run dev` - Start development server
+- `npm run build` - Build for production
+- `npm run start` - Start production server
+- `npm run lint` - Run ESLint
+- `npm run test` - Run tests
+- `npm run test:coverage` - Run tests with coverage
+
+### Project Structure
+```
+├── app/                    # Next.js app directory
+│   ├── admin/             # Admin dashboard pages
+│   ├── agent/             # Agent portal pages
+│   ├── api/               # API routes
+│   └── dashboard/         # Main dashboard pages
+├── components/            # React components
+│   ├── admin/            # Admin-specific components
+│   ├── agent/            # Agent-specific components
+│   ├── charts/           # Chart components
+│   └── ui/               # UI components
+├── lib/                  # Utility libraries
+├── hooks/                # Custom React hooks
+├── types/                # TypeScript type definitions
+└── supabase/             # Supabase configuration
 ```
 
-1. Install dependencies and start the app:
+## Testing
 
+The application includes comprehensive testing with Vitest and React Testing Library.
+
+### Running Tests
 ```bash
-npm install
-npm run dev
+npm run test              # Run all tests
+npm run test:coverage     # Run tests with coverage
 ```
 
-### Production Deployment (Vercel)
+### Test Structure
+- `__tests__/` - Component and integration tests
+- `tests/` - Backend and utility tests
+- `e2e-tests/` - End-to-end tests
 
-1. Push your code to a Git repository.
-1. In Vercel dashboard, import the project and set environment variables (match `.env.example`).
-1. Vercel will run `npm run build` and `npm start` automatically.
-1. Ensure `SUPABASE_SERVICE_ROLE_KEY` and `NEXT_PUBLIC_APP_URL` are configured in Vercel settings.
+## Contributing
 
-## Can I connect a custom domain?
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Submit a pull request
 
-Yes, you can connect a custom domain to your deployed application by configuring it in your hosting provider settings.
+## Support
 
-For Vercel deployments:
+For support and questions, please contact the development team or create an issue in the GitHub repository.
 
-1. Navigate to your project settings in the Vercel dashboard
-2. Go to the Domains section
-3. Add your custom domain and follow the verification steps
+## License
+
+This project is proprietary software developed for Ireland Pay.
+
+---
+
+**Last Updated**: August 1, 2025
+**Version**: 0.1.0

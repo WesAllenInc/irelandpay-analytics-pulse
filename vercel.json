@@ -21,5 +21,6 @@
       "maxDuration": 600
     }
   },
-  "buildCommand": "npm run vercel-build"
+  "buildCommand": "npm run vercel-build",
+  "installCommand": "npm install --production=false --ignore-scripts"
 }

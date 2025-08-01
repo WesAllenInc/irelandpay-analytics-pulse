@@ -8,10 +8,11 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "node --no-warnings --experimental-vm-modules node_modules/vitest/vitest.mjs run --config vitest.config.mjs",
+    "test": "NODE_ENV=test node --no-warnings --experimental-vm-modules node_modules/vitest/vitest.mjs run --config vitest.config.mjs",
     "test:coverage": "vitest run --coverage",
     "coverage:upload": "bash <(curl -Ls https://coverage.codacy.com/get.sh)",
-    "vercel-build": "next build"
+    "vercel-build": "NODE_ENV=production next build",
+    "prebuild": "echo 'Skipping tests for production build'"
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.2.4",

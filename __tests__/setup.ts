@@ -5,9 +5,13 @@ import { cleanup } from '@testing-library/react';
 // Setup for jsdom environment
 beforeAll(() => {
   // Ensure a root DOM node exists for rendering
-  const root = document.createElement('div');
-  root.id = 'root';
-  document.body.appendChild(root);
+  try {
+    const root = document.createElement('div');
+    root.id = 'root';
+    document.body.appendChild(root);
+  } catch (error) {
+    console.warn('Could not create root element:', error);
+  }
 
   // Mock createObjectURL and revokeObjectURL
   if (typeof window !== 'undefined') {
@@ -99,13 +103,19 @@ beforeEach(() => {
   
   // Ensure a clean DOM element exists for React to mount to
   // Check if document and body exist before trying to access them
-  if (typeof document !== 'undefined' && document.body) {
-    let rootElement = document.getElementById('root');
-    if (!rootElement) {
-      rootElement = document.createElement('div');
-      rootElement.id = 'root';
-      document.body.appendChild(rootElement);
+  try {
+    if (typeof document !== 'undefined' && document.body) {
+      let rootElement = document.getElementById('root');
+      if (!rootElement) {
+        rootElement = document.createElement('div');
+        if (rootElement) {
+          rootElement.id = 'root';
+          document.body.appendChild(rootElement);
+        }
+      }
     }
+  } catch (error) {
+    console.warn('Could not setup DOM element:', error);
   }
 });
 

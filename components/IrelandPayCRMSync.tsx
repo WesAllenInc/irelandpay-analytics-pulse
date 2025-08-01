@@ -12,7 +12,7 @@ import { Progress } from './ui/progress'
 import { format } from 'date-fns'
 import { AdminOnly } from '@/hooks/useAdminCheck'
 import { useAdminCheck } from '@/hooks/useAdminCheck'
-import { adminService } from '@/lib/auth/admin-service'
+import { adminServiceClient } from '@/lib/auth/admin-service-client'
 
 // Types
 interface SyncOptions {
@@ -127,7 +127,7 @@ const IrelandPayCRMSync: React.FC = () => {
       setSyncInProgress(true)
       
       // Log admin action
-      await adminService.logAdminAction(
+      await adminServiceClient.logAdminAction(
         adminData.user_id,
         'sync.manual.trigger',
         'sync',
@@ -153,7 +153,7 @@ const IrelandPayCRMSync: React.FC = () => {
         fetchSyncStatus()
         
         // Log successful sync start
-        await adminService.logAdminAction(
+        await adminServiceClient.logAdminAction(
           adminData.user_id,
           'sync.manual.started',
           'sync',
@@ -168,7 +168,7 @@ const IrelandPayCRMSync: React.FC = () => {
         setSyncInProgress(false)
         
         // Log failed sync start
-        await adminService.logAdminAction(
+        await adminServiceClient.logAdminAction(
           adminData.user_id,
           'sync.manual.failed',
           'sync',
@@ -186,7 +186,7 @@ const IrelandPayCRMSync: React.FC = () => {
       
       // Log sync error
       if (adminData) {
-        await adminService.logAdminAction(
+        await adminServiceClient.logAdminAction(
           adminData.user_id,
           'sync.manual.error',
           'sync',

@@ -1,6 +1,8 @@
+'use client';
+
 import { useEffect, useState } from 'react';
-import { useUser } from '@supabase/auth-helpers-react';
-import { adminService, AdminUser } from '@/lib/auth/admin-service';
+import { useUser } from '@supabase/ssr';
+import { adminServiceClient, AdminUser } from '@/lib/auth/admin-service-client';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import { ShieldAlert } from 'lucide-react';
 
@@ -19,7 +21,7 @@ export function useAdminCheck() {
       }
 
       try {
-        const admin = await adminService.getCurrentAdmin();
+        const admin = await adminServiceClient.getCurrentAdmin();
         setIsAdmin(!!admin);
         setAdminData(admin);
       } catch (error) {

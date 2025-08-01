@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAdminCheck } from '@/hooks/useAdminCheck';
-import { adminService } from '@/lib/auth/admin-service';
+import { adminServiceClient } from '@/lib/auth/admin-service-client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -72,7 +72,7 @@ export function SyncManagementPanel() {
     
     try {
       // Log admin action
-      await adminService.logAdminAction(
+              await adminServiceClient.logAdminAction(
         adminData.user_id,
         'sync.manual.trigger',
         'sync',

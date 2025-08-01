@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { adminService, AuditLogEntry } from '@/lib/auth/admin-service';
+import { adminServiceClient, AuditLogEntry } from '@/lib/auth/admin-service-client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -38,7 +38,7 @@ export function AdminAuditLog() {
   const fetchAuditLogs = async () => {
     setLoading(true);
     try {
-      const data = await adminService.getAuditLogs(100, 0, {
+      const data = await adminServiceClient.getAuditLogs(100, 0, {
         action: filters.action !== 'all' ? filters.action : undefined,
         resourceType: filters.resourceType !== 'all' ? filters.resourceType : undefined
       });

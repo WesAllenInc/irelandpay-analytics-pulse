@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAdminCheck } from '@/hooks/useAdminCheck';
-import { adminService, AdminSession } from '@/lib/auth/admin-service';
+import { adminServiceClient, AdminSession } from '@/lib/auth/admin-service-client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -43,7 +43,7 @@ export function AdminSettings() {
     
     setLoading(true);
     try {
-      const data = await adminService.getActiveSessions(adminData.user_id);
+      const data = await adminServiceClient.getActiveSessions(adminData.user_id);
       setSessions(data);
     } catch (error) {
       console.error('Failed to fetch active sessions:', error);
@@ -54,7 +54,7 @@ export function AdminSettings() {
 
   const revokeSession = async (sessionId: string) => {
     try {
-      await adminService.revokeAdminSession(sessionId);
+              await adminServiceClient.revokeAdminSession(sessionId);
       toast.success('Session revoked successfully');
       fetchActiveSessions();
     } catch (error) {
@@ -75,7 +75,7 @@ export function AdminSettings() {
 
       for (const session of sessions) {
         if (session.session_token !== currentSessionToken) {
-          await adminService.revokeAdminSession(session.session_token);
+          await adminServiceClient.revokeAdminSession(session.session_token);
         }
       }
       

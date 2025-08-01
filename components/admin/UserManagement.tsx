@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAdminCheck } from '@/hooks/useAdminCheck';
-import { adminService } from '@/lib/auth/admin-service';
+import { adminServiceClient } from '@/lib/auth/admin-service-client';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
@@ -55,7 +55,7 @@ export function UserManagement() {
   const fetchUsers = async () => {
     setLoading(true);
     try {
-      const data = await adminService.getAllUsersWithRoles();
+      const data = await adminServiceClient.getAllUsersWithRoles();
       setUsers(data);
     } catch (error) {
       console.error('Failed to fetch users:', error);
@@ -68,7 +68,7 @@ export function UserManagement() {
     if (!selectedUser || !adminData) return;
 
     try {
-      await adminService.grantRole(adminData.user_id, selectedUser, selectedRole);
+              await adminServiceClient.grantRole(adminData.user_id, selectedUser, selectedRole);
       toast.success(`Role ${selectedRole} granted successfully`);
       fetchUsers();
       setSelectedUser('');
@@ -83,7 +83,7 @@ export function UserManagement() {
     if (!adminData) return;
 
     try {
-      await adminService.revokeRole(adminData.user_id, userId, role as any);
+              await adminServiceClient.revokeRole(adminData.user_id, userId, role as any);
       toast.success(`Role ${role} revoked successfully`);
       fetchUsers();
     } catch (error) {
@@ -109,7 +109,7 @@ export function UserManagement() {
       }
 
       // Perform transfer
-      await adminService.transferAdminRole(adminData.user_id, selectedUser);
+              await adminServiceClient.transferAdminRole(adminData.user_id, selectedUser);
       toast.success('Admin role transferred successfully');
       
       // Log out current admin

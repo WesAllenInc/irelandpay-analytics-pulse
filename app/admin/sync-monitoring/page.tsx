@@ -1,104 +1,87 @@
-"use client"
+'use client';
 
-import React, { useState, useEffect } from 'react';
+import { useEffect, useState } from 'react';
+import { redirect } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { createClientComponentClient } from '@/lib/supabase/client';
-import { SyncProgressDisplay } from '@/components/sync/SyncProgressDisplay';
-import { useAdminCheck } from '@/hooks/use-admin-check';
-import { redirect } from 'next/navigation';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+import { useAuth } from '@/hooks/useAuth';
 import { 
-  Activity, 
-  Clock, 
-  AlertTriangle, 
-  CheckCircle, 
-  RefreshCw,
-  TrendingUp,
-  Database,
-  Settings
-} from 'lucide-react';
-
-interface SyncStatus {
-  id: string;
-  status: 'pending' | 'running' | 'completed' | 'failed';
-  data_type: string;
-  started_at: string;
-  completed_at?: string;
-  results?: any;
-  error?: string;
-}
-
-interface SyncStats {
-  totalSyncs: number;
-  successfulSyncs: number;
-  failedSyncs: number;
-  averageDuration: number;
-  lastSyncTime?: string;
-  nextScheduledSync?: string;
-}
+  ActiveSyncJob, 
+  SyncJobHistory, 
+  SyncFailureSummary,
+  SyncType,
+  SyncStatus 
+} from '@/types/sync';
+import { SyncProgressDisplay } from '@/components/sync/SyncProgressDisplay';
+import { formatDistanceToNow, format } from 'date-fns';
 
 export default function SyncMonitoringPage() {
-  const { isAdmin, loading } = useAdminCheck();
-  const [activeSyncs, setActiveSyncs] = useState<SyncStatus[]>([]);
-  const [syncHistory, setSyncHistory] = useState<SyncStatus[]>([]);
-  const [syncStats, setSyncStats] = useState<SyncStats | null>(null);
-  const [loadingStats, setLoadingStats] = useState(true);
-  const supabase = createClientComponentClient();
+  const { isAdmin, loading: authLoading } = useAuth();
+  const [activeSyncs, setActiveSyncs] = useState<ActiveSyncJob[]>([]);
+  const [syncHistory, setSyncHistory] = useState<SyncJobHistory[]>([]);
+  const [failureSummary, setFailureSummary] = useState<SyncFailureSummary[]>([]);
+  const [loading, setLoading] = useState(true);
+  const supabase = createSupabaseBrowserClient();
 
   useEffect(() => {
-    if (loading) return;
+    if (authLoading) return;
     
     if (!isAdmin) {
       redirect('/dashboard');
+      return;
     }
 
     fetchSyncData();
     setupRealtimeSubscription();
-  }, [isAdmin, loading]);
+  }, [isAdmin, authLoading]);
 
   const fetchSyncData = async () => {
     try {
       // Fetch active syncs
       const { data: activeData } = await supabase
-        .from('sync_status')
+        .from('active_sync_jobs')
         .select('*')
-        .in('status', ['pending', 'running'])
         .order('started_at', { ascending: false });
 
       setActiveSyncs(activeData || []);
 
       // Fetch sync history
       const { data: historyData } = await supabase
-        .from('sync_status')
+        .from('sync_job_history')
         .select('*')
-        .in('status', ['completed', 'failed'])
         .order('started_at', { ascending: false })
         .limit(50);
 
       setSyncHistory(historyData || []);
 
-      // Calculate stats
-      const stats = calculateSyncStats(historyData || []);
-      setSyncStats(stats);
+      // Fetch failure summary
+      const { data: failureData } = await supabase
+        .from('sync_failure_summary')
+        .select('*');
+
+      setFailureSummary(failureData || []);
+
     } catch (error) {
-      console.error('Failed to fetch sync data:', error);
+      console.error('Error fetching sync data:', error);
     } finally {
-      setLoadingStats(false);
+      setLoading(false);
     }
   };
 
   const setupRealtimeSubscription = () => {
+    // Subscribe to sync job changes
     const subscription = supabase
       .channel('sync-monitoring')
       .on('postgres_changes', {
         event: '*',
         schema: 'public',
-        table: 'sync_status'
+        table: 'sync_jobs'
       }, () => {
-        fetchSyncData();
+        fetchSyncData(); // Refresh data when sync jobs change
       })
       .subscribe();
 
@@ -107,68 +90,43 @@ export default function SyncMonitoringPage() {
     };
   };
 
-  const calculateSyncStats = (history: SyncStatus[]): SyncStats => {
-    const totalSyncs = history.length;
-    const successfulSyncs = history.filter(s => s.status === 'completed').length;
-    const failedSyncs = history.filter(s => s.status === 'failed').length;
-    
-    const completedSyncs = history.filter(s => s.status === 'completed' && s.completed_at);
-    const totalDuration = completedSyncs.reduce((sum, sync) => {
-      const start = new Date(sync.started_at);
-      const end = new Date(sync.completed_at!);
-      return sum + (end.getTime() - start.getTime());
-    }, 0);
-    
-    const averageDuration = completedSyncs.length > 0 ? totalDuration / completedSyncs.length : 0;
-    const lastSyncTime = history[0]?.started_at;
-    
-    return {
-      totalSyncs,
-      successfulSyncs,
-      failedSyncs,
-      averageDuration,
-      lastSyncTime
-    };
-  };
-
-  const getStatusBadge = (status: string) => {
+  const getStatusColor = (status: SyncStatus): string => {
     switch (status) {
-      case 'running':
-        return <Badge className="bg-blue-500">Running</Badge>;
-      case 'completed':
-        return <Badge className="bg-green-500">Completed</Badge>;
-      case 'failed':
-        return <Badge className="bg-red-500">Failed</Badge>;
-      case 'pending':
-        return <Badge className="bg-yellow-500">Pending</Badge>;
-      default:
-        return <Badge className="bg-gray-500">{status}</Badge>;
+      case 'completed': return 'bg-green-500';
+      case 'failed': return 'bg-red-500';
+      case 'running': return 'bg-blue-500';
+      case 'pending': return 'bg-yellow-500';
+      case 'cancelled': return 'bg-gray-500';
+      default: return 'bg-gray-500';
     }
   };
 
-  const formatDuration = (ms: number) => {
-    const seconds = Math.floor(ms / 1000);
-    const minutes = Math.floor(seconds / 60);
-    const hours = Math.floor(minutes / 60);
-    
-    if (hours > 0) {
-      return `${hours}h ${minutes % 60}m`;
-    } else if (minutes > 0) {
-      return `${minutes}m ${seconds % 60}s`;
-    } else {
-      return `${seconds}s`;
+  const getSyncTypeIcon = (type: SyncType): string => {
+    switch (type) {
+      case 'initial': return '🚀';
+      case 'daily': return '📅';
+      case 'manual': return '👤';
+      case 'historical': return '📊';
+      default: return '🔄';
     }
   };
 
-  if (loading || loadingStats) {
+  const formatDuration = (seconds: number): string => {
+    if (seconds < 60) return `${Math.round(seconds)}s`;
+    if (seconds < 3600) return `${Math.round(seconds / 60)}m`;
+    return `${Math.round(seconds / 3600)}h ${Math.round((seconds % 3600) / 60)}m`;
+  };
+
+  if (authLoading || loading) {
     return (
       <div className="space-y-6">
-        <Skeleton className="h-8 w-64" />
+        <h1 className="text-3xl font-bold">Sync Monitoring</h1>
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-          {Array.from({ length: 4 }).map((_, i) => (
+          {[...Array(4)].map((_, i) => (
             <Skeleton key={i} className="h-32" />
           ))}
         </div>
+        <Skeleton className="h-96" />
       </div>
     );
   }
@@ -177,203 +135,285 @@ export default function SyncMonitoringPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <h1 className="text-3xl font-bold">Sync Monitoring</h1>
-        <Button onClick={fetchSyncData} variant="outline" size="sm">
-          <RefreshCw className="h-4 w-4 mr-2" />
+        <Button onClick={fetchSyncData} variant="outline">
           Refresh
         </Button>
       </div>
-      
-      {/* Stats Cards */}
+
+      {/* Status Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Syncs</CardTitle>
-            <Database className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{syncStats?.totalSyncs || 0}</div>
-            <p className="text-xs text-muted-foreground">
-              All time sync operations
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Success Rate</CardTitle>
-            <CheckCircle className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {syncStats?.totalSyncs ? Math.round((syncStats.successfulSyncs / syncStats.totalSyncs) * 100) : 0}%
-            </div>
-            <p className="text-xs text-muted-foreground">
-              {syncStats?.successfulSyncs || 0} successful
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Avg Duration</CardTitle>
-            <Clock className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">
-              {formatDuration(syncStats?.averageDuration || 0)}
-            </div>
-            <p className="text-xs text-muted-foreground">
-              Per sync operation
-            </p>
-          </CardContent>
-        </Card>
-
-        <Card>
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Syncs</CardTitle>
-            <Activity className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{activeSyncs.length}</div>
-            <p className="text-xs text-muted-foreground">
-              Currently running
-            </p>
-          </CardContent>
-        </Card>
+        <SyncStatusCard 
+          title="Active Syncs"
+          value={activeSyncs.length}
+          description="Currently running"
+          icon="🔄"
+        />
+        <LastSyncCard 
+          lastSync={syncHistory[0]}
+        />
+        <NextSyncCard />
+        <ErrorRateCard 
+          failureSummary={failureSummary}
+        />
       </div>
-      
-      {/* Main Content Tabs */}
+
+      {/* Main Content */}
       <Tabs defaultValue="active" className="space-y-4">
         <TabsList>
-          <TabsTrigger value="active">Active Syncs</TabsTrigger>
+          <TabsTrigger value="active">Active Sync</TabsTrigger>
           <TabsTrigger value="history">Sync History</TabsTrigger>
           <TabsTrigger value="errors">Error Log</TabsTrigger>
           <TabsTrigger value="schedule">Schedule</TabsTrigger>
         </TabsList>
-        
+
         <TabsContent value="active" className="space-y-4">
-          {activeSyncs.length === 0 ? (
-            <Card>
-              <CardContent className="pt-6">
-                <p className="text-center text-muted-foreground">
-                  No active syncs at the moment.
-                </p>
-              </CardContent>
-            </Card>
-          ) : (
-            activeSyncs.map((sync) => (
-              <Card key={sync.id}>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
-                    <CardTitle className="text-lg">{sync.data_type} Sync</CardTitle>
-                    {getStatusBadge(sync.status)}
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <SyncProgressDisplay syncId={sync.id} />
-                </CardContent>
-              </Card>
-            ))
-          )}
+          <ActiveSyncMonitor activeSyncs={activeSyncs} />
         </TabsContent>
-        
+
         <TabsContent value="history" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Sync History</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {syncHistory.map((sync) => (
-                  <div key={sync.id} className="flex items-center justify-between p-4 border rounded-lg">
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2">
-                        <span className="font-medium">{sync.data_type}</span>
-                        {getStatusBadge(sync.status)}
-                      </div>
-                      <p className="text-sm text-muted-foreground">
-                        Started: {new Date(sync.started_at).toLocaleString()}
-                      </p>
-                      {sync.completed_at && (
-                        <p className="text-sm text-muted-foreground">
-                          Duration: {formatDuration(
-                            new Date(sync.completed_at).getTime() - new Date(sync.started_at).getTime()
-                          )}
-                        </p>
-                      )}
-                    </div>
-                    <div className="text-right">
-                      {sync.results && (
-                        <div className="text-sm text-muted-foreground">
-                          {sync.results.merchants && `${sync.results.merchants} merchants`}
-                          {sync.results.transactions && ` • ${sync.results.transactions} transactions`}
-                          {sync.results.residuals && ` • ${sync.results.residuals} residuals`}
-                        </div>
-                      )}
-                      {sync.error && (
-                        <p className="text-sm text-red-600">{sync.error}</p>
-                      )}
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </CardContent>
-          </Card>
+          <SyncHistoryTable syncHistory={syncHistory} />
         </TabsContent>
-        
+
         <TabsContent value="errors" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Recent Errors</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                {syncHistory
-                  .filter(sync => sync.status === 'failed')
-                  .slice(0, 10)
-                  .map((sync) => (
-                    <div key={sync.id} className="p-4 border border-red-200 rounded-lg bg-red-50">
-                      <div className="flex items-start gap-2">
-                        <AlertTriangle className="h-4 w-4 text-red-600 mt-0.5" />
-                        <div className="flex-1">
-                          <p className="font-medium text-red-900">{sync.data_type} Sync Failed</p>
-                          <p className="text-sm text-red-700">{sync.error}</p>
-                          <p className="text-xs text-red-600 mt-1">
-                            {new Date(sync.started_at).toLocaleString()}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  ))}
-              </div>
-            </CardContent>
-          </Card>
+          <ErrorLogViewer failureSummary={failureSummary} />
         </TabsContent>
-        
+
         <TabsContent value="schedule" className="space-y-4">
-          <Card>
-            <CardHeader>
-              <CardTitle>Sync Schedule</CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-4">
-                <div className="grid gap-4 md:grid-cols-2">
-                  <div className="p-4 border rounded-lg">
-                    <h3 className="font-medium mb-2">Daily Syncs</h3>
-                    <p className="text-sm text-muted-foreground">11:00 AM & 7:00 PM</p>
-                    <p className="text-sm text-muted-foreground">Incremental updates</p>
-                  </div>
-                  <div className="p-4 border rounded-lg">
-                    <h3 className="font-medium mb-2">Manual Syncs</h3>
-                    <p className="text-sm text-muted-foreground">On-demand full sync</p>
-                    <p className="text-sm text-muted-foreground">Available to admins</p>
-                  </div>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
+          <SyncScheduleManager />
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+// Status Card Components
+function SyncStatusCard({ title, value, description, icon }: {
+  title: string;
+  value: number;
+  description: string;
+  icon: string;
+}) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">{title}</CardTitle>
+        <span className="text-2xl">{icon}</span>
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{value}</div>
+        <p className="text-xs text-muted-foreground">{description}</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function LastSyncCard({ lastSync }: { lastSync?: SyncJobHistory }) {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">Last Sync</CardTitle>
+        <span className="text-2xl">⏰</span>
+      </CardHeader>
+      <CardContent>
+        {lastSync ? (
+          <>
+            <div className="text-2xl font-bold">
+              {formatDistanceToNow(new Date(lastSync.started_at), { addSuffix: true })}
+            </div>
+            <p className="text-xs text-muted-foreground">
+              {lastSync.sync_type} • {lastSync.status}
+            </p>
+          </>
+        ) : (
+          <>
+            <div className="text-2xl font-bold">Never</div>
+            <p className="text-xs text-muted-foreground">No syncs recorded</p>
+          </>
+        )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function NextSyncCard() {
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">Next Scheduled</CardTitle>
+        <span className="text-2xl">📅</span>
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">11:00 AM</div>
+        <p className="text-xs text-muted-foreground">Daily sync</p>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ErrorRateCard({ failureSummary }: { failureSummary: SyncFailureSummary[] }) {
+  const totalFailures = failureSummary.reduce((sum, item) => sum + item.failure_count, 0);
+  const unresolvedFailures = failureSummary.reduce((sum, item) => sum + item.unresolved_count, 0);
+
+  return (
+    <Card>
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+        <CardTitle className="text-sm font-medium">Error Rate</CardTitle>
+        <span className="text-2xl">⚠️</span>
+      </CardHeader>
+      <CardContent>
+        <div className="text-2xl font-bold">{unresolvedFailures}</div>
+        <p className="text-xs text-muted-foreground">
+          {totalFailures} total failures
+        </p>
+      </CardContent>
+    </Card>
+  );
+}
+
+// Main Content Components
+function ActiveSyncMonitor({ activeSyncs }: { activeSyncs: ActiveSyncJob[] }) {
+  if (activeSyncs.length === 0) {
+    return (
+      <Card>
+        <CardContent className="pt-6">
+          <p className="text-center text-muted-foreground">No active syncs</p>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {activeSyncs.map((sync) => (
+        <Card key={sync.id}>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-2">
+                <span>{getSyncTypeIcon(sync.sync_type)}</span>
+                <CardTitle className="text-lg">
+                  {sync.sync_type.charAt(0).toUpperCase() + sync.sync_type.slice(1)} Sync
+                </CardTitle>
+              </div>
+              <Badge className={getStatusColor(sync.status)}>
+                {sync.status}
+              </Badge>
+            </div>
+          </CardHeader>
+          <CardContent>
+            <SyncProgressDisplay syncId={sync.id} />
+            <div className="mt-4 text-sm text-muted-foreground">
+              Started: {format(new Date(sync.started_at), 'MMM d, yyyy HH:mm')}
+              {sync.duration_seconds && (
+                <span className="ml-4">
+                  Duration: {formatDuration(sync.duration_seconds)}
+                </span>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      ))}
+    </div>
+  );
+}
+
+function SyncHistoryTable({ syncHistory }: { syncHistory: SyncJobHistory[] }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Recent Sync History</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-2">
+          {syncHistory.map((sync) => (
+            <div key={sync.id} className="flex items-center justify-between p-3 border rounded-lg">
+              <div className="flex items-center space-x-3">
+                <span>{getSyncTypeIcon(sync.sync_type)}</span>
+                <div>
+                  <p className="font-medium">{sync.sync_type} Sync</p>
+                  <p className="text-sm text-muted-foreground">
+                    {format(new Date(sync.started_at), 'MMM d, yyyy HH:mm')}
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-2">
+                <Badge className={getStatusColor(sync.status)}>
+                  {sync.status}
+                </Badge>
+                {sync.duration_seconds && (
+                  <span className="text-sm text-muted-foreground">
+                    {formatDuration(sync.duration_seconds)}
+                  </span>
+                )}
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function ErrorLogViewer({ failureSummary }: { failureSummary: SyncFailureSummary[] }) {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Error Summary</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          {failureSummary.map((item) => (
+            <div key={item.item_type} className="flex items-center justify-between p-3 border rounded-lg">
+              <div>
+                <p className="font-medium capitalize">{item.item_type}</p>
+                <p className="text-sm text-muted-foreground">
+                  {item.failure_count} total failures
+                </p>
+              </div>
+              <div className="text-right">
+                <p className="font-medium text-red-600">{item.unresolved_count} unresolved</p>
+                <p className="text-sm text-muted-foreground">
+                  Avg retries: {item.avg_retry_count.toFixed(1)}
+                </p>
+              </div>
+            </div>
+          ))}
+        </div>
+      </CardContent>
+    </Card>
+  );
+}
+
+function SyncScheduleManager() {
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle>Sync Schedule</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+          <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div>
+              <p className="font-medium">Daily Sync (Morning)</p>
+              <p className="text-sm text-muted-foreground">11:00 AM daily</p>
+            </div>
+            <Badge variant="outline">Active</Badge>
+          </div>
+          <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div>
+              <p className="font-medium">Daily Sync (Evening)</p>
+              <p className="text-sm text-muted-foreground">7:00 PM daily</p>
+            </div>
+            <Badge variant="outline">Active</Badge>
+          </div>
+          <div className="flex items-center justify-between p-3 border rounded-lg">
+            <div>
+              <p className="font-medium">Monthly Archive</p>
+              <p className="text-sm text-muted-foreground">1st of month at 2:00 AM</p>
+            </div>
+            <Badge variant="outline">Active</Badge>
+          </div>
+        </div>
+      </CardContent>
+    </Card>
   );
 } 

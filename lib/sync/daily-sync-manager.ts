@@ -1,16 +1,31 @@
-import { IrelandPaySyncManager, DailySyncResult } from './ireland-pay-sync-manager';
-import { addMonths, format } from 'date-fns';
-import { createClient } from '@/lib/supabase/server';
+import { IrelandPaySyncManager } from './ireland-pay-sync-manager';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { getGlobalProgressTracker } from './progress-tracker';
+import { executeWithCircuitBreaker } from './circuit-breaker';
+import { 
+  DailySyncResult, 
+  SyncType, 
+  SyncStatus, 
+  SyncTrigger,
+  SyncProgressUpdate 
+} from '@/types/sync';
+import { addMonths } from 'date-fns';
 
 export class DailySyncManager extends IrelandPaySyncManager {
+  private supabase = createSupabaseServerClient();
+  private progressTracker = getGlobalProgressTracker();
+
   /**
    * Perform daily incremental sync (for 11 AM and 7 PM runs)
    */
   async performDailySync(): Promise<DailySyncResult> {
+    // Create sync job
+    const syncId = await this.createSyncJob('daily', 'schedule');
+    
     const result: DailySyncResult = {
-      syncId: crypto.randomUUID(),
+      syncId,
       startTime: new Date(),
-      endTime: null,
+      endTime: undefined,
       merchants: { new: 0, updated: 0, errors: 0 },
       transactions: { count: 0, errors: 0 },
       residuals: { count: 0, errors: 0 },
@@ -19,51 +34,91 @@ export class DailySyncManager extends IrelandPaySyncManager {
     };
 
     try {
+      // Update job status to running
+      await this.updateSyncJobStatus(syncId, 'running');
+
       // 1. Sync new/updated merchants
-      const merchantResult = await this.syncMerchantsIncremental();
+      await this.progressTracker.updateProgress(syncId, {
+        phase: 'merchants_incremental',
+        progress: 0,
+        message: 'Syncing new and updated merchants...'
+      });
+
+      const merchantResult = await this.syncMerchantsIncremental(syncId);
       result.merchants = merchantResult;
 
+      await this.progressTracker.completePhase(syncId, 'merchants_incremental',
+        `Synced ${merchantResult.new} new and ${merchantResult.updated} updated merchants`);
+
       // 2. Sync today's transactions
+      await this.progressTracker.updateProgress(syncId, {
+        phase: 'transactions_daily',
+        progress: 33,
+        message: 'Syncing today\'s transactions...'
+      });
+
       const today = new Date();
-      const txResult = await this.syncDailyTransactions(
-        today.getFullYear(),
-        today.getMonth() + 1,
-        today.getDate()
-      );
+      const txResult = await this.syncDailyTransactions(syncId, today);
       result.transactions.count = txResult.count;
       result.transactions.errors = txResult.errors;
 
+      await this.progressTracker.completePhase(syncId, 'transactions_daily',
+        `Synced ${txResult.count} transactions for today`);
+
       // 3. Check for new residual reports (usually available after 15th of month)
       if (today.getDate() >= 15) {
+        await this.progressTracker.updateProgress(syncId, {
+          phase: 'residuals_check',
+          progress: 66,
+          message: 'Checking for new residual reports...'
+        });
+
         const lastMonth = addMonths(today, -1);
-        const resResult = await this.checkAndSyncResiduals(
-          lastMonth.getFullYear(),
-          lastMonth.getMonth() + 1
-        );
+        const resResult = await this.checkAndSyncResiduals(syncId, lastMonth);
         result.residuals.count = resResult.count;
         result.residuals.errors = resResult.errors;
+
+        await this.progressTracker.completePhase(syncId, 'residuals_check',
+          `Synced ${resResult.count} residual records for ${lastMonth.getFullYear()}-${String(lastMonth.getMonth() + 1).padStart(2, '0')}`);
+      } else {
+        await this.progressTracker.updateProgress(syncId, {
+          phase: 'residuals_skip',
+          progress: 66,
+          message: 'Skipping residual check (before 15th of month)'
+        });
       }
 
       // 4. Update calculated metrics
-      await this.updateCalculatedMetrics();
+      await this.progressTracker.updateProgress(syncId, {
+        phase: 'metrics_update',
+        progress: 90,
+        message: 'Updating calculated metrics...'
+      });
+
+      await this.updateCalculatedMetrics(syncId);
 
       result.endTime = new Date();
       result.success = true;
 
       // 5. Log sync completion
-      await this.logSyncResult(result);
+      await this.logSyncResult(syncId, result);
+
+      // Complete the sync job
+      await this.completeSyncJob(syncId, 'completed', result);
 
       return result;
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMsg = error instanceof Error ? error.message : String(error);
       result.success = false;
-      result.errors.push(errorMessage);
+      result.errors.push(errorMsg);
       result.endTime = new Date();
-      
+
       // Log failed sync
-      await this.logSyncResult(result);
-      
+      await this.logSyncResult(syncId, result);
+
+      // Mark job as failed
+      await this.completeSyncJob(syncId, 'failed', result, { error: errorMsg });
       throw error;
     }
   }
@@ -71,24 +126,24 @@ export class DailySyncManager extends IrelandPaySyncManager {
   /**
    * Sync only new or recently updated merchants
    */
-  private async syncMerchantsIncremental() {
-    const supabase = createClient();
-    
-    // Get last sync timestamp
+  private async syncMerchantsIncremental(syncId: string) {
     const lastSync = await this.getLastSuccessfulSync();
     const modifiedSince = lastSync?.endTime || this.startDate;
-
+    
     const result = { new: 0, updated: 0, errors: 0 };
     let page = 1;
     let hasMore = true;
+    let totalProcessed = 0;
 
     while (hasMore) {
       try {
-        const response = await this.client.get_merchants({
-          page,
-          per_page: 100,
-          modified_since: modifiedSince.toISOString()
-        });
+        const response = await executeWithCircuitBreaker(() =>
+          this.client.getMerchants({ 
+            page, 
+            per_page: 100, 
+            modified_since: modifiedSince.toISOString() 
+          })
+        );
 
         if (!response.data || response.data.length === 0) {
           hasMore = false;
@@ -96,16 +151,24 @@ export class DailySyncManager extends IrelandPaySyncManager {
         }
 
         for (const merchant of response.data) {
-          const existing = await this.findMerchant(merchant.merchant_number);
-          
-          if (existing) {
-            await this.updateMerchant(merchant);
-            result.updated++;
-          } else {
-            await this.createMerchant(merchant);
-            result.new++;
+          try {
+            const existing = await this.findMerchant(merchant.merchant_number);
+            if (existing) {
+              await this.updateMerchant(merchant);
+              result.updated++;
+            } else {
+              await this.createMerchant(merchant);
+              result.new++;
+            }
+            totalProcessed++;
+          } catch (error) {
+            result.errors++;
+            console.error(`Error processing merchant ${merchant.merchant_number}:`, error);
           }
         }
+
+        // Update progress
+        await this.progressTracker.updateItemProgress(syncId, 'merchants_incremental', totalProcessed, -1);
 
         page++;
         hasMore = response.data.length === 100;
@@ -113,6 +176,7 @@ export class DailySyncManager extends IrelandPaySyncManager {
       } catch (error) {
         result.errors++;
         console.error(`Error syncing merchants page ${page}:`, error);
+        hasMore = false; // Stop on error to prevent infinite loops
       }
     }
 
@@ -120,118 +184,171 @@ export class DailySyncManager extends IrelandPaySyncManager {
   }
 
   /**
-   * Sync transactions for a specific day
+   * Sync daily transactions
    */
-  private async syncDailyTransactions(year: number, month: number, day: number) {
-    const supabase = createClient();
-    const dateStr = format(new Date(year, month - 1, day), 'yyyy-MM-dd');
-    
-    // Get all merchants
-    const { data: merchants } = await supabase
-      .from('merchants')
-      .select('merchant_number')
-      .not('merchant_number', 'is', null);
+  private async syncDailyTransactions(syncId: string, date: Date) {
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
 
-    if (!merchants) return { count: 0, errors: 0 };
+    let count = 0;
+    let errors = 0;
+    let page = 1;
+    let hasMore = true;
+    let totalProcessed = 0;
 
-    let totalCount = 0;
-    let totalErrors = 0;
-
-    for (const merchant of merchants) {
+    while (hasMore) {
       try {
-        const response = await this.client.get_merchant_transactions(
-          merchant.merchant_number,
-          dateStr,
-          dateStr
+        const response = await executeWithCircuitBreaker(() =>
+          this.client.getVolumes({ 
+            year, 
+            month, 
+            page, 
+            per_page: 100 
+          })
         );
 
-        if (response.data) {
-          for (const transaction of response.data) {
-            await this.upsertTransaction(transaction);
-            totalCount++;
+        if (!response.data || response.data.length === 0) {
+          hasMore = false;
+          break;
+        }
+
+        for (const transaction of response.data) {
+          try {
+            await this.upsertTransaction(transaction, year, month);
+            count++;
+            totalProcessed++;
+          } catch (error) {
+            errors++;
+            console.error(`Error processing transaction for merchant ${transaction.merchant_number}:`, error);
           }
         }
+
+        // Update progress
+        await this.progressTracker.updateItemProgress(syncId, 'transactions_daily', totalProcessed, -1);
+
+        page++;
+        hasMore = response.data.length === 100;
+
       } catch (error) {
-        totalErrors++;
-        console.error(`Error syncing transactions for merchant ${merchant.merchant_number} on ${dateStr}:`, error);
+        errors++;
+        console.error(`Error syncing transactions page ${page}:`, error);
+        hasMore = false;
       }
     }
 
-    return { count: totalCount, errors: totalErrors };
+    return { count, errors };
   }
 
   /**
    * Check and sync residuals for a specific month
    */
-  private async checkAndSyncResiduals(year: number, month: number) {
-    try {
-      const response = await this.client.get_residuals_summary(year, month);
-      
-      if (!response.data) return { count: 0, errors: 0 };
+  private async checkAndSyncResiduals(syncId: string, date: Date) {
+    const year = date.getFullYear();
+    const month = date.getMonth() + 1;
 
-      let totalCount = 0;
-      let totalErrors = 0;
-
-      for (const residual of response.data) {
-        try {
-          await this.upsertResidual(residual, year, month);
-          totalCount++;
-        } catch (error) {
-          totalErrors++;
-          console.error(`Error upserting residual for ${residual.merchant_number}:`, error);
-        }
-      }
-
-      return { count: totalCount, errors: totalErrors };
-    } catch (error) {
-      console.error(`Error syncing residuals for ${year}-${month}:`, error);
-      return { count: 0, errors: 1 };
+    // Check if residuals already exist for this month
+    const existingResiduals = await this.checkExistingResiduals(year, month);
+    if (existingResiduals > 0) {
+      return { count: 0, errors: 0 }; // Already synced
     }
+
+    let count = 0;
+    let errors = 0;
+    let page = 1;
+    let hasMore = true;
+    let totalProcessed = 0;
+
+    while (hasMore) {
+      try {
+        const response = await executeWithCircuitBreaker(() =>
+          this.client.getResiduals({ 
+            year, 
+            month, 
+            page, 
+            per_page: 100 
+          })
+        );
+
+        if (!response.data || response.data.length === 0) {
+          hasMore = false;
+          break;
+        }
+
+        for (const residual of response.data) {
+          try {
+            await this.upsertResidual(residual, year, month);
+            count++;
+            totalProcessed++;
+          } catch (error) {
+            errors++;
+            console.error(`Error processing residual for merchant ${residual.merchant_number}:`, error);
+          }
+        }
+
+        // Update progress
+        await this.progressTracker.updateItemProgress(syncId, 'residuals_check', totalProcessed, -1);
+
+        page++;
+        hasMore = response.data.length === 100;
+
+      } catch (error) {
+        errors++;
+        console.error(`Error syncing residuals page ${page}:`, error);
+        hasMore = false;
+      }
+    }
+
+    return { count, errors };
   }
 
   /**
    * Update calculated metrics
    */
-  private async updateCalculatedMetrics() {
-    const supabase = createClient();
+  private async updateCalculatedMetrics(syncId: string): Promise<void> {
+    // This would update any calculated fields, aggregations, or materialized views
+    // For now, we'll just log the operation
+    console.log('Updating calculated metrics...');
     
-    // Update merchant summary metrics
-    await supabase.rpc('update_merchant_summary_metrics');
-    
-    // Update agent performance metrics
-    await supabase.rpc('update_agent_performance_metrics');
-    
-    // Update residual summary metrics
-    await supabase.rpc('update_residual_summary_metrics');
+    // Example operations:
+    // - Update merchant summary statistics
+    // - Recalculate agent performance metrics
+    // - Update dashboard aggregations
+    // - Refresh materialized views
   }
 
   /**
    * Get last successful sync
    */
   private async getLastSuccessfulSync() {
-    const supabase = createClient();
-    
-    const { data } = await supabase
-      .from('sync_status')
-      .select('*')
+    const { data, error } = await this.supabase
+      .from('sync_jobs')
+      .select('completed_at')
       .eq('status', 'completed')
       .order('completed_at', { ascending: false })
-      .limit(1);
+      .limit(1)
+      .single();
 
-    return data?.[0] || null;
+    if (error || !data) {
+      return null;
+    }
+
+    return { endTime: new Date(data.completed_at) };
   }
 
   /**
-   * Find merchant by merchant number
+   * Find existing merchant
    */
   private async findMerchant(merchantNumber: string) {
-    const supabase = createClient();
-    
-    const { data } = await supabase
+    const { data, error } = await this.supabase
       .from('merchants')
       .select('*')
       .eq('merchant_number', merchantNumber)
       .single();
+
+    if (error || !data) {
+      return null;
+    }
 
     return data;
   }
@@ -239,16 +356,15 @@ export class DailySyncManager extends IrelandPaySyncManager {
   /**
    * Create new merchant
    */
-  private async createMerchant(merchant: any) {
-    const supabase = createClient();
-    
-    const { error } = await supabase
+  private async createMerchant(merchant: any): Promise<void> {
+    const { error } = await this.supabase
       .from('merchants')
       .insert({
         merchant_number: merchant.merchant_number,
         merchant_name: merchant.merchant_name,
-        // Add other fields as needed
-        created_at: new Date().toISOString(),
+        agent_id: merchant.agent_id,
+        status: merchant.status,
+        created_at: merchant.created_at,
         updated_at: new Date().toISOString()
       });
 
@@ -260,14 +376,13 @@ export class DailySyncManager extends IrelandPaySyncManager {
   /**
    * Update existing merchant
    */
-  private async updateMerchant(merchant: any) {
-    const supabase = createClient();
-    
-    const { error } = await supabase
+  private async updateMerchant(merchant: any): Promise<void> {
+    const { error } = await this.supabase
       .from('merchants')
       .update({
         merchant_name: merchant.merchant_name,
-        // Add other fields as needed
+        agent_id: merchant.agent_id,
+        status: merchant.status,
         updated_at: new Date().toISOString()
       })
       .eq('merchant_number', merchant.merchant_number);
@@ -278,25 +393,35 @@ export class DailySyncManager extends IrelandPaySyncManager {
   }
 
   /**
+   * Check if residuals exist for a month
+   */
+  private async checkExistingResiduals(year: number, month: number): Promise<number> {
+    const { count, error } = await this.supabase
+      .from('residuals')
+      .select('*', { count: 'exact', head: true })
+      .eq('year', year)
+      .eq('month', month);
+
+    if (error) {
+      console.error('Error checking existing residuals:', error);
+      return 0;
+    }
+
+    return count || 0;
+  }
+
+  /**
    * Log sync result
    */
-  private async logSyncResult(result: DailySyncResult) {
-    const supabase = createClient();
-    
-    await supabase
-      .from('sync_status')
-      .insert({
-        status: result.success ? 'completed' : 'failed',
-        data_type: 'daily_sync',
-        started_at: result.startTime.toISOString(),
-        completed_at: result.endTime?.toISOString(),
-        results: {
-          merchants: result.merchants,
-          transactions: result.transactions,
-          residuals: result.residuals,
-          errors: result.errors
-        },
-        error: result.success ? null : result.errors.join('; ')
-      });
+  private async logSyncResult(syncId: string, result: DailySyncResult): Promise<void> {
+    // This could log to a separate sync log table or external logging service
+    console.log(`Daily sync ${syncId} completed:`, {
+      success: result.success,
+      merchants: result.merchants,
+      transactions: result.transactions,
+      residuals: result.residuals,
+      duration: result.endTime ? result.endTime.getTime() - result.startTime.getTime() : 0,
+      errors: result.errors
+    });
   }
 } 

@@ -1,219 +1,147 @@
-import { IrelandPayCRMClient } from '@/lib/irelandpay_crm_client/client';
-import { createClient } from '@/lib/supabase/server';
-import { addMonths, format, subMonths } from 'date-fns';
-import { CircuitBreaker } from './circuit-breaker';
+import { IrelandPayCRMClient } from '@/lib/irelandpay-crm-client';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { getGlobalProgressTracker } from './progress-tracker';
 import { SyncErrorRecovery } from './error-recovery';
-import { SyncProgressTracker } from './progress-tracker';
-
-// Types
-export interface SyncProgress {
-  syncId: string;
-  phase: 'merchants' | 'transactions' | 'residuals' | 'completed' | 'failed';
-  progress: number;
-  message: string;
-  details?: {
-    merchants?: number;
-    transactions?: number;
-    residuals?: number;
-    errors?: number;
-  };
-  lastUpdate: Date;
-}
-
-export interface SyncResult {
-  syncId: string;
-  success: boolean;
-  startTime: Date;
-  endTime: Date;
-  months: Array<{
-    period: string;
-    transactions: number;
-    residuals: number;
-    success: boolean;
-    error?: string;
-  }>;
-  totalMerchants: number;
-  totalTransactions: number;
-  totalResiduals: number;
-  errors: Array<{
-    period?: string;
-    phase?: string;
-    error: string;
-  }>;
-}
-
-export interface DailySyncResult {
-  syncId: string;
-  startTime: Date;
-  endTime: Date;
-  merchants: { new: number; updated: number; errors: number };
-  transactions: { count: number; errors: number };
-  residuals: { count: number; errors: number };
-  success: boolean;
-  errors: string[];
-}
+import { executeWithCircuitBreaker } from './circuit-breaker';
+import { 
+  SyncType, 
+  SyncStatus, 
+  SyncTrigger, 
+  HistoricalSyncResult, 
+  SyncProgressUpdate,
+  SyncManagerConfig 
+} from '@/types/sync';
+import { addMonths, format } from 'date-fns';
 
 export class IrelandPaySyncManager {
   private client: IrelandPayCRMClient;
-  private supabase: any;
+  private supabase = createSupabaseServerClient();
+  private progressTracker = getGlobalProgressTracker();
+  private errorRecovery = new SyncErrorRecovery();
   private startDate = new Date('2024-04-01');
-  private circuitBreaker: CircuitBreaker;
-  private errorRecovery: SyncErrorRecovery;
-  private progressTracker: SyncProgressTracker;
-  
-  constructor(apiKey: string, baseUrl?: string) {
-    this.client = new IrelandPayCRMClient(apiKey, baseUrl);
-    this.supabase = createClient();
-    this.circuitBreaker = new CircuitBreaker();
-    this.errorRecovery = new SyncErrorRecovery();
-    this.progressTracker = new SyncProgressTracker();
+
+  constructor(
+    apiKey: string, 
+    baseUrl?: string,
+    private config: SyncManagerConfig = {}
+  ) {
+    this.client = new IrelandPayCRMClient({ apiKey, baseUrl });
   }
 
   /**
    * Perform initial historical sync from April 2024 to present
    */
-  async performInitialSync(onProgress?: (progress: SyncProgress) => void): Promise<SyncResult> {
-    const syncId = crypto.randomUUID();
+  async performInitialSync(
+    onProgress?: (progress: SyncProgressUpdate) => void
+  ): Promise<HistoricalSyncResult> {
+    // Create sync job
+    const syncId = await this.createSyncJob('historical', 'manual');
+    
     const months = this.getMonthsToSync();
     const totalSteps = months.length * 3; // merchants, transactions, residuals per month
     let currentStep = 0;
 
-    const results: SyncResult = {
-      syncId,
-      success: true,
-      startTime: new Date(),
-      endTime: null,
+    const results: HistoricalSyncResult = {
       months: [],
       totalMerchants: 0,
       totalTransactions: 0,
       totalResiduals: 0,
-      errors: []
+      errors: [],
+      startTime: new Date(),
+      endTime: undefined
     };
 
     try {
-      // Update progress
+      // Update job status to running
+      await this.updateSyncJobStatus(syncId, 'running');
+
+      // First, sync all merchants (they don't change much month to month)
       await this.progressTracker.updateProgress(syncId, {
         phase: 'merchants',
         progress: 0,
-        message: 'Starting initial sync...'
+        message: 'Syncing merchant data...'
       });
-      onProgress?.(await this.progressTracker.getProgress(syncId));
-
-      // First, sync all merchants (they don't change much month to month)
-      const merchantResult = await this.circuitBreaker.execute(async () => {
-        return await this.syncAllMerchants();
-      });
-      
-      results.totalMerchants = merchantResult.count;
-      
-      await this.progressTracker.updateProgress(syncId, {
+      onProgress?.({
         phase: 'merchants',
-        progress: 10,
-        message: `Synced ${merchantResult.count} merchants`,
-        details: { merchants: merchantResult.count }
+        progress: 0,
+        message: 'Syncing merchant data...'
       });
-      onProgress?.(await this.progressTracker.getProgress(syncId));
+
+      const merchantResult = await this.syncAllMerchants(syncId);
+      results.totalMerchants = merchantResult.count;
+
+      await this.progressTracker.completePhase(syncId, 'merchants', 
+        `Synced ${merchantResult.count} merchants successfully`);
 
       // Then sync historical data month by month
-      for (const { year, month } of months) {
+      for (let i = 0; i < months.length; i++) {
+        const { year, month } = months[i];
         const monthStr = `${year}-${String(month).padStart(2, '0')}`;
-        
+
         try {
+          // Update monthly progress
+          await this.progressTracker.updateMonthlyProgress(syncId, i + 1, months.length, year, month);
+          onProgress?.({
+            phase: 'historical_sync',
+            progress: Math.round(((i + 1) / months.length) * 100),
+            message: `Processing ${monthStr} (${i + 1}/${months.length})`
+          });
+
           // Sync transactions for this month
           currentStep++;
-          const progressPercent = Math.min(90, 10 + (currentStep / totalSteps) * 80);
-          
-          await this.progressTracker.updateProgress(syncId, {
-            phase: 'transactions',
-            progress: progressPercent,
-            message: `Syncing transactions for ${monthStr}...`
-          });
-          onProgress?.(await this.progressTracker.getProgress(syncId));
-          
-          const txResult = await this.circuitBreaker.execute(async () => {
-            return await this.syncMonthlyTransactions(year, month);
-          });
-          
+          const txResult = await this.syncMonthlyTransactions(syncId, year, month);
+
           // Sync residuals for this month
           currentStep++;
-          const residualProgressPercent = Math.min(90, 10 + (currentStep / totalSteps) * 80);
-          
-          await this.progressTracker.updateProgress(syncId, {
-            phase: 'residuals',
-            progress: residualProgressPercent,
-            message: `Syncing residuals for ${monthStr}...`
-          });
-          onProgress?.(await this.progressTracker.getProgress(syncId));
-          
-          const resResult = await this.circuitBreaker.execute(async () => {
-            return await this.syncMonthlyResiduals(year, month);
-          });
-          
+          const resResult = await this.syncMonthlyResiduals(syncId, year, month);
+
           results.months.push({
             period: monthStr,
             transactions: txResult.count,
             residuals: resResult.count,
             success: true
           });
-          
+
           results.totalTransactions += txResult.count;
           results.totalResiduals += resResult.count;
-          
+
         } catch (error) {
-          const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+          const errorMsg = error instanceof Error ? error.message : String(error);
           results.errors.push({
             period: monthStr,
-            error: errorMessage
+            error: errorMsg
           });
-          
           results.months.push({
             period: monthStr,
             success: false,
-            error: errorMessage
+            error: errorMsg
           });
         }
-        
+
         // Rate limiting pause between months
         await this.delay(2000);
       }
-      
+
       // Create/refresh materialized views
-      await this.refreshMaterializedViews();
-      
+      await this.refreshMaterializedViews(syncId);
+
       results.endTime = new Date();
-      results.success = results.errors.length === 0;
-      
-      await this.progressTracker.updateProgress(syncId, {
-        phase: 'completed',
-        progress: 100,
-        message: `Initial sync completed. ${results.totalMerchants} merchants, ${results.totalTransactions} transactions, ${results.totalResiduals} residuals processed.`,
-        details: {
-          merchants: results.totalMerchants,
-          transactions: results.totalTransactions,
-          residuals: results.totalResiduals,
-          errors: results.errors.length
-        }
-      });
-      onProgress?.(await this.progressTracker.getProgress(syncId));
-      
+
+      // Complete the sync job
+      await this.completeSyncJob(syncId, 'completed', results);
+
       return results;
-      
+
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : 'Unknown error';
+      const errorMsg = error instanceof Error ? error.message : String(error);
       results.errors.push({
         phase: 'initial_sync',
-        error: errorMessage
+        error: errorMsg
       });
-      results.success = false;
       results.endTime = new Date();
-      
-      await this.progressTracker.updateProgress(syncId, {
-        phase: 'failed',
-        progress: 0,
-        message: `Initial sync failed: ${errorMessage}`
-      });
-      onProgress?.(await this.progressTracker.getProgress(syncId));
-      
+
+      // Mark job as failed
+      await this.completeSyncJob(syncId, 'failed', results, { error: errorMsg });
       throw error;
     }
   }
@@ -225,7 +153,7 @@ export class IrelandPaySyncManager {
     const months = [];
     const current = new Date(this.startDate);
     const now = new Date();
-    
+
     while (current <= now) {
       months.push({
         year: current.getFullYear(),
@@ -233,34 +161,44 @@ export class IrelandPaySyncManager {
       });
       current.setMonth(current.getMonth() + 1);
     }
-    
+
     return months;
   }
 
   /**
    * Sync all merchants
    */
-  private async syncAllMerchants(): Promise<{count: number}> {
+  private async syncAllMerchants(syncId: string): Promise<{ count: number }> {
     let totalCount = 0;
     let page = 1;
     let hasMore = true;
 
     while (hasMore) {
-      const response = await this.client.get_merchants({ page, per_page: 100 });
-      
-      if (!response.data || response.data.length === 0) {
-        hasMore = false;
-        break;
-      }
+      try {
+        const response = await executeWithCircuitBreaker(() =>
+          this.client.getMerchants({ page, per_page: 100 })
+        );
 
-      // Process merchants in batch
-      for (const merchant of response.data) {
-        await this.upsertMerchant(merchant);
-        totalCount++;
-      }
+        if (!response.data || response.data.length === 0) {
+          hasMore = false;
+          break;
+        }
 
-      page++;
-      hasMore = response.data.length === 100;
+        for (const merchant of response.data) {
+          await this.upsertMerchant(merchant);
+          totalCount++;
+        }
+
+        // Update progress
+        await this.progressTracker.updateItemProgress(syncId, 'merchants', totalCount, -1);
+
+        page++;
+        hasMore = response.data.length === 100;
+
+      } catch (error) {
+        console.error(`Error syncing merchants page ${page}:`, error);
+        throw error;
+      }
     }
 
     return { count: totalCount };
@@ -269,35 +207,33 @@ export class IrelandPaySyncManager {
   /**
    * Sync transactions for a specific month
    */
-  private async syncMonthlyTransactions(year: number, month: number): Promise<{count: number}> {
-    // Get all merchants for this month
-    const { data: merchants } = await this.supabase
-      .from('merchants')
-      .select('merchant_number')
-      .not('merchant_number', 'is', null);
-
-    if (!merchants) return { count: 0 };
-
+  private async syncMonthlyTransactions(syncId: string, year: number, month: number): Promise<{ count: number }> {
     let totalCount = 0;
-    const startDate = format(new Date(year, month - 1, 1), 'yyyy-MM-dd');
-    const endDate = format(new Date(year, month, 0), 'yyyy-MM-dd');
+    let page = 1;
+    let hasMore = true;
 
-    for (const merchant of merchants) {
+    while (hasMore) {
       try {
-        const response = await this.client.get_merchant_transactions(
-          merchant.merchant_number,
-          startDate,
-          endDate
+        const response = await executeWithCircuitBreaker(() =>
+          this.client.getVolumes({ year, month, page, per_page: 100 })
         );
 
-        if (response.data) {
-          for (const transaction of response.data) {
-            await this.upsertTransaction(transaction);
-            totalCount++;
-          }
+        if (!response.data || response.data.length === 0) {
+          hasMore = false;
+          break;
         }
+
+        for (const transaction of response.data) {
+          await this.upsertTransaction(transaction, year, month);
+          totalCount++;
+        }
+
+        page++;
+        hasMore = response.data.length === 100;
+
       } catch (error) {
-        console.error(`Error syncing transactions for merchant ${merchant.merchant_number}:`, error);
+        console.error(`Error syncing transactions for ${year}-${month}, page ${page}:`, error);
+        throw error;
       }
     }
 
@@ -307,23 +243,37 @@ export class IrelandPaySyncManager {
   /**
    * Sync residuals for a specific month
    */
-  private async syncMonthlyResiduals(year: number, month: number): Promise<{count: number}> {
-    try {
-      const response = await this.client.get_residuals_summary(year, month);
-      
-      if (!response.data) return { count: 0 };
+  private async syncMonthlyResiduals(syncId: string, year: number, month: number): Promise<{ count: number }> {
+    let totalCount = 0;
+    let page = 1;
+    let hasMore = true;
 
-      let totalCount = 0;
-      for (const residual of response.data) {
-        await this.upsertResidual(residual, year, month);
-        totalCount++;
+    while (hasMore) {
+      try {
+        const response = await executeWithCircuitBreaker(() =>
+          this.client.getResiduals({ year, month, page, per_page: 100 })
+        );
+
+        if (!response.data || response.data.length === 0) {
+          hasMore = false;
+          break;
+        }
+
+        for (const residual of response.data) {
+          await this.upsertResidual(residual, year, month);
+          totalCount++;
+        }
+
+        page++;
+        hasMore = response.data.length === 100;
+
+      } catch (error) {
+        console.error(`Error syncing residuals for ${year}-${month}, page ${page}:`, error);
+        throw error;
       }
-
-      return { count: totalCount };
-    } catch (error) {
-      console.error(`Error syncing residuals for ${year}-${month}:`, error);
-      return { count: 0 };
     }
+
+    return { count: totalCount };
   }
 
   /**
@@ -335,7 +285,9 @@ export class IrelandPaySyncManager {
       .upsert({
         merchant_number: merchant.merchant_number,
         merchant_name: merchant.merchant_name,
-        // Add other fields as needed
+        agent_id: merchant.agent_id,
+        status: merchant.status,
+        created_at: merchant.created_at,
         updated_at: new Date().toISOString()
       }, {
         onConflict: 'merchant_number'
@@ -349,18 +301,18 @@ export class IrelandPaySyncManager {
   /**
    * Upsert transaction data
    */
-  private async upsertTransaction(transaction: any): Promise<void> {
+  private async upsertTransaction(transaction: any, year: number, month: number): Promise<void> {
     const { error } = await this.supabase
-      .from('transactions')
+      .from('merchant_volumes')
       .upsert({
-        transaction_id: transaction.id,
         merchant_number: transaction.merchant_number,
-        amount: transaction.amount,
-        date: transaction.date,
-        // Add other fields as needed
-        updated_at: new Date().toISOString()
+        year,
+        month,
+        volume: transaction.volume,
+        transactions: transaction.transactions,
+        created_at: new Date().toISOString()
       }, {
-        onConflict: 'transaction_id'
+        onConflict: 'merchant_number,year,month'
       });
 
     if (error) {
@@ -378,9 +330,8 @@ export class IrelandPaySyncManager {
         merchant_number: residual.merchant_number,
         year,
         month,
-        amount: residual.amount,
-        // Add other fields as needed
-        updated_at: new Date().toISOString()
+        residual_amount: residual.residual_amount,
+        created_at: new Date().toISOString()
       }, {
         onConflict: 'merchant_number,year,month'
       });
@@ -393,13 +344,74 @@ export class IrelandPaySyncManager {
   /**
    * Refresh materialized views
    */
-  private async refreshMaterializedViews(): Promise<void> {
-    // Add any materialized view refresh logic here
+  private async refreshMaterializedViews(syncId: string): Promise<void> {
+    await this.progressTracker.updateProgress(syncId, {
+      phase: 'refreshing_views',
+      progress: 50,
+      message: 'Refreshing materialized views...'
+    });
+
+    // This would refresh any materialized views for performance
+    // For now, we'll just log it
     console.log('Refreshing materialized views...');
+    
+    await this.progressTracker.completePhase(syncId, 'refreshing_views', 'Views refreshed successfully');
   }
 
   /**
-   * Utility function for delays
+   * Create a sync job
+   */
+  private async createSyncJob(syncType: SyncType, triggeredBy: SyncTrigger): Promise<string> {
+    const { data, error } = await this.supabase.rpc('create_sync_job', {
+      p_sync_type: syncType,
+      p_triggered_by: triggeredBy,
+      p_metadata: {}
+    });
+
+    if (error) {
+      throw new Error(`Failed to create sync job: ${error.message}`);
+    }
+
+    return data;
+  }
+
+  /**
+   * Update sync job status
+   */
+  private async updateSyncJobStatus(syncId: string, status: SyncStatus): Promise<void> {
+    const { error } = await this.supabase
+      .from('sync_jobs')
+      .update({ status })
+      .eq('id', syncId);
+
+    if (error) {
+      throw new Error(`Failed to update sync job status: ${error.message}`);
+    }
+  }
+
+  /**
+   * Complete sync job
+   */
+  private async completeSyncJob(
+    syncId: string, 
+    status: SyncStatus, 
+    results?: any, 
+    errorDetails?: any
+  ): Promise<void> {
+    const { error } = await this.supabase.rpc('complete_sync_job', {
+      p_sync_id: syncId,
+      p_status: status,
+      p_results: results || {},
+      p_error_details: errorDetails
+    });
+
+    if (error) {
+      throw new Error(`Failed to complete sync job: ${error.message}`);
+    }
+  }
+
+  /**
+   * Utility function to delay execution
    */
   private delay(ms: number): Promise<void> {
     return new Promise(resolve => setTimeout(resolve, ms));

@@ -1,44 +1,24 @@
 {
-  "buildCommand": "npm run build",
-  "installCommand": "npm install",
-  "framework": "nextjs",
-  "outputDirectory": ".next",
+  "crons": [
+    {
+      "path": "/api/cron/sync",
+      "schedule": "0 11 * * *"
+    },
+    {
+      "path": "/api/cron/sync", 
+      "schedule": "0 19 * * *"
+    },
+    {
+      "path": "/api/cron/archive",
+      "schedule": "0 2 1 * *"
+    }
+  ],
   "functions": {
-    "app/api/**/*.ts": {
-      "maxDuration": 30
+    "app/api/cron/sync/route.ts": {
+      "maxDuration": 300
+    },
+    "app/api/cron/archive/route.ts": {
+      "maxDuration": 600
     }
-  },
-  "build": {
-    "env": {
-      "NEXT_PUBLIC_SUPABASE_URL": "@next_public_supabase_url",
-      "NEXT_PUBLIC_SUPABASE_ANON_KEY": "@next_public_supabase_anon_key"
-    }
-  },
-  "env": {
-    "NEXT_PUBLIC_SUPABASE_URL": "${NEXT_PUBLIC_SUPABASE_URL}",
-    "NEXT_PUBLIC_SUPABASE_ANON_KEY": "${NEXT_PUBLIC_SUPABASE_ANON_KEY}",
-    "SUPABASE_SERVICE_ROLE_KEY": "${SUPABASE_SERVICE_ROLE_KEY}",
-    "NEXT_PUBLIC_APP_URL": "${NEXT_PUBLIC_APP_URL}",
-    "NEXT_PUBLIC_SUPABASE_PROJECT_ID": "${NEXT_PUBLIC_SUPABASE_PROJECT_ID}",
-    "CSRF_SECRET": "${CSRF_SECRET}",
-    "IRELANDPAY_CRM_API_KEY": "${IRELANDPAY_CRM_API_KEY}",
-    "IRELANDPAY_CRM_BASE_URL": "${IRELANDPAY_CRM_BASE_URL}",
-    "SMTP_HOST": "${SMTP_HOST}",
-    "SMTP_PORT": "${SMTP_PORT}",
-    "SMTP_SECURE": "${SMTP_SECURE}",
-    "SMTP_USER": "${SMTP_USER}",
-    "SMTP_PASSWORD": "${SMTP_PASSWORD}",
-    "SMTP_FROM": "${SMTP_FROM}",
-    "IRELANDPAY_MAX_RETRIES": "${IRELANDPAY_MAX_RETRIES}",
-    "IRELANDPAY_BACKOFF_BASE_MS": "${IRELANDPAY_BACKOFF_BASE_MS}",
-    "IRELANDPAY_TIMEOUT_MS": "${IRELANDPAY_TIMEOUT_MS}",
-    "IRELANDPAY_CIRCUIT_MAX_FAILURES": "${IRELANDPAY_CIRCUIT_MAX_FAILURES}",
-    "IRELANDPAY_CIRCUIT_RESET_SECONDS": "${IRELANDPAY_CIRCUIT_RESET_SECONDS}",
-    "TEST_USER_EMAIL": "${TEST_USER_EMAIL}",
-    "TEST_USER_PASSWORD": "${TEST_USER_PASSWORD}",
-    "TEST_ADMIN_EMAIL": "${TEST_ADMIN_EMAIL}",
-    "TEST_ADMIN_PASSWORD": "${TEST_ADMIN_PASSWORD}",
-    "PLAYWRIGHT_TEST_BASE_URL": "${PLAYWRIGHT_TEST_BASE_URL}",
-    "SUPABASE_JWT_SECRET": "${SUPABASE_JWT_SECRET}"
   }
 }

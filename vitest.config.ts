@@ -14,13 +14,13 @@ export default defineConfig({
     root: './',
     globals: true,
     environment: 'jsdom',
+    setupFiles: ['__tests__/setup.ts'],
     include: [
       'tests/**/*.test.ts', 
       'tests/**/*.test.tsx',
       '__tests__/**/*.test.ts',
       '__tests__/**/*.test.tsx'
     ],
-    setupFiles: ['__tests__/setup.ts'],
     coverage: {
       enabled: true,
       reporter: ['text', 'json', 'lcov', 'html'],
@@ -31,12 +31,18 @@ export default defineConfig({
         '**/*.d.ts',
         '**/*.config.*',
         '**/__tests__/**',
+        '**/__mocks__/**',
       ]
-    }
+    },
+    watch: false,
   },
   resolve: {
     alias: {
-      '@': path.resolve(__dirname, './')
+      '@': path.resolve(__dirname, './'),
+      '@backend': path.resolve(__dirname, './src/backend'),
+      '@crm': path.resolve(__dirname, './src/crm'),
+      '@api': path.resolve(__dirname, './src/api'),
+      '@lib': path.resolve(__dirname, './src/lib'),
     },
   },
 });

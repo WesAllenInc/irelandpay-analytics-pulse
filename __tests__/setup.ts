@@ -4,10 +4,10 @@ import { cleanup } from '@testing-library/react';
 
 // Setup for jsdom environment
 beforeAll(() => {
-  // Create a root element where React components will be mounted
-  const rootElement = document.createElement('div');
-  rootElement.id = 'root';
-  document.body.appendChild(rootElement);
+  // Ensure a root DOM node exists for rendering
+  const root = document.createElement('div');
+  root.id = 'root';
+  document.body.appendChild(root);
 
   // Mock createObjectURL and revokeObjectURL
   if (typeof window !== 'undefined') {

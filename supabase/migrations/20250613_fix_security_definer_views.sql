@@ -13,17 +13,41 @@ SELECT
 FROM merchants m
 JOIN residual_payouts r ON m.mid = r.mid;
 
--- 2. Drop and recreate merchant_data view
+-- 2. Drop and recreate merchant_data view with proper structure
 DROP VIEW IF EXISTS public.merchant_data CASCADE;
 CREATE VIEW public.merchant_data AS
 SELECT 
-  to_char(payout_month, 'YYYY-MM-DD') as month,
-  SUM(sales_amount) as total_volume,
-  SUM(transactions) as total_txns
-FROM residual_payouts
-GROUP BY payout_month;
+  m.mid,
+  m.merchant_dba,
+  m.datasource,
+  COALESCE(SUM(r.transactions), 0) as total_txns,
+  COALESCE(SUM(r.sales_amount), 0) as total_volume,
+  r.payout_month as month,
+  m.created_at,
+  m.updated_at
+FROM merchants m
+LEFT JOIN residual_payouts r ON m.mid = r.mid
+GROUP BY m.mid, m.merchant_dba, m.datasource, r.payout_month, m.created_at, m.updated_at;
 
--- 3. Drop and recreate merchant_volume view
+-- 3. Create residual_data view to match code expectations
+DROP VIEW IF EXISTS public.residual_data CASCADE;
+CREATE VIEW public.residual_data AS
+SELECT 
+  r.mid,
+  r.payout_month,
+  r.transactions,
+  r.sales_amount,
+  r.income,
+  r.expenses,
+  r.net_profit,
+  r.bps,
+  r.commission_pct as agent_pct,
+  r.agent_net,
+  r.payout_month as volume_month,
+  r.created_at as date_loaded
+FROM residual_payouts r;
+
+-- 4. Drop and recreate merchant_volume view
 DROP VIEW IF EXISTS public.merchant_volume CASCADE;
 CREATE VIEW public.merchant_volume AS
 WITH daily_data AS (
@@ -38,7 +62,7 @@ SELECT
 FROM daily_data
 GROUP BY volume_date;
 
--- 4. Drop and recreate estimated_net_profit view
+-- 5. Drop and recreate estimated_net_profit view
 DROP VIEW IF EXISTS public.estimated_net_profit CASCADE;
 CREATE VIEW public.estimated_net_profit AS
 SELECT
@@ -89,5 +113,6 @@ CREATE POLICY "Allow authenticated users to delete from residual_payouts"
 -- Grant appropriate permissions on views to authenticated users
 GRANT SELECT ON public.master_data TO authenticated;
 GRANT SELECT ON public.merchant_data TO authenticated;
+GRANT SELECT ON public.residual_data TO authenticated;
 GRANT SELECT ON public.merchant_volume TO authenticated;
 GRANT SELECT ON public.estimated_net_profit TO authenticated;

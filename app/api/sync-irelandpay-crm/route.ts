@@ -1,6 +1,8 @@
 import { NextResponse } from 'next/server'
-import { createSupabaseServiceClient } from '@/lib/supabase'
+import { makeSupabaseServerClient } from '@lib/supabase-client'
+import { executeWithResilience } from '@crm/resilience'
 import axios from 'axios'
+import { requireAdmin } from '@/middleware/admin-auth'
 import {
   validateRequest,
   validateResponse,
@@ -9,8 +11,7 @@ import {
   SyncResponseSchema,
   SyncQueryParamsSchema,
   type SyncQueryParamsOutput,
-  TIMEOUT_MS,
-  executeWithResilience
+  TIMEOUT_MS
 } from '@/lib/iriscrm-utils'
 
 // ==============================================================================
@@ -52,7 +53,11 @@ export type { SyncRequest as SyncOptions, SyncResponse } from '@/lib/iriscrm-uti
  * Trigger a sync operation with Ireland Pay CRM API
  */
 export async function POST(request: Request) {
-  const supabase = createSupabaseServiceClient()
+  // Check admin authorization
+  const adminError = await requireAdmin(request as any)
+  if (adminError) return adminError
+  
+  const supabase = makeSupabaseServerClient()
   
   try {
     // Validate request body against schema
@@ -164,7 +169,7 @@ export async function POST(request: Request) {
  * Get the status of sync operations
  */
 export async function GET(request: Request) {
-  const supabase = createSupabaseServiceClient()
+  const supabase = makeSupabaseServerClient()
   
   try {
     const { searchParams } = new URL(request.url)

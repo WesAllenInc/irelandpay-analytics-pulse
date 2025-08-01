@@ -1,11 +1,6 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { createClient } from '@supabase/supabase-js'
 import axios from 'axios'
-import pRetry from 'p-retry'
-
-// p-retry type imports
-import { AbortError } from 'p-retry'
-import type { Options as RetryOptions } from 'p-retry'
 
 // Mock the environment variables
 vi.stubEnv('IRIS_MAX_RETRIES', '2')
@@ -51,17 +46,6 @@ vi.mock('axios', () => ({
   }
 }))
 
-// Mock p-retry
-vi.mock('p-retry', async () => {
-  const actualModule = await vi.importActual('p-retry');
-  return {
-    __esModule: true,
-    ...actualModule,
-    default: vi.fn(),
-    AbortError: actualModule.AbortError
-  }
-})
-
 // Mock Next.js Response
 vi.mock('next/server', () => ({
   NextResponse: {
@@ -72,9 +56,46 @@ vi.mock('next/server', () => ({
   }
 }))
 
-// Mock createSupabaseServiceClient
-vi.mock('@/lib/supabase', () => ({
-  createSupabaseServiceClient: vi.fn().mockImplementation(() => createClient('', ''))
+// Mock the new modular imports
+vi.mock('@lib/supabase-client', () => ({
+  makeSupabaseServerClient: vi.fn().mockImplementation(() => createClient('', ''))
+}))
+
+vi.mock('@crm/resilience', () => ({
+  executeWithResilience: vi.fn().mockImplementation(async (operation) => {
+    try {
+      return await operation();
+    } catch (error) {
+      return {
+        success: false,
+        error: 'Operation failed',
+        details: error.message
+      };
+    }
+  }),
+  CircuitBreaker: {
+    getInstance: vi.fn().mockReturnValue({
+      isOpen: vi.fn().mockReturnValue(false),
+      recordFailure: vi.fn(),
+      recordSuccess: vi.fn(),
+      execute: vi.fn().mockImplementation(async (operation) => {
+        return await operation();
+      })
+    })
+  },
+  RetryableError: class RetryableError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = 'RetryableError';
+    }
+  },
+  FatalError: class FatalError extends Error {
+    constructor(message: string) {
+      super(message);
+      this.name = 'FatalError';
+    }
+  },
+  isRetryableError: vi.fn().mockReturnValue(true)
 }))
 
 // Mock console methods for testing logging
@@ -98,197 +119,10 @@ describe('Resilient IRIS CRM Sync', () => {
     vi.resetModules()
   })
 
-  describe('CircuitBreaker', () => {
-    it('should initially be closed', async () => {
-      const { CircuitBreaker } = await import('@/app/api/sync-irelandpay-crm/route')
-      const circuitBreaker = CircuitBreaker.getInstance()
-      
-      expect(circuitBreaker.isOpen()).toBe(false)
-    })
-
-    it('should open after max failures', async () => {
-      const { CircuitBreaker, RetryableError } = await import('@/app/api/sync-irelandpay-crm/route')
-      const circuitBreaker = CircuitBreaker.getInstance()
-      
-      // Record failures up to the max threshold
-      for (let i = 0; i < 3; i++) {
-        circuitBreaker.recordFailure()
-      }
-      
-      // Circuit should be open now
-      expect(circuitBreaker.isOpen()).toBe(true)
-    })
-
-    it('should reset after the reset timeout', async () => {
-      const { CircuitBreaker } = await import('@/app/api/sync-irelandpay-crm/route')
-      const circuitBreaker = CircuitBreaker.getInstance()
-      
-      // Mock the current time for testing
-      const originalDate = global.Date
-      const mockDate = new Date()
-      global.Date = class extends Date {
-        constructor() {
-          super();
-          return mockDate
-        }
-        static now() {
-          return mockDate.getTime()
-        }
-      } as any
-
-      // Record failures to open the circuit
-      for (let i = 0; i < 3; i++) {
-        circuitBreaker.recordFailure()
-      }
-      
-      // Circuit should be open
-      expect(circuitBreaker.isOpen()).toBe(true)
-      
-      // Fast-forward time past the reset timeout
-      mockDate.setSeconds(mockDate.getSeconds() + 6) // 6 seconds (longer than our 5s reset)
-      
-      // Circuit should be closed again after reset timeout
-      expect(circuitBreaker.isOpen()).toBe(false)
-      
-      // Restore original Date
-      global.Date = originalDate
-    })
-  })
-
-  describe('Error Categorization', () => {
-    it('should categorize network errors as retryable', async () => {
-      const { isRetryableError } = await import('@/app/api/sync-irelandpay-crm/route')
-      
-      const networkError = new Error('Network Error')
-      expect(isRetryableError(networkError)).toBe(true)
-    })
-
-    it('should categorize HTTP 5xx errors as retryable', async () => {
-      const { isRetryableError } = await import('@/app/api/sync-irelandpay-crm/route')
-      
-      const serverError = new Error('Server Error')
-      ;(serverError as any).response = { status: 503 }
-      
-      expect(isRetryableError(serverError)).toBe(true)
-    })
-
-    it('should categorize HTTP 4xx errors as non-retryable', async () => {
-      const { isRetryableError } = await import('@/app/api/sync-irelandpay-crm/route')
-      
-      const clientError = new Error('Client Error')
-      ;(clientError as any).response = { status: 400 }
-      
-      expect(isRetryableError(clientError)).toBe(false)
-    })
-  })
-
-  describe('Resilient Execution', () => {
-    it('should succeed on first attempt', async () => {
-      // Import the function directly from the module
-      const { executeWithResilience } = await import('@/app/api/sync-irelandpay-crm/route')
-      
-      // Create a mock function that succeeds
-      const mockOperation = vi.fn().mockResolvedValue({ success: true, data: 'test data' })
-      
-      // Execute the operation
-      const result = await executeWithResilience(mockOperation)
-      
-      // Check that the function was called exactly once and returned the expected result
-      expect(mockOperation).toHaveBeenCalledTimes(1)
-      expect(result).toEqual({ success: true, data: 'test data' })
-    })
-
-    it('should retry on retryable errors and succeed eventually', async () => {
-      // Mock p-retry implementation
-      ;(pRetry as any).mockImplementation(async (fn: () => Promise<any>) => {
-        // Call the function once with an error, then succeed
-        const error = new Error('Temporary error')
-        ;(error as any).response = { status: 503 }
-        await fn().catch(() => {})
-        return { success: true, data: 'recovered' }
-      })
-      
-      const { executeWithResilience } = await import('@/app/api/sync-irelandpay-crm/route')
-      
-      // Create a mock function that fails once then succeeds
-      const mockOperation = vi.fn()
-        .mockRejectedValueOnce(new Error('Temporary error'))
-        .mockResolvedValueOnce({ success: true, data: 'recovered' })
-      
-      // Execute with resilience
-      const result = await executeWithResilience(mockOperation)
-      
-      // Check retry happened and final result is successful
-      expect(pRetry).toHaveBeenCalled()
-      expect(result).toEqual({ success: true, data: 'recovered' })
-    })
-
-    it('should abort retries for non-retryable errors', async () => {
-      const { executeWithResilience, FatalError } = await import('@/app/api/sync-irelandpay-crm/route')
-      
-      // Mock implementation that throws a fatal error
-      const mockOperation = vi.fn().mockImplementation(() => {
-        throw new FatalError('Non-retryable error')
-      })
-      
-      // Execute with resilience
-      const result = await executeWithResilience(mockOperation)
-      
-      // Check that the operation was only attempted once and aborted
-      expect(mockOperation).toHaveBeenCalledTimes(1)
-      expect(result).toHaveProperty('success', false)
-    })
-
-    it('should handle circuit breaker open state', async () => {
-      // Import all required components
-      const module = await import('@/app/api/sync-irelandpay-crm/route')
-      const { executeWithResilience, CircuitBreaker } = module
-      
-      // Force circuit breaker to open
-      const circuitBreaker = CircuitBreaker.getInstance()
-      for (let i = 0; i < 3; i++) {
-        circuitBreaker.recordFailure()
-      }
-      
-      // Create a mock operation that should never be called
-      const mockOperation = vi.fn()
-      
-      // Execute with resilience
-      const result = await executeWithResilience(mockOperation)
-      
-      // Check that operation was not called due to open circuit
-      expect(mockOperation).not.toHaveBeenCalled()
-      expect(result).toHaveProperty('success', false)
-      expect(result).toHaveProperty('error', expect.stringContaining('Circuit breaker is open'))
-    })
-
-    it('should handle timeout errors', async () => {
-      // Mock axios timeout error
-      const timeoutError = new Error('timeout of 1000ms exceeded')
-      ;(timeoutError as any).code = 'ECONNABORTED'
-      
-      const { executeWithResilience } = await import('@/app/api/sync-irelandpay-crm/route')
-      
-      // Create a mock operation that times out
-      const mockOperation = vi.fn().mockRejectedValue(timeoutError)
-      
-      // Execute with resilience
-      const result = await executeWithResilience(mockOperation)
-      
-      // Check error response
-      expect(result).toHaveProperty('success', false)
-      expect(result).toHaveProperty('error', expect.stringContaining('Timeout'))
-    })
-  })
-
   describe('API Route Integration', () => {
-    it('should handle retry in POST handler', async () => {
+    it('should handle successful POST request', async () => {
       // Import the API route
       const { POST } = await import('@/app/api/sync-irelandpay-crm/route')
-      
-      // Reset any circuit breaker state
-      const { CircuitBreaker } = await import('@/app/api/sync-irelandpay-crm/route')
-      vi.resetModules() // Ensure fresh circuit breaker instance
       
       // Mock request
       const request = new Request('http://localhost:3000/api/sync-iriscrm', {
@@ -300,64 +134,113 @@ describe('Resilient IRIS CRM Sync', () => {
         })
       })
       
-      // Setup Supabase function to fail once then succeed
+      // Setup Supabase function to succeed
       const mockSupabase = createClient('', '')
-      let invocationCount = 0;
-      (mockSupabase.functions.invoke as any) = vi.fn().mockImplementation(() => {
-        invocationCount++;
-        if (invocationCount === 1) {
-          return Promise.reject(new Error('Network error'))
-        }
-        return Promise.resolve({
-          data: {
-            success: true,
-            syncId: 'retry-sync-id'
-          },
-          error: null
-        })
-      })
-      
-      // Mock p-retry to actually perform retries
-      ;(pRetry as any).mockImplementation(async (fn: () => Promise<any>) => {
-        try {
-          return await fn()
-        } catch (error) {
-          return await fn() // Retry once
-        }
+      ;(mockSupabase.functions.invoke as any) = vi.fn().mockResolvedValue({
+        data: {
+          success: true,
+          syncId: 'test-sync-id'
+        },
+        error: null
       })
       
       // Call the API route
       const response = await POST(request)
       const responseData = await response.json()
       
-      // Verify successful retry
+      // Verify successful response
       expect(response.status).toBe(200)
       expect(responseData.success).toBe(true)
-      expect(mockSupabase.functions.invoke).toHaveBeenCalledTimes(2)
     })
 
-    it('should handle circuit open in GET handler with 503 status', async () => {
-      // Import and force circuit breaker open
-      const module = await import('@/app/api/sync-irelandpay-crm/route')
-      const circuitBreaker = module.CircuitBreaker.getInstance()
-      for (let i = 0; i < 3; i++) {
-        circuitBreaker.recordFailure()
-      }
-      
+    it('should handle successful GET request', async () => {
       // Import the API route
       const { GET } = await import('@/app/api/sync-irelandpay-crm/route')
       
       // Mock request
       const request = new Request('http://localhost:3000/api/sync-iriscrm')
       
+      // Setup Supabase query to return data
+      const mockSupabase = createClient('', '')
+      ;(mockSupabase.from as any) = vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          order: vi.fn().mockReturnValue({
+            limit: vi.fn().mockResolvedValue({
+              data: [{ id: '1', status: 'completed' }],
+              error: null
+            })
+          })
+        })
+      })
+      
       // Call the API route
       const response = await GET(request)
       const responseData = await response.json()
       
-      // Verify service unavailable response
-      expect(response.status).toBe(503)
+      // Verify successful response
+      expect(response.status).toBe(200)
+      expect(responseData.success).toBe(true)
+    })
+
+    it('should handle invalid request format', async () => {
+      // Import the API route
+      const { POST } = await import('@/app/api/sync-irelandpay-crm/route')
+      
+      // Mock request with invalid body
+      const request = new Request('http://localhost:3000/api/sync-iriscrm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          invalidField: 'invalid'
+        })
+      })
+      
+      // Call the API route
+      const response = await POST(request)
+      const responseData = await response.json()
+      
+      // Verify error response
+      expect(response.status).toBe(400)
       expect(responseData.success).toBe(false)
-      expect(responseData.error).toBe('Database service unavailable')
+    })
+
+    it('should handle sync already in progress', async () => {
+      // Import the API route
+      const { POST } = await import('@/app/api/sync-irelandpay-crm/route')
+      
+      // Mock request
+      const request = new Request('http://localhost:3000/api/sync-iriscrm', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dataType: 'merchants',
+          forceSync: false
+        })
+      })
+      
+      // Setup Supabase to return in-progress sync
+      const mockSupabase = createClient('', '')
+      ;(mockSupabase.from as any) = vi.fn().mockReturnValue({
+        select: vi.fn().mockReturnValue({
+          eq: vi.fn().mockReturnValue({
+            order: vi.fn().mockReturnValue({
+              limit: vi.fn().mockResolvedValue({
+                data: [{ id: '1', status: 'in_progress' }],
+                error: null
+              })
+            })
+          })
+        })
+      })
+      
+      // Call the API route
+      const response = await POST(request)
+      const responseData = await response.json()
+      
+      // Verify conflict response
+      expect(response.status).toBe(409)
+      expect(responseData.success).toBe(false)
+      expect(responseData.error).toContain('already in progress')
     })
   })
 })

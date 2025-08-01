@@ -98,10 +98,14 @@ beforeEach(() => {
   vi.clearAllMocks();
   
   // Ensure a clean DOM element exists for React to mount to
-  if (!document.getElementById('root')) {
-    const rootElement = document.createElement('div');
-    rootElement.id = 'root';
-    document.body.appendChild(rootElement);
+  // Check if document and body exist before trying to access them
+  if (typeof document !== 'undefined' && document.body) {
+    let rootElement = document.getElementById('root');
+    if (!rootElement) {
+      rootElement = document.createElement('div');
+      rootElement.id = 'root';
+      document.body.appendChild(rootElement);
+    }
   }
 });
 

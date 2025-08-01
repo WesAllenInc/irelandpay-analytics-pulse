@@ -9,7 +9,15 @@ __tests__
 test
 tests
 *.test.js
+*.test.ts
+*.test.jsx
+*.test.tsx
 *.spec.js
+*.spec.ts
+*.spec.jsx
+*.spec.tsx
+vitest.config.*
+vitest.setup.*
 
 # Example files
 examples
@@ -33,3 +41,11 @@ npm-debug.log*
 
 # Test scripts
 test-*.js
+test-*.ts
+
+# Coverage reports
+coverage/
+*.lcov
+
+# Test data
+test-data/

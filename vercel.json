@@ -21,7 +21,5 @@
       "maxDuration": 600
     }
   },
-  "buildCommand": "npm run build:vercel",
-  "installCommand": "npm install --ignore-scripts",
-  "framework": "nextjs"
+  "buildCommand": "npm run vercel-build"
 }

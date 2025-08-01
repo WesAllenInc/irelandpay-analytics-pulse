@@ -6,12 +6,12 @@
   "scripts": {
     "dev": "next dev",
     "build": "next build",
-    "build:vercel": "next build",
     "start": "next start",
     "lint": "next lint",
     "test": "node --no-warnings --experimental-vm-modules node_modules/vitest/vitest.mjs run --config vitest.config.mjs",
     "test:coverage": "vitest run --coverage",
-    "coverage:upload": "bash <(curl -Ls https://coverage.codacy.com/get.sh)"
+    "coverage:upload": "bash <(curl -Ls https://coverage.codacy.com/get.sh)",
+    "vercel-build": "next build"
   },
   "dependencies": {
     "@chakra-ui/icons": "^2.2.4",

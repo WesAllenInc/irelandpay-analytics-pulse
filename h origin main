@@ -1,0 +1,5 @@
+[33m934ad7a[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mmain[m[33m, [m[1;31morigin/main[m[33m, [m[1;31morigin/HEAD[m[33m)[m feat: add tabbed interface to AdminSettings for improved session management, data archive, and security information display
+[33m52dc375[m feat: implement admin authentication middleware and enhance admin dashboard with new components for improved user management and sync monitoring
+[33m23bffc4[m chore: update package dependencies and improve sync monitoring components for enhanced functionality and performance
+[33m9b8ad9e[m refactor: improve error handling and logging in API routes for better debugging and reliability
+[33md4a17b9[m refactor: enhance TypeScript configuration and API route handling for improved module resolution and cron job scheduling

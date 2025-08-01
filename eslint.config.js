@@ -16,7 +16,9 @@ export default [
         // Add other common globals to prevent similar issues
         "globalThis": "readonly",
         "console": "readonly",
-        "process": "readonly"
+        "process": "readonly",
+        // Fix AudioWorkletGlobalScope whitespace issue
+        "AudioWorkletGlobalScope": "readonly"
       },
     },
     plugins: {

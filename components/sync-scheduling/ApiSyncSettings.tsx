@@ -71,16 +71,31 @@ const ApiSyncSettings: React.FC = () => {
   const [loading, setLoading] = useState(false)
   const [testSyncStatus, setTestSyncStatus] = useState<'idle' | 'running' | 'success' | 'error'>('idle')
   const [apiStatus, setApiStatus] = useState<'connected' | 'disconnected' | 'checking'>('checking')
+  const [supabaseReady, setSupabaseReady] = useState(false)
+
+  // Check if Supabase client is ready
+  useEffect(() => {
+    if (supabase && typeof window !== 'undefined') {
+      setSupabaseReady(true)
+    }
+  }, [supabase])
 
   // Fetch schedules and config on mount
   useEffect(() => {
-    fetchSchedules()
-    fetchConfig()
-    checkApiStatus()
-  }, [])
+    if (supabaseReady) {
+      fetchSchedules()
+      fetchConfig()
+      checkApiStatus()
+    }
+  }, [supabaseReady])
 
   // Fetch existing sync schedules
   const fetchSchedules = async () => {
+    if (!supabase) {
+      console.warn('Supabase client not available')
+      return
+    }
+
     try {
       const { data, error } = await supabase
         .from('sync_schedules')
@@ -100,6 +115,11 @@ const ApiSyncSettings: React.FC = () => {
 
   // Fetch sync configuration
   const fetchConfig = async () => {
+    if (!supabase) {
+      console.warn('Supabase client not available')
+      return
+    }
+
     try {
       const { data, error } = await supabase
         .from('sync_config')
@@ -137,6 +157,15 @@ const ApiSyncSettings: React.FC = () => {
 
   // Save configuration
   const saveConfig = async () => {
+    if (!supabase) {
+      toast({
+        title: 'Error',
+        description: 'Supabase client not available',
+        variant: 'destructive',
+      })
+      return
+    }
+
     setLoading(true)
     try {
       const { error } = await supabase
@@ -205,6 +234,15 @@ const ApiSyncSettings: React.FC = () => {
 
   // Create new schedule
   const createSchedule = async (scheduleData: Partial<SyncSchedule>) => {
+    if (!supabase) {
+      toast({
+        title: 'Error',
+        description: 'Supabase client not available',
+        variant: 'destructive',
+      })
+      return
+    }
+
     try {
       const { error } = await supabase
         .from('sync_schedules')
@@ -229,6 +267,15 @@ const ApiSyncSettings: React.FC = () => {
 
   // Toggle schedule active status
   const toggleSchedule = async (scheduleId: string, isActive: boolean) => {
+    if (!supabase) {
+      toast({
+        title: 'Error',
+        description: 'Supabase client not available',
+        variant: 'destructive',
+      })
+      return
+    }
+
     try {
       const { error } = await supabase
         .from('sync_schedules')
@@ -264,6 +311,22 @@ const ApiSyncSettings: React.FC = () => {
       default:
         return <Badge>{status}</Badge>
     }
+  }
+
+  // Show loading state if Supabase is not ready
+  if (!supabaseReady) {
+    return (
+      <div className="space-y-6">
+        <Card>
+          <CardContent className="p-6">
+            <div className="flex items-center justify-center">
+              <Loader2 className="h-6 w-6 animate-spin mr-2" />
+              <span>Initializing...</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    )
   }
 
   return (

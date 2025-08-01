@@ -4,6 +4,7 @@ import { createSupabaseServerClient } from "./lib/supabase";
 import { authRateLimiter } from "./lib/auth-rate-limiter";
 import { logRequest, debug, error as logError } from "./lib/edge-logging";
 import { validateCSRFToken, extractCSRFToken, refreshCSRFToken } from './lib/csrf';
+import { adminAuthMiddleware, isAdminRoute } from './middleware/admin-auth';
 
 // DEVELOPMENT/DEMO MODE: Set to true to bypass authentication for demo purposes
 const DEMO_MODE = true;
@@ -52,6 +53,11 @@ async function handleMiddleware(request: NextRequest) {
       void refreshCSRFToken();
     }
     return response;
+  }
+
+  // Check if this is an admin route
+  if (isAdminRoute(pathname)) {
+    return adminAuthMiddleware(request);
   }
   
   // CSRF protection for state-changing operations

@@ -6,10 +6,13 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './ui/tabs'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select'
 import { Alert, AlertDescription, AlertTitle } from './ui/alert'
-import { Loader2, CheckCircle, XCircle, AlertCircle, RefreshCcw } from 'lucide-react'
+import { Loader2, CheckCircle, XCircle, AlertCircle, RefreshCcw, ShieldCheck } from 'lucide-react'
 import { Badge } from './ui/badge'
 import { Progress } from './ui/progress'
 import { format } from 'date-fns'
+import { AdminOnly } from '@/hooks/useAdminCheck'
+import { useAdminCheck } from '@/hooks/useAdminCheck'
+import { adminService } from '@/lib/auth/admin-service'
 
 // Types
 interface SyncOptions {
@@ -41,6 +44,9 @@ interface SyncStatus {
 }
 
 const IrelandPayCRMSync: React.FC = () => {
+  // Admin check
+  const { adminData } = useAdminCheck()
+  
   // State
   const [selectedTab, setSelectedTab] = useState<string>('sync')
   const [syncOptions, setSyncOptions] = useState<SyncOptions>({
@@ -112,12 +118,26 @@ const IrelandPayCRMSync: React.FC = () => {
 
   // Start a sync
   const startSync = async () => {
+    if (!adminData) return;
+    
     setError(null)
     setSuccess(null)
     
     try {
       setSyncInProgress(true)
       
+      // Log admin action
+      await adminService.logAdminAction(
+        adminData.user_id,
+        'sync.manual.trigger',
+        'sync',
+        undefined,
+        { 
+          sync_options: syncOptions,
+          triggered_at: new Date().toISOString() 
+        }
+      );
+
       const response = await fetch('/api/sync-irelandpay-crm', {
         method: 'POST',
         headers: {
@@ -131,14 +151,52 @@ const IrelandPayCRMSync: React.FC = () => {
       if (data.success) {
         setSuccess(`Successfully started ${syncOptions.dataType} sync`)
         fetchSyncStatus()
+        
+        // Log successful sync start
+        await adminService.logAdminAction(
+          adminData.user_id,
+          'sync.manual.started',
+          'sync',
+          data.data?.id,
+          { 
+            sync_options: syncOptions,
+            started_at: new Date().toISOString() 
+          }
+        );
       } else {
         setError(data.error || 'Failed to start sync')
         setSyncInProgress(false)
+        
+        // Log failed sync start
+        await adminService.logAdminAction(
+          adminData.user_id,
+          'sync.manual.failed',
+          'sync',
+          undefined,
+          { 
+            error: data.error || 'Unknown error',
+            failed_at: new Date().toISOString() 
+          }
+        );
       }
     } catch (error: unknown) {
       console.error('Error starting sync:', error)
       setError(error instanceof Error ? error.message : 'Failed to start sync')
       setSyncInProgress(false)
+      
+      // Log sync error
+      if (adminData) {
+        await adminService.logAdminAction(
+          adminData.user_id,
+          'sync.manual.error',
+          'sync',
+          undefined,
+          { 
+            error: error instanceof Error ? error.message : 'Unknown error',
+            failed_at: new Date().toISOString() 
+          }
+        );
+      }
     }
   }
 
@@ -188,13 +246,22 @@ const IrelandPayCRMSync: React.FC = () => {
   }
 
   return (
-    <Card className="w-full">
-      <CardHeader>
-        <CardTitle>Ireland Pay CRM Data Sync</CardTitle>
-        <CardDescription>
-          Sync merchant, residual, and transaction data from Ireland Pay CRM API
-        </CardDescription>
-      </CardHeader>
+    <AdminOnly>
+      <Card className="w-full">
+        <CardHeader>
+          <div className="flex justify-between items-center">
+            <div>
+              <CardTitle>Ireland Pay CRM Data Sync</CardTitle>
+              <CardDescription>
+                Sync merchant, residual, and transaction data from Ireland Pay CRM API
+              </CardDescription>
+            </div>
+            <Badge variant="outline" className="gap-1">
+              <ShieldCheck className="h-3 w-3" />
+              Admin Only
+            </Badge>
+          </div>
+        </CardHeader>
       
       <CardContent>
         <Tabs value={selectedTab} onValueChange={setSelectedTab} className="w-full">
@@ -379,6 +446,7 @@ const IrelandPayCRMSync: React.FC = () => {
         )}
       </CardFooter>
     </Card>
+    </AdminOnly>
   )
 }
 

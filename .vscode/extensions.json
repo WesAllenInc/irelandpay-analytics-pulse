@@ -1,7 +1,5 @@
 {
-    "recommendations": [
-        "sainnhe.gruvbox-material",
-        "github.vscode-github-actions",
-        "stagewise.stagewise-vscode-extension"
-    ]
+  "recommendations": [
+    "denoland.vscode-deno"
+  ]
 }

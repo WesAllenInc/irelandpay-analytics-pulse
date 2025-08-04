@@ -18,9 +18,9 @@
       "maxDuration": 300
     },
     "app/api/cron/archive/route.ts": {
-      "maxDuration": 600
+      "maxDuration": 300
     }
   },
-  "buildCommand": "npm run build:vercel",
+  "buildCommand": "npm run build",
   "installCommand": "npm install --production=false --ignore-scripts"
 }

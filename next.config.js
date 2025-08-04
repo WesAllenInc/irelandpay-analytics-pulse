@@ -29,8 +29,17 @@ const nextConfig = {
   // Disable static generation for problematic pages
   trailingSlash: false,
   webpack: (config, { isServer }) => {
-    // Alias all Supabase auth helpers to our compatibility layer with proper absolute path
-    config.resolve.alias['@supabase/auth-helpers-nextjs'] = path.join(__dirname, 'lib/supabase-compat.ts');
+    // Add path aliases to webpack
+    config.resolve.alias = {
+      ...config.resolve.alias,
+      '@': path.join(__dirname),
+      '@backend': path.join(__dirname, 'src/backend'),
+      '@crm': path.join(__dirname, 'src/crm'),
+      '@api': path.join(__dirname, 'src/api'),
+      '@lib': path.join(__dirname, 'lib'),
+      // Alias all Supabase auth helpers to our compatibility layer with proper absolute path
+      '@supabase/auth-helpers-nextjs': path.join(__dirname, 'lib/supabase-compat.ts'),
+    };
     
     // Add more stable compilation options for Node.js v20
     config.resolve.fallback = { 

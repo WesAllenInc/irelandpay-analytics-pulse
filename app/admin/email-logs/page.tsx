@@ -9,7 +9,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from '@
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Loader2, Download, Eye, Mail, AlertCircle, CheckCircle, Clock } from 'lucide-react';
 import { format } from 'date-fns';
-import { createSupabaseClient } from '@/lib/supabase/client';
+// import { createSupabaseClient } from '../../../lib/supabase/client';
 
 interface EmailLog {
   id: string;
@@ -42,7 +42,7 @@ export default function EmailLogsPage() {
   const loadLogs = async () => {
     try {
       setLoading(true);
-      const supabase = createSupabaseClient();
+      // const supabase = createSupabaseClient();
       
       let query = supabase
         .from('email_logs')

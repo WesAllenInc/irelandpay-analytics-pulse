@@ -10,7 +10,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Separator } from '@/components/ui/separator';
 import { Loader2, Save, Bell } from 'lucide-react';
 import { toast } from 'sonner';
-import { createSupabaseClient } from '@/lib/supabase/client';
+// import { createSupabaseClient } from '../../../lib/supabase/client';
 
 interface NotificationPreferences {
   sync_success: boolean;

@@ -24,7 +24,7 @@
       "@backend/*": ["src/backend/*"],
       "@crm/*": ["src/crm/*"],
       "@api/*": ["src/api/*"],
-      "@lib/*": ["src/lib/*"]
+      "@lib/*": ["lib/*"]
     },
     "forceConsistentCasingInFileNames": true
   },

@@ -7,7 +7,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { Skeleton } from '@/components/ui/skeleton';
-import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+// import { createSupabaseBrowserClient } from '../../../lib/supabase/client';
 import { useAuth } from '@/hooks/useAuth';
 import { 
   ActiveSyncJob, 

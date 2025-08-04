@@ -5,11 +5,12 @@ import type { Database } from '@/types/database'
 export async function createClient() {
   const cookieStore = await cookies()
   
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // Try the prefixed environment variables first (Vercel), then fall back to standard names
+  const url = process.env.ainmbbtycciukbjjdjtl_NEXT_PUBLIC_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.ainmbbtycciukbjjdjtl_NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   
   if (!url || !key) {
-    throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY');
+    throw new Error('Missing Supabase URL or ANON_KEY environment variables');
   }
 
   return createServerClient<Database>(url, key, {
@@ -26,3 +27,7 @@ export async function createClient() {
     },
   })
 };
+
+// Aliases for backward compatibility
+export const createSupabaseServerClient = createClient;
+export const createSupabaseServiceClient = createClient;

@@ -27,9 +27,8 @@ export default function ComponentsDemo() {
         <h1 className="text-3xl font-bold mb-6">Ireland Pay Analytics UI Components</h1>
         
         <Tabs defaultValue="metrics">
-          <TabsList className="grid w-full grid-cols-3">
+          <TabsList className="grid w-full grid-cols-2">
             <TabsTrigger value="metrics">Metrics & Cards</TabsTrigger>
-            <TabsTrigger value="excel">Excel Upload</TabsTrigger>
             <TabsTrigger value="ui">UI Components</TabsTrigger>
           </TabsList>
           
@@ -95,12 +94,6 @@ export default function ComponentsDemo() {
                 </CardContent>
               </Card>
             </GridLayout>
-          </TabsContent>
-          
-          <TabsContent value="excel" className="mt-6">
-            <div className="p-4 border rounded bg-gray-100">
-              <p className="text-gray-600">Excel handling has been removed from the project. The application now uses API-based data sync.</p>
-            </div>
           </TabsContent>
           
           <TabsContent value="ui" className="mt-6">

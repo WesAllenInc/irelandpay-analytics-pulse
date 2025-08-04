@@ -10,24 +10,23 @@ const path = require('path');
 const fs = require('fs');
 require('dotenv').config();
 
-// Supabase project information
-const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-const projectRef = supabaseUrl ? supabaseUrl.match(/https:\/\/([^.]+).supabase.co/)?.[1] : null;
+// Get project reference from environment
+const projectRef = process.env.SUPABASE_PROJECT_REF;
 
 if (!projectRef) {
-  console.error('Invalid Supabase URL configuration. Expected format: https://<project-ref>.supabase.co');
+  console.error('❌ SUPABASE_PROJECT_REF environment variable is required');
+  console.error('Please set it in your .env file');
   process.exit(1);
 }
 
-console.log(`🚀 Deploying Edge Functions to Supabase project: ${projectRef}`);
+console.log(`🚀 Deploying Edge Functions to project: ${projectRef}`);
 
-// Path to the Supabase CLI (assumes it's installed globally)
 const supabaseCLI = 'supabase';
 
 // Functions to deploy
 const functions = [
-  'processResidualExcel',
-  'processMerchantExcel'
+  // Excel processing functions have been removed as they are no longer used
+  // The application now uses API-based data sync instead of Excel uploads
 ];
 
 // Check if Supabase CLI is installed

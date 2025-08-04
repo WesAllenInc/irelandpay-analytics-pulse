@@ -5,7 +5,7 @@ import { useMerchantData } from '@/hooks/use-merchant-data'
 import { useStore } from '@/lib/store'
 import { useEffect } from 'react'
 import type { Database } from '@/types/database'
-import { StagewiseToolbarWrapper } from '@/components/ui/stagewise-toolbar'
+
 import { Home, Users, BarChart3, Settings } from 'lucide-react'
 import { NavBar } from '@/components/ui/tubelight-navbar'
 import { FloatingPaths } from '@/components/ui/background-paths'
@@ -67,7 +67,7 @@ export default function DashboardLayout({
           )}
         </div>
       </main>
-      <StagewiseToolbarWrapper />
+
     </div>
   )
 }

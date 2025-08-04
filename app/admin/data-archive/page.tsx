@@ -195,7 +195,7 @@ export default function DataArchivePage() {
                 <div className="space-y-2">
                   <h4 className="text-sm font-medium">Alert Thresholds</h4>
                   <ul className="text-sm text-muted-foreground space-y-1">
-                    <li>• Storage growth > 50% in a month</li>
+                    <li>• Storage growth &gt; 50% in a month</li>
                     <li>• Query performance degradation</li>
                     <li>• Partition analysis overdue</li>
                     <li>• Data integrity issues</li>

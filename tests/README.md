@@ -1,27 +1,17 @@
-# Testing the Excel Upload Flow
+# Testing Guide
 
-This document outlines the steps to test the complete Excel upload flow in the Ireland Pay Analytics application.
-
-## Prerequisites
-
-Before testing, ensure you have:
-
-1. A running instance of the Next.js application
-2. Access to your Supabase project
-3. The following environment variables set in `.env.local`:
-   - `NEXT_PUBLIC_SUPABASE_URL`
-   - `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-   - `SUPABASE_SERVICE_ROLE_KEY`
+This document outlines the testing strategy and procedures for the IrelandPay Analytics application.
 
 ## Database Setup
 
-Ensure your Supabase database has the required table:
+Ensure your Supabase database has the required tables and structure:
 
 ```sql
-CREATE TABLE public.merchant_transactions (
-  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+-- Create merchant_transactions table
+CREATE TABLE IF NOT EXISTS public.merchant_transactions (
+  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
   merchant_id TEXT NOT NULL,
-  merchant_name TEXT NOT NULL,
+  merchant_name TEXT,
   transaction_date TEXT,
   amount NUMERIC,
   currency TEXT DEFAULT 'USD',
@@ -36,88 +26,90 @@ CREATE INDEX idx_merchant_transactions_merchant_id ON public.merchant_transactio
 CREATE INDEX idx_merchant_transactions_created_at ON public.merchant_transactions(created_at);
 ```
 
-## Storage Setup
-
-Ensure your Supabase project has a storage bucket named `uploads` with appropriate permissions:
-
-1. Go to the Supabase dashboard
-2. Navigate to Storage
-3. Create a new bucket named `uploads` if it doesn't exist
-4. Set the bucket to private
-5. Update the RLS policies to allow authenticated users to upload files
-
 ## Test Plan
 
-### 1. Component Testing
+### 1. API Integration Testing
 
-#### UploadExcel Component
+The application now uses API-based data sync instead of Excel file uploads. Test the following:
 
-1. Navigate to `/dashboard/upload` in your application
-2. Verify the component renders correctly
-3. Try selecting a non-Excel file and verify validation works
-4. Select a valid Excel file and verify the file name appears
-5. Click upload without selecting a file and verify error message
+1. **CRM API Connection**
+   - Verify connection to IrelandPay CRM API
+   - Test authentication and authorization
+   - Verify data retrieval endpoints
 
-### 2. Upload Testing
+2. **Data Sync Process**
+   - Test automatic data synchronization
+   - Verify data transformation and normalization
+   - Test error handling and retry mechanisms
 
-1. Create a test Excel file with the following columns:
-   - merchantId
-   - merchantName
-   - transactionDate
-   - amount
-   - currency
-   - status
+3. **Dashboard Data Display**
+   - Verify merchant data appears correctly
+   - Test analytics and reporting features
+   - Verify real-time data updates
 
-2. Select the test Excel file in the upload component
-3. Click the upload button
-4. Verify the "Uploading file..." message appears
-5. After upload completes, verify the "Processing Excel data..." message appears
+### 2. Component Testing
 
-### 3. Processing Testing
+#### Dashboard Components
 
-1. After upload and processing completes, verify the success message appears
-2. Check the Supabase Storage dashboard to confirm the file exists in the `uploads/merchant/` path
-3. Check the Supabase Table Editor to verify data was inserted into the `merchant_transactions` table
-4. Verify the data in the table matches the data in your Excel file
+1. Navigate to `/dashboard` in your application
+2. Verify all dashboard components render correctly
+3. Test data loading states and error handling
+4. Verify responsive design on different screen sizes
+
+#### Analytics Components
+
+1. Test chart components with various data sets
+2. Verify filtering and sorting functionality
+3. Test export and reporting features
+
+### 3. Authentication Testing
+
+1. Test user login and logout flows
+2. Verify role-based access control
+3. Test session management and token refresh
 
 ### 4. Error Handling Testing
 
-1. Test with an empty Excel file
-2. Test with an Excel file missing required columns
-3. Test with an Excel file containing invalid data types
-4. Test with a very large Excel file (near the size limit)
-5. Test uploading the same file twice to verify upsert behavior
+1. Test network connectivity issues
+2. Test API rate limiting scenarios
+3. Test invalid data handling
+4. Test authentication failures
 
 ## Manual Testing Checklist
 
-- [ ] Component renders correctly
-- [ ] File selection works
-- [ ] File validation works
-- [ ] Upload to Storage works
-- [ ] Processing via API works
-- [ ] Data appears in database
-- [ ] Success feedback is shown to user
+- [ ] Dashboard loads correctly
+- [ ] Data sync works properly
+- [ ] Charts and analytics display correctly
+- [ ] User authentication works
 - [ ] Error handling works correctly
+- [ ] Responsive design works on mobile
+- [ ] Performance is acceptable
 
 ## Automated Testing
 
-For automated testing, you can use the provided test scripts:
-
-1. `test-excel-upload.js` - Tests the full upload and processing flow
-2. `check-database-setup.js` - Verifies the database and storage setup
-
-Run the tests with:
+For automated testing, use the provided test scripts:
 
 ```bash
-node tests/test-excel-upload.js
+# Run unit tests
+npm test
+
+# Run integration tests
+npm run test:integration
+
+# Run end-to-end tests
+npm run test:e2e
 ```
 
-## Sample Test Excel File
+## Performance Testing
 
-You can create a sample Excel file with this structure:
+1. Test dashboard load times
+2. Test data sync performance
+3. Test concurrent user scenarios
+4. Monitor memory usage and CPU utilization
 
-| merchantId | merchantName      | transactionDate | amount | currency | status    |
-|------------|-------------------|----------------|--------|----------|-----------|
-| MERCH001   | Test Merchant 1   | 2025-06-01     | 125.50 | USD      | completed |
-| MERCH002   | Test Merchant 2   | 2025-06-02     | 75.25  | EUR      | pending   |
-| MERCH003   | Test Merchant 3   | 2025-06-03     | 200.00 | GBP      | completed |
+## Security Testing
+
+1. Test authentication and authorization
+2. Verify data encryption in transit
+3. Test input validation and sanitization
+4. Verify secure API communication

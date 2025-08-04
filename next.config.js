@@ -10,7 +10,6 @@ const nextConfig = {
   transpilePackages: [
     '@supabase/auth-helpers-nextjs',
     '@supabase/ssr',
-    '@supabase/auth-helpers-react',
     '@supabase/supabase-js'
   ],
   // Exclude Supabase Edge Functions from Next.js compilation

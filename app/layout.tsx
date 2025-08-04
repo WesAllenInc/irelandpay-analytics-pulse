@@ -5,8 +5,7 @@ import Link from 'next/link';
 import { Analytics } from "@vercel/analytics/next";
 import Providers from './providers';
 import './globals.css';
-import { StagewiseToolbar } from '@stagewise/toolbar-next';
-import ReactPlugin from '@stagewise-plugins/react';
+
 
 import { Button } from '@/components/ui/button';
 import { Toaster } from '@/components/ui/toaster';
@@ -58,11 +57,7 @@ export default function RootLayout({
         </Providers>
         <Toaster />
         <Analytics />
-        <StagewiseToolbar 
-          config={{
-            plugins: [ReactPlugin]
-          }}
-        />
+
       </body>
     </html>
   );

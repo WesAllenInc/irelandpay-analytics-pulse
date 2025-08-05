@@ -8,11 +8,11 @@ import { validateCSRFToken, extractCSRFToken, refreshCSRFToken } from './lib/csr
 // DEVELOPMENT/DEMO MODE: Set to false to enable proper authentication
 const DEMO_MODE = false;
 
-// Allowed users whitelist
-const ALLOWED_USERS = [
+// Executive users whitelist - only these 2 executives have access
+const EXECUTIVE_USERS = [
   'wvazquez@irelandpay.com',
   'jmarkey@irelandpay.com'
-];
+] as const;
 
 // Define public routes that don't need authentication
 const publicRoutes = [
@@ -95,13 +95,13 @@ async function handleMiddleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/auth', request.url));
   }
 
-  // Check if user is in the allowed whitelist
-  if (!ALLOWED_USERS.includes(session.user.email.toLowerCase())) {
-    debug('Unauthorized user attempting to access protected route', { 
+  // Check if user is an authorized executive
+  if (!EXECUTIVE_USERS.includes(session.user.email.toLowerCase() as any)) {
+    debug('Unauthorized user attempting to access executive-only application', { 
       email: session.user.email, 
       pathname 
     });
-    return NextResponse.redirect(new URL('/auth?error=unauthorized', request.url));
+    return NextResponse.redirect(new URL('/unauthorized?error=executive-only', request.url));
   }
 
   // Check if this is an admin route - redirect to unauthorized for now

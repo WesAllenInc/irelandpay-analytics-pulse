@@ -24,7 +24,17 @@ export default function LandingPage() {
         console.log('[Landing] Session check:', !!session?.user, session?.user?.email);
         
         if (session?.user?.email) {
-          // Authenticated user - check role
+          // Executive users always get admin access
+          const { isExecutiveUser } = await import('@/lib/auth/executive-check');
+          const isExecutive = isExecutiveUser(session.user.email);
+          
+          if (isExecutive) {
+            console.log('[Landing] Executive user detected, redirecting to dashboard');
+            router.push('/dashboard');
+            return;
+          }
+          
+          // For non-executive users, check database role
           const { data: agentData, error: roleError } = await supabase
             .from('agents')
             .select('role')

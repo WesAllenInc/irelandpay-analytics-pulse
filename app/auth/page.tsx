@@ -47,7 +47,18 @@ export default function AuthPage() {
         console.log('✅ User is in allowed list');
 
         try {
-          // User is authenticated and authorized, fetch role and redirect
+          // Executive users always get admin access
+          const { isExecutiveUser } = await import('@/lib/auth/executive-check');
+          const isExecutive = isExecutiveUser(session.user.email);
+          
+          if (isExecutive) {
+            console.log('✅ Executive user detected, granting admin access');
+            console.log('🔄 Redirecting executive to dashboard');
+            router.push('/dashboard');
+            return;
+          }
+          
+          // For non-executive users, check database role
           const { data: agentData, error: roleError } = await supabase
             .from('agents')
             .select('*')
@@ -119,7 +130,17 @@ export default function AuthPage() {
             return;
           }
 
-          // Redirect after sign in
+          // Executive users always get admin access
+          const { isExecutiveUser } = await import('@/lib/auth/executive-check');
+          const isExecutive = isExecutiveUser(session.user.email);
+          
+          if (isExecutive) {
+            console.log('✅ Executive user signed in, redirecting to dashboard');
+            router.push('/dashboard');
+            return;
+          }
+          
+          // For non-executive users, check database role
           const { data } = await supabase
             .from('agents')
             .select('role')

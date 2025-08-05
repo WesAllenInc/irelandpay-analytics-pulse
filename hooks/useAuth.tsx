@@ -56,18 +56,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser(session?.user || null);
         
         if (session?.user) {
-          // Fetch user role from agents table
-          const { data: agentData, error: agentError } = await supabase
-            .from("agents")
-            .select("role")
-            .eq("email", session.user.email || "")
-            .single();
- 
-          if (agentError) {
-            console.error("Error fetching user role:", agentError);
-            setRole(null);
+          // Executive users always get admin role
+          const { isExecutiveUser } = await import('@/lib/auth/executive-check');
+          const isExecutive = isExecutiveUser(session.user.email);
+          
+          if (isExecutive) {
+            console.log('✅ Executive user detected in useAuth, setting admin role');
+            setRole('admin');
           } else {
-            setRole(agentData?.role as UserRole || "agent");
+            // For non-executive users, fetch role from agents table
+            const { data: agentData, error: agentError } = await supabase
+              .from("agents")
+              .select("role")
+              .eq("email", session.user.email || "")
+              .single();
+   
+            if (agentError) {
+              console.error("Error fetching user role:", agentError);
+              setRole(null);
+            } else {
+              setRole(agentData?.role as UserRole || "agent");
+            }
           }
         }
       } catch (err: any) {
@@ -92,18 +101,27 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           router.push("/auth");
         } 
         else if (session?.user) {
-          // Fetch user role
-          const { data: agentData, error: agentError } = await supabase
-            .from("agents")
-            .select("role")
-            .eq("email", session.user.email || "")
-            .single();
- 
-          if (agentError) {
-            console.error("Error fetching user role:", agentError);
-            setRole(null);
+          // Executive users always get admin role
+          const { isExecutiveUser } = await import('@/lib/auth/executive-check');
+          const isExecutive = isExecutiveUser(session.user.email);
+          
+          if (isExecutive) {
+            console.log('✅ Executive user detected in auth state change, setting admin role');
+            setRole('admin');
           } else {
-            setRole(agentData?.role as UserRole || "agent");
+            // For non-executive users, fetch role from agents table
+            const { data: agentData, error: agentError } = await supabase
+              .from("agents")
+              .select("role")
+              .eq("email", session.user.email || "")
+              .single();
+   
+            if (agentError) {
+              console.error("Error fetching user role:", agentError);
+              setRole(null);
+            } else {
+              setRole(agentData?.role as UserRole || "agent");
+            }
           }
         }
   

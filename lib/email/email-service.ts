@@ -115,7 +115,7 @@ export class EmailService {
       error: data.error,
       failedAt: data.failedAt,
       lastSuccessfulSync: data.lastSuccessfulSync,
-      adminUrl: `${process.env.NEXT_PUBLIC_APP_URL}/admin/sync-monitoring`,
+      adminUrl: `${process.env.NEXT_PUBLIC_APP_URL}/dashboard/settings?tab=sync`,
       logs: data.logs
     }));
 

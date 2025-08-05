@@ -102,7 +102,7 @@ export const emailTemplates = {
       </ul>
       
       <div style="margin-top: 20px;">
-        <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://analytics.irelandpay.com'}/admin/sync-analytics" 
+        <a href="${process.env.NEXT_PUBLIC_APP_URL || 'https://analytics.irelandpay.com'}/dashboard/settings?tab=sync" 
            style="background-color: #1e40af; color: white; padding: 10px 20px; text-decoration: none; border-radius: 6px; display: inline-block;">
           View Sync Settings
         </a>

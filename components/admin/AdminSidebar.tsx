@@ -36,7 +36,7 @@ export function AdminSidebar() {
     },
     {
       name: 'Sync Scheduling',
-      href: '/admin/sync-scheduling',
+              href: '/dashboard/settings?tab=sync',
       icon: Clock,
     },
     {

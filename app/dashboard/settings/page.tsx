@@ -8,6 +8,9 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useState } from 'react';
 import { Label } from '@/components/ui/label';
 import ApiSyncSettings from '@/components/sync-scheduling/ApiSyncSettings';
+import { SyncScheduler } from '@/components/sync-scheduling';
+import { SyncAnalyticsDashboard } from '@/components/sync-analytics/SyncAnalyticsDashboard';
+import { SyncStatusIndicator } from '@/components/sync/SyncStatusIndicator';
 
 // Force redeploy - API Sync tab should now work properly
 const SettingsPage = () => {
@@ -21,9 +24,19 @@ const SettingsPage = () => {
     console.log('Saved profile settings:', profile);
   };
 
+  // Get the default tab from URL search params
+  const getDefaultTab = () => {
+    if (typeof window !== 'undefined') {
+      const urlParams = new URLSearchParams(window.location.search);
+      const tab = urlParams.get('tab');
+      if (tab === 'sync') return 'sync';
+    }
+    return 'profile';
+  };
+
   return (
     <div className="p-6">
-      <Tabs defaultValue="profile" className="space-y-6">
+      <Tabs defaultValue={getDefaultTab()} className="space-y-6">
         <TabsList className="grid w-full grid-cols-3">
           <TabsTrigger value="profile">Profile</TabsTrigger>
           <TabsTrigger value="sync">API Sync</TabsTrigger>
@@ -68,7 +81,31 @@ const SettingsPage = () => {
         </TabsContent>
 
         <TabsContent value="sync" className="space-y-6">
-          <ApiSyncSettings />
+          <div className="space-y-8">
+            {/* Current Sync Status */}
+            <div>
+              <h3 className="text-lg font-medium text-foreground mb-4">Current Sync Status</h3>
+              <SyncStatusIndicator showControls={true} />
+            </div>
+            
+            {/* API Sync Settings */}
+            <div>
+              <h3 className="text-lg font-medium text-foreground mb-4">API Configuration</h3>
+              <ApiSyncSettings />
+            </div>
+            
+            {/* Sync Scheduler */}
+            <div>
+              <h3 className="text-lg font-medium text-foreground mb-4">Sync Scheduling</h3>
+              <SyncScheduler />
+            </div>
+            
+            {/* Sync Analytics */}
+            <div>
+              <h3 className="text-lg font-medium text-foreground mb-4">Sync Analytics & Monitoring</h3>
+              <SyncAnalyticsDashboard />
+            </div>
+          </div>
         </TabsContent>
 
         <TabsContent value="notifications" className="space-y-6">

@@ -86,7 +86,9 @@ async function handleMiddleware(request: NextRequest) {
   // Log authentication status without exposing session details
   debug('Checking authentication status', {
     isAuthenticated: !!session?.user?.email,
-    pathname
+    pathname,
+    hasSession: !!session,
+    userEmail: session?.user?.email
   });
 
   // Check if user is authenticated

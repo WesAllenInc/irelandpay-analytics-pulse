@@ -54,8 +54,8 @@ export default function AuthPage() {
           if (isExecutive) {
             console.log('✅ Executive user detected, granting admin access');
             console.log('🔄 Redirecting executive to dashboard');
-            // Use replace instead of push to avoid adding to history
-            router.replace('/dashboard');
+            // Use window.location.href for server-side redirect
+            window.location.href = '/dashboard';
             return;
           }
           
@@ -79,8 +79,8 @@ export default function AuthPage() {
             // Redirect based on role
             const redirectPath = userRole === 'admin' ? '/dashboard' : '/leaderboard';
             console.log('🔄 Redirecting to:', redirectPath);
-            // Use replace instead of push to avoid adding to history
-            router.replace(redirectPath);
+            // Use window.location.href for server-side redirect
+            window.location.href = redirectPath;
           } else {
             // If no agent record exists but user is authenticated, create one
             try {
@@ -93,19 +93,19 @@ export default function AuthPage() {
               
               if (insertError) {
                 console.error('[AUTH PAGE] Error creating agent record:', insertError);
-                router.replace('/leaderboard'); 
+                window.location.href = '/leaderboard'; 
               } else {
                 console.log('✅ Agent record created, redirecting to leaderboard');
-                router.replace('/leaderboard');
+                window.location.href = '/leaderboard';
               }
             } catch (err) {
               console.error('[AUTH PAGE] Exception creating agent record:', err);
-              router.replace('/leaderboard');
+              window.location.href = '/leaderboard';
             }
           }
         } catch (err) {
           console.error('[AUTH PAGE] Exception in auth flow:', err);
-          router.replace('/leaderboard');
+          window.location.href = '/leaderboard';
         }
       } else if (session) {
         // Session exists but no user, log warning
@@ -138,7 +138,7 @@ export default function AuthPage() {
           
           if (isExecutive) {
             console.log('✅ Executive user signed in, redirecting to dashboard');
-            router.replace('/dashboard');
+            window.location.href = '/dashboard';
             return;
           }
           
@@ -151,7 +151,7 @@ export default function AuthPage() {
           
           const redirectPath = data?.role === 'admin' ? '/dashboard' : '/leaderboard';
           console.log('🔄 Auth state change redirecting to:', redirectPath);
-          router.replace(redirectPath);
+          window.location.href = redirectPath;
         } else if (event === 'SIGNED_IN' && session) {
           // Session exists but no user, log warning
           console.warn('[AUTH PAGE] SIGNED_IN event but no user:', session);

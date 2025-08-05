@@ -31,14 +31,14 @@ export default function AuthCallbackPage() {
         
         if (error) {
           console.error('❌ Error getting session:', error);
-          router.replace('/auth?error=session');
+          window.location.href = '/auth?error=session';
           return;
         }
 
         if (!session?.user?.email) {
           console.error('❌ No session or user email found');
           console.log('🔍 Session data:', session);
-          router.replace('/auth?error=no-session');
+          window.location.href = '/auth?error=no-session';
           return;
         }
 
@@ -48,7 +48,7 @@ export default function AuthCallbackPage() {
         if (!ALLOWED_USERS.includes(session.user.email.toLowerCase())) {
           console.error('❌ Unauthorized user attempted to sign in:', session.user.email);
           await supabase.auth.signOut();
-          router.replace('/auth?error=unauthorized');
+          window.location.href = '/auth?error=unauthorized';
           return;
         }
 
@@ -61,7 +61,8 @@ export default function AuthCallbackPage() {
         
         if (isExecutive) {
           console.log('✅ Executive user detected, redirecting to dashboard');
-          router.replace('/dashboard');
+          // Use window.location.href for server-side redirect to ensure session is established
+          window.location.href = '/dashboard';
           return;
         }
         
@@ -83,12 +84,12 @@ export default function AuthCallbackPage() {
           
           if (insertError) {
             console.error('❌ Error creating agent record:', insertError);
-            router.replace('/leaderboard');
+            window.location.href = '/leaderboard';
             return;
           }
           
           console.log('✅ Agent record created');
-          router.replace('/leaderboard');
+          window.location.href = '/leaderboard';
           return;
         }
         
@@ -98,11 +99,11 @@ export default function AuthCallbackPage() {
         
         console.log('✅ User role:', userRole);
         console.log('🔄 Redirecting to:', redirectPath);
-        router.replace(redirectPath);
+        window.location.href = redirectPath;
         
       } catch (err) {
         console.error('❌ Error in auth callback:', err);
-        router.replace('/auth?error=callback');
+        window.location.href = '/auth?error=callback';
       }
     };
 

@@ -8,6 +8,12 @@ import { validateCSRFToken, extractCSRFToken, refreshCSRFToken } from './lib/csr
 // DEVELOPMENT/DEMO MODE: Set to false to enable proper authentication
 const DEMO_MODE = false;
 
+// Allowed users whitelist
+const ALLOWED_USERS = [
+  'wvazquez@irelandpay.com',
+  'jmarkey@irelandpay.com'
+];
+
 // Define public routes that don't need authentication
 const publicRoutes = [
   '/auth',
@@ -68,6 +74,36 @@ async function handleMiddleware(request: NextRequest) {
     return response;
   }
 
+  // Get Supabase server client
+  const supabase = createSupabaseServerClient();
+  const { data: { session } } = await supabase.auth.getSession();
+  
+  // Log request with safe metadata only
+  logRequest(request, {
+    metadata: { pathname }
+  });
+  
+  // Log authentication status without exposing session details
+  debug('Checking authentication status', {
+    isAuthenticated: !!session?.user?.email,
+    pathname
+  });
+
+  // Check if user is authenticated
+  if (!session?.user?.email) {
+    debug('User not authenticated, redirecting to auth', { pathname });
+    return NextResponse.redirect(new URL('/auth', request.url));
+  }
+
+  // Check if user is in the allowed whitelist
+  if (!ALLOWED_USERS.includes(session.user.email.toLowerCase())) {
+    debug('Unauthorized user attempting to access protected route', { 
+      email: session.user.email, 
+      pathname 
+    });
+    return NextResponse.redirect(new URL('/auth?error=unauthorized', request.url));
+  }
+
   // Check if this is an admin route - redirect to unauthorized for now
   // We'll handle admin auth in API routes instead of middleware
   if (isAdminRoute(pathname)) {
@@ -86,70 +122,14 @@ async function handleMiddleware(request: NextRequest) {
     }
   }
 
-  // Get Supabase server client
-  const supabase = createSupabaseServerClient();
-  const { data: { session } } = await supabase.auth.getSession();
-  
-  // Log request with safe metadata only
-  logRequest(request, {
-    metadata: { pathname }
-  });
-  
-  // Log authentication status without exposing session details
-  debug('Checking authentication status', {
-    isAuthenticated: !!session?.user?.email,
-    pathname
-  });
-
-  // Only treat as authenticated if session?.user?.email exists
-  if (!session?.user?.email) {
-    return NextResponse.redirect(new URL('/auth', request.url));
-  }
-
-  // Fetch user role if user is authenticated
-  let role = 'agent'; // Default role
-  
-  if (session?.user?.email) {
-    try {
-      // First try with 'role' column
-      const { data, error } = await supabase
-        .from('agents')
-        .select('role')
-        .eq('email', session.user.email)
-        .single();
-      
-      if (error) {
-        logError('[Middleware] Error fetching role', { error: error.message });
-        // If role column doesn't exist, just use the default 'agent' role
-      } else if (data) {
-        role = data.role || 'agent';
-      }
-    } catch (err) {
-      logError('[Middleware] Exception in role fetch', { error: err instanceof Error ? err.message : String(err) });
-      // Keep default role on error
-    }
-  }
-
-  // Redirect from root to appropriate dashboard
-  if (pathname === '/') {
-    const redirectUrl = role === 'admin'
-      ? new URL('/dashboard', request.url)
-      : new URL('/leaderboard', request.url);
-    return NextResponse.redirect(redirectUrl);
-  }
-
-  // Role-based access control
-  if (pathname.startsWith('/admin') && role !== 'admin') {
-    return NextResponse.redirect(new URL('/leaderboard', request.url));
-  }
-
-  if (pathname === '/dashboard' && role !== 'admin') {
-    return NextResponse.redirect(new URL('/leaderboard', request.url));
-  }
-
-  // Always refresh the CSRF token in the response
+  // User is authenticated and authorized, proceed
   const response = NextResponse.next();
-  refreshCSRFToken();
+  
+  // Refresh CSRF token for authenticated requests
+  if (!pathname.startsWith('/_next') && !pathname.startsWith('/static')) {
+    void refreshCSRFToken();
+  }
+  
   return response;
 }
 

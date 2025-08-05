@@ -4,6 +4,12 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase';
 
+// Allowed users whitelist
+const ALLOWED_USERS = [
+  'wvazquez@irelandpay.com',
+  'jmarkey@irelandpay.com'
+];
+
 export default function AuthCallbackPage() {
   const router = useRouter();
   const supabase = createSupabaseBrowserClient();
@@ -33,6 +39,14 @@ export default function AuthCallbackPage() {
           router.push('/auth?error=exchange');
           return;
         }
+      }
+
+      // Check if user is in the allowed list
+      if (session?.user?.email && !ALLOWED_USERS.includes(session.user.email.toLowerCase())) {
+        console.error('Unauthorized user attempted to sign in:', session.user.email);
+        await supabase.auth.signOut();
+        router.push('/auth?error=unauthorized');
+        return;
       }
 
       // Redirect to dashboard or homepage after successful login

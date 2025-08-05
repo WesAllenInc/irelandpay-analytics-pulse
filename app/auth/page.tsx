@@ -63,12 +63,11 @@ export default function AuthPage() {
           } else {
             // If no agent record exists but user is authenticated, create one
             try {
-              const { error: insertError } = await supabase.from('agents').insert({
-                email: session.user.email,
-                agent_name: session.user?.user_metadata?.name || (session.user.email).split('@')[0],
-                role: 'agent',
-                approval_status: 'approved' // Auto-approve whitelisted users
-              });
+                              const { error: insertError } = await supabase.from('agents').insert({
+                  email: session.user.email,
+                  agent_name: session.user?.user_metadata?.name || (session.user.email).split('@')[0],
+                  role: 'agent'
+                });
               
               if (insertError) {
                 console.error('[AUTH PAGE] Error creating agent record:', insertError);

@@ -31,14 +31,14 @@ export default function AuthCallbackPage() {
         
         if (error) {
           console.error('❌ Error getting session:', error);
-          router.push('/auth?error=session');
+          router.replace('/auth?error=session');
           return;
         }
 
         if (!session?.user?.email) {
           console.error('❌ No session or user email found');
           console.log('🔍 Session data:', session);
-          router.push('/auth?error=no-session');
+          router.replace('/auth?error=no-session');
           return;
         }
 
@@ -48,14 +48,24 @@ export default function AuthCallbackPage() {
         if (!ALLOWED_USERS.includes(session.user.email.toLowerCase())) {
           console.error('❌ Unauthorized user attempted to sign in:', session.user.email);
           await supabase.auth.signOut();
-          router.push('/auth?error=unauthorized');
+          router.replace('/auth?error=unauthorized');
           return;
         }
 
         console.log('✅ User authenticated successfully:', session.user.email);
         console.log('✅ User metadata:', session.user.user_metadata);
         
-        // Get user role to determine redirect path
+        // Check if user is an executive first
+        const { isExecutiveUser } = await import('@/lib/auth/executive-check');
+        const isExecutive = isExecutiveUser(session.user.email);
+        
+        if (isExecutive) {
+          console.log('✅ Executive user detected, redirecting to dashboard');
+          router.replace('/dashboard');
+          return;
+        }
+        
+        // Get user role to determine redirect path for non-executive users
         const { data: agentData, error: roleError } = await supabase
           .from('agents')
           .select('role')
@@ -73,12 +83,12 @@ export default function AuthCallbackPage() {
           
           if (insertError) {
             console.error('❌ Error creating agent record:', insertError);
-            router.push('/leaderboard');
+            router.replace('/leaderboard');
             return;
           }
           
           console.log('✅ Agent record created');
-          router.push('/leaderboard');
+          router.replace('/leaderboard');
           return;
         }
         
@@ -88,11 +98,11 @@ export default function AuthCallbackPage() {
         
         console.log('✅ User role:', userRole);
         console.log('🔄 Redirecting to:', redirectPath);
-        router.push(redirectPath);
+        router.replace(redirectPath);
         
       } catch (err) {
         console.error('❌ Error in auth callback:', err);
-        router.push('/auth?error=callback');
+        router.replace('/auth?error=callback');
       }
     };
 

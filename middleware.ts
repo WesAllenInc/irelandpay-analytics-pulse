@@ -104,10 +104,22 @@ async function handleMiddleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/unauthorized?error=executive-only', request.url));
   }
 
-  // Check if this is an admin route - redirect to unauthorized for now
-  // We'll handle admin auth in API routes instead of middleware
+  // Check if this is an admin route - only allow executives
   if (isAdminRoute(pathname)) {
-    return NextResponse.redirect(new URL('/unauthorized', request.url));
+    // Check if user is an executive (admin)
+    const isExecutive = EXECUTIVE_USERS.includes(session.user.email.toLowerCase() as any);
+    if (!isExecutive) {
+      debug('Non-executive user attempting to access admin route', { 
+        email: session.user.email, 
+        pathname 
+      });
+      return NextResponse.redirect(new URL('/unauthorized', request.url));
+    }
+    // Executive users can access admin routes
+    debug('Executive user accessing admin route', { 
+      email: session.user.email, 
+      pathname 
+    });
   }
   
   // CSRF protection for state-changing operations

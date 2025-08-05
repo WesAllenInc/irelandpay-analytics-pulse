@@ -54,7 +54,8 @@ export default function AuthPage() {
           if (isExecutive) {
             console.log('✅ Executive user detected, granting admin access');
             console.log('🔄 Redirecting executive to dashboard');
-            router.push('/dashboard');
+            // Use replace instead of push to avoid adding to history
+            router.replace('/dashboard');
             return;
           }
           
@@ -78,7 +79,8 @@ export default function AuthPage() {
             // Redirect based on role
             const redirectPath = userRole === 'admin' ? '/dashboard' : '/leaderboard';
             console.log('🔄 Redirecting to:', redirectPath);
-            router.push(redirectPath);
+            // Use replace instead of push to avoid adding to history
+            router.replace(redirectPath);
           } else {
             // If no agent record exists but user is authenticated, create one
             try {
@@ -91,19 +93,19 @@ export default function AuthPage() {
               
               if (insertError) {
                 console.error('[AUTH PAGE] Error creating agent record:', insertError);
-                router.push('/leaderboard'); 
+                router.replace('/leaderboard'); 
               } else {
                 console.log('✅ Agent record created, redirecting to leaderboard');
-                router.push('/leaderboard');
+                router.replace('/leaderboard');
               }
             } catch (err) {
               console.error('[AUTH PAGE] Exception creating agent record:', err);
-              router.push('/leaderboard');
+              router.replace('/leaderboard');
             }
           }
         } catch (err) {
           console.error('[AUTH PAGE] Exception in auth flow:', err);
-          router.push('/leaderboard');
+          router.replace('/leaderboard');
         }
       } else if (session) {
         // Session exists but no user, log warning
@@ -136,7 +138,7 @@ export default function AuthPage() {
           
           if (isExecutive) {
             console.log('✅ Executive user signed in, redirecting to dashboard');
-            router.push('/dashboard');
+            router.replace('/dashboard');
             return;
           }
           
@@ -149,7 +151,7 @@ export default function AuthPage() {
           
           const redirectPath = data?.role === 'admin' ? '/dashboard' : '/leaderboard';
           console.log('🔄 Auth state change redirecting to:', redirectPath);
-          router.push(redirectPath);
+          router.replace(redirectPath);
         } else if (event === 'SIGNED_IN' && session) {
           // Session exists but no user, log warning
           console.warn('[AUTH PAGE] SIGNED_IN event but no user:', session);

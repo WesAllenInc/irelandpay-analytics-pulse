@@ -16,41 +16,42 @@ export default function AuthCallbackPage() {
 
   useEffect(() => {
     const handleAuthCallback = async () => {
-      // Try to get session
-      const { data: { session }, error } = await supabase.auth.getSession();
+      try {
+        // Get the session after OAuth redirect
+        const { data: { session }, error } = await supabase.auth.getSession();
 
-      // Log for debugging
-      console.log('Auth callback session:', session);
-      
-      if (error) {
-        console.error('Error getting session:', error);
-        router.push('/auth?error=session');
-        return;
-      }
-
-      if (!session) {
-        // Exchange code for session if needed
-        const { data, error: exchangeError } = await supabase.auth.exchangeCodeForSession(
-          window.location.hash.substring(1)
-        );
+        // Log for debugging
+        console.log('Auth callback session:', session);
+        console.log('Auth callback error:', error);
         
-        if (exchangeError) {
-          console.error('Error exchanging code for session:', exchangeError);
-          router.push('/auth?error=exchange');
+        if (error) {
+          console.error('Error getting session:', error);
+          router.push('/auth?error=session');
           return;
         }
-      }
 
-      // Check if user is in the allowed list
-      if (session?.user?.email && !ALLOWED_USERS.includes(session.user.email.toLowerCase())) {
-        console.error('Unauthorized user attempted to sign in:', session.user.email);
-        await supabase.auth.signOut();
-        router.push('/auth?error=unauthorized');
-        return;
-      }
+        if (!session?.user?.email) {
+          console.error('No session or user email found');
+          router.push('/auth?error=no-session');
+          return;
+        }
 
-      // Redirect to dashboard or homepage after successful login
-      router.push('/');
+        // Check if user is in the allowed list
+        if (!ALLOWED_USERS.includes(session.user.email.toLowerCase())) {
+          console.error('Unauthorized user attempted to sign in:', session.user.email);
+          await supabase.auth.signOut();
+          router.push('/auth?error=unauthorized');
+          return;
+        }
+
+        console.log('User authenticated successfully:', session.user.email);
+        
+        // Redirect to dashboard or homepage after successful login
+        router.push('/');
+      } catch (err) {
+        console.error('Error in auth callback:', err);
+        router.push('/auth?error=callback');
+      }
     };
 
     handleAuthCallback();

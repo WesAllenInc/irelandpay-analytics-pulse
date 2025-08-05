@@ -5,8 +5,8 @@ import { authRateLimiter } from "./lib/auth-rate-limiter";
 import { logRequest, debug, error as logError } from "./lib/edge-logging";
 import { validateCSRFToken, extractCSRFToken, refreshCSRFToken } from './lib/csrf';
 
-// DEVELOPMENT/DEMO MODE: Set to false to enable proper authentication
-const DEMO_MODE = false;
+// DEVELOPMENT/DEMO MODE: Set to true to bypass authentication temporarily
+const DEMO_MODE = true;
 
 // Executive users whitelist - only these 2 executives have access
 const EXECUTIVE_USERS = [

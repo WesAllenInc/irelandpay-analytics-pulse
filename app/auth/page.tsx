@@ -29,17 +29,22 @@ export default function AuthPage() {
     setMounted(true);
     
     const checkAuth = async () => {
+      console.log('🔍 Auth page - checking authentication...');
       const { data: { session } } = await supabase.auth.getSession();
       console.log('[AUTH PAGE] Session:', session);
       
       // Only redirect if user is truly authenticated
       if (session?.user?.email) {
+        console.log('✅ User has session with email:', session.user.email);
+        
         // Check if user is in the allowed list
         if (!ALLOWED_USERS.includes(session.user.email.toLowerCase())) {
           console.error('[AUTH PAGE] Unauthorized user:', session.user.email);
           await supabase.auth.signOut();
           return;
         }
+
+        console.log('✅ User is in allowed list');
 
         try {
           // User is authenticated and authorized, fetch role and redirect
@@ -58,21 +63,26 @@ export default function AuthPage() {
           if (agentData) {
             // Check if role column exists or use agent_role or other possible column names
             const userRole = agentData.role || agentData.agent_role || agentData.user_role || agentData.user_type || 'agent';
+            console.log('✅ User role:', userRole);
             // Redirect based on role
-            router.push(userRole === 'admin' ? '/dashboard' : '/leaderboard');
+            const redirectPath = userRole === 'admin' ? '/dashboard' : '/leaderboard';
+            console.log('🔄 Redirecting to:', redirectPath);
+            router.push(redirectPath);
           } else {
             // If no agent record exists but user is authenticated, create one
             try {
-                              const { error: insertError } = await supabase.from('agents').insert({
-                  email: session.user.email,
-                  agent_name: session.user?.user_metadata?.name || (session.user.email).split('@')[0],
-                  role: 'agent'
-                });
+              console.log('🔄 Creating new agent record...');
+              const { error: insertError } = await supabase.from('agents').insert({
+                email: session.user.email,
+                agent_name: session.user?.user_metadata?.name || (session.user.email).split('@')[0],
+                role: 'agent'
+              });
               
               if (insertError) {
                 console.error('[AUTH PAGE] Error creating agent record:', insertError);
                 router.push('/leaderboard'); 
               } else {
+                console.log('✅ Agent record created, redirecting to leaderboard');
                 router.push('/leaderboard');
               }
             } catch (err) {
@@ -87,6 +97,8 @@ export default function AuthPage() {
       } else if (session) {
         // Session exists but no user, log warning
         console.warn('[AUTH PAGE] Session exists but no user:', session);
+      } else {
+        console.log('❌ No session found, staying on auth page');
       }
     };
     
@@ -95,7 +107,11 @@ export default function AuthPage() {
     // Subscribe to auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
+        console.log('🔍 Auth state change event:', event, session?.user?.email);
+        
         if (event === 'SIGNED_IN' && session?.user?.email) {
+          console.log('✅ SIGNED_IN event with email:', session.user.email);
+          
           // Check if user is in the allowed list
           if (!ALLOWED_USERS.includes(session.user.email.toLowerCase())) {
             console.error('[AUTH PAGE] Unauthorized user signed in:', session.user.email);
@@ -110,7 +126,9 @@ export default function AuthPage() {
             .eq('email', session.user.email)
             .single();
           
-          router.push(data?.role === 'admin' ? '/dashboard' : '/leaderboard');
+          const redirectPath = data?.role === 'admin' ? '/dashboard' : '/leaderboard';
+          console.log('🔄 Auth state change redirecting to:', redirectPath);
+          router.push(redirectPath);
         } else if (event === 'SIGNED_IN' && session) {
           // Session exists but no user, log warning
           console.warn('[AUTH PAGE] SIGNED_IN event but no user:', session);

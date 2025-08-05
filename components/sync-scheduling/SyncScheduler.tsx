@@ -107,16 +107,18 @@ export function SyncScheduler({ className }: SyncSchedulerProps) {
         return `0 * * * *`; // At minute 0 of every hour
       case 'daily':
         return `${minutes} ${hours} * * *`; // At specified time every day
-      case 'weekly':
+      case 'weekly': {
         // Default to Monday if no days selected
         const dayNums = days.length 
           ? days.map(day => ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'].indexOf(day)) 
           : [1]; 
         return `${minutes} ${hours} * * ${dayNums.join(',')}`; // At specified time on specified days
-      case 'monthly':
+      }
+      case 'monthly': {
         // Default to 1st day if no date selected
         const dayOfMonth = date ? date.getDate() : 1;
         return `${minutes} ${hours} ${dayOfMonth} * *`; // At specified time on specified day of month
+      }
       default:
         return '0 0 * * *'; // Default to daily at midnight
     }

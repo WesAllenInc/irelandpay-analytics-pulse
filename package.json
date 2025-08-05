@@ -16,6 +16,7 @@
     "build:vercel": "cross-env NODE_ENV=production next build"
   },
   "dependencies": {
+    "@anthropic-ai/sdk": "^0.57.0",
     "@chakra-ui/icons": "^2.2.4",
     "@chakra-ui/react": "^3.21.0",
     "@emotion/react": "^11.14.0",

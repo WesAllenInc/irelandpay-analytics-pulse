@@ -4,10 +4,9 @@ import { createSupabaseServerClient } from "./lib/supabase";
 import { authRateLimiter } from "./lib/auth-rate-limiter";
 import { logRequest, debug, error as logError } from "./lib/edge-logging";
 import { validateCSRFToken, extractCSRFToken, refreshCSRFToken } from './lib/csrf';
-import { adminAuthMiddleware, isAdminRoute } from './middleware/admin-auth';
 
-// DEVELOPMENT/DEMO MODE: Set to true to bypass authentication for demo purposes
-const DEMO_MODE = true;
+// DEVELOPMENT/DEMO MODE: Set to false to enable proper authentication
+const DEMO_MODE = false;
 
 // Define public routes that don't need authentication
 const publicRoutes = [
@@ -21,6 +20,20 @@ const publicRoutes = [
   '/static',
   '/public'
 ];
+
+// Simple admin route check without importing the problematic middleware
+function isAdminRoute(pathname: string): boolean {
+  const adminPaths = [
+    '/admin',
+    '/settings/api-sync',
+    '/api/sync-irelandpay-crm',
+    '/api/admin',
+    '/dashboard/analytics',
+    '/dashboard/settings'
+  ];
+
+  return adminPaths.some(adminPath => pathname.startsWith(adminPath));
+}
 
 export async function middleware(request: NextRequest) {
   // DEMO MODE: Bypass all authentication checks
@@ -55,9 +68,10 @@ async function handleMiddleware(request: NextRequest) {
     return response;
   }
 
-  // Check if this is an admin route
+  // Check if this is an admin route - redirect to unauthorized for now
+  // We'll handle admin auth in API routes instead of middleware
   if (isAdminRoute(pathname)) {
-    return adminAuthMiddleware(request);
+    return NextResponse.redirect(new URL('/unauthorized', request.url));
   }
   
   // CSRF protection for state-changing operations

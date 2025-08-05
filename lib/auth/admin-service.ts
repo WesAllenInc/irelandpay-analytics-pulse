@@ -1,4 +1,4 @@
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient } from '@/lib/supabase';
 import { headers } from 'next/headers';
 import crypto from 'crypto';
 

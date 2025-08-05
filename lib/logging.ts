@@ -496,7 +496,7 @@ export const error = (message: string, metadata: LogMetadata = {}): void => {
  * Create a middleware for Express/Next.js API routes
  */
 export const createLoggerMiddleware = () => {
-  return (req: any, res: any, next: Function) => {
+  return (req: any, res: any, next: () => void) => {
     // Extract user ID from session if available
     const userId = req.session?.user?.id || req.user?.id;
     const requestObj = { ...req, userId };

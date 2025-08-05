@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/middleware/admin-auth';
 import { IrelandPaySyncManager } from '@/lib/sync/ireland-pay-sync-manager';
 import { DailySyncManager } from '@/lib/sync/daily-sync-manager';
-import { createClient } from '@/lib/supabase/server';
+import { createServerClient } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   // Check admin authorization

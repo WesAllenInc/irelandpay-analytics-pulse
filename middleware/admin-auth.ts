@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createMiddlewareClient } from '@supabase/auth-helpers-nextjs';
+import { createServerClient } from '@supabase/ssr';
 import { adminService } from '@/lib/auth/admin-service';
 
 export interface AdminContext {
@@ -10,7 +10,23 @@ export interface AdminContext {
 
 export async function adminAuthMiddleware(request: NextRequest) {
   const res = NextResponse.next();
-  const supabase = createMiddlewareClient({ req: request, res });
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: any) {
+          res.cookies.set(name, value, options);
+        },
+        remove(name: string, options: any) {
+          res.cookies.delete(name, options);
+        },
+      },
+    }
+  );
 
   // Check if user is authenticated
   const { data: { session } } = await supabase.auth.getSession();
@@ -59,7 +75,24 @@ export async function withAdminAuth(
   handler: (req: NextRequest, context: AdminContext) => Promise<NextResponse>
 ) {
   return async (req: NextRequest) => {
-    const supabase = createMiddlewareClient({ req: req, res: NextResponse.next() });
+    const res = NextResponse.next();
+    const supabase = createServerClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+      {
+        cookies: {
+          get(name: string) {
+            return req.cookies.get(name)?.value;
+          },
+          set(name: string, value: string, options: any) {
+            res.cookies.set(name, value, options);
+          },
+          remove(name: string, options: any) {
+            res.cookies.delete(name, options);
+          },
+        },
+      }
+    );
     
     // Get current user
     const { data: { user }, error } = await supabase.auth.getUser();
@@ -138,4 +171,79 @@ export async function validateAdminSession(sessionToken: string): Promise<any | 
 
   const session = await adminService.getAdminSession(sessionToken);
   return session;
+}
+
+// Simple admin check function for API routes
+export async function requireAdmin(request: NextRequest): Promise<NextResponse | null> {
+  const res = NextResponse.next();
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        get(name: string) {
+          return request.cookies.get(name)?.value;
+        },
+        set(name: string, value: string, options: any) {
+          res.cookies.set(name, value, options);
+        },
+        remove(name: string, options: any) {
+          res.cookies.delete(name, options);
+        },
+      },
+    }
+  );
+  
+  // Check if user is authenticated
+  const { data: { user }, error } = await supabase.auth.getUser();
+  
+  if (error || !user) {
+    return NextResponse.json(
+      { error: 'Unauthorized' },
+      { status: 401 }
+    );
+  }
+
+  // Check admin session token from cookie
+  const adminSessionToken = request.cookies.get('admin_session')?.value;
+  
+  if (adminSessionToken) {
+    const isValidSession = await adminService.validateAdminSession(adminSessionToken);
+    if (!isValidSession) {
+      // Clear invalid session cookie
+      res.cookies.delete('admin_session');
+      return NextResponse.json(
+        { error: 'Forbidden - Admin access required' },
+        { status: 403 }
+      );
+    }
+  } else {
+    // Check if user is admin
+    const isAdmin = await adminService.isAdmin(user.id);
+    if (!isAdmin) {
+      return NextResponse.json(
+        { error: 'Forbidden - Admin access required' },
+        { status: 403 }
+      );
+    }
+
+    // Create new admin session
+    try {
+      const adminSession = await adminService.createAdminSession(user.id);
+      res.cookies.set('admin_session', adminSession.session_token, {
+        httpOnly: true,
+        secure: process.env.NODE_ENV === 'production',
+        sameSite: 'strict',
+        maxAge: 60 * 60 * 24 // 24 hours
+      });
+    } catch (error) {
+      console.error('Error creating admin session:', error);
+      return NextResponse.json(
+        { error: 'Forbidden - Admin access required' },
+        { status: 403 }
+      );
+    }
+  }
+
+  return null; // No error, continue with the request
 } 

@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAdminAuth, AdminContext } from '@/middleware/admin-auth';
-import { createClient } from '@/lib/supabase/server';
+import { createSupabaseServerClient } from '@/lib/supabase';
 
 async function getSyncStatus(req: NextRequest, { admin }: AdminContext) {
   try {
-    const supabase = createClient();
+    const supabase = createSupabaseServerClient();
 
     // Get the latest sync log
     const { data: latestSync, error: syncError } = await supabase

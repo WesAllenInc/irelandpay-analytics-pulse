@@ -4,7 +4,7 @@ import { SyncFailureEmail } from '@/emails/SyncFailureEmail';
 import { DailySummaryEmail } from '@/emails/DailySummaryEmail';
 import { render } from '@react-email/render';
 import { format } from 'date-fns';
-import { createSupabaseServiceClient } from '@/lib/supabase/server';
+import { createSupabaseServiceClient } from '@/lib/supabase';
 
 // Types
 interface SyncSuccessData {

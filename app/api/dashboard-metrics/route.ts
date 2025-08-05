@@ -27,22 +27,24 @@ export async function GET(request: NextRequest) {
         endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);
         daysInPeriod = endDate.getDate();
         break;
-      case 'Quarterly':
+      case 'Quarterly': {
         const quarter = Math.floor(now.getMonth() / 3);
         startDate = new Date(now.getFullYear(), quarter * 3, 1);
         endDate = new Date(now.getFullYear(), (quarter + 1) * 3, 0);
         daysInPeriod = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
         break;
+      }
       case 'Yearly':
         startDate = new Date(now.getFullYear(), 0, 1);
         endDate = new Date(now.getFullYear(), 11, 31);
         daysInPeriod = 365;
         break;
-      case 'Lifetime':
+      case 'Lifetime': {
         startDate = new Date(2020, 0, 1); // Assuming data starts from 2020
         endDate = now;
         daysInPeriod = Math.ceil((endDate.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24));
         break;
+      }
       default:
         startDate = new Date(now.getFullYear(), now.getMonth(), 1);
         endDate = new Date(now.getFullYear(), now.getMonth() + 1, 0);

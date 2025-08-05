@@ -1,5 +1,5 @@
 import { IrelandPayCRMClient } from '@/lib/irelandpay-crm-client';
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseServerClient } from '@/lib/supabase';
 import { getGlobalProgressTracker } from './progress-tracker';
 import { SyncErrorRecovery } from './error-recovery';
 import { executeWithCircuitBreaker } from './circuit-breaker';

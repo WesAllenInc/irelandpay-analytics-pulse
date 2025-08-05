@@ -24,7 +24,8 @@ export async function getCsrfToken(forceRefresh = false): Promise<string> {
   }
 
   // Create a new promise to fetch the token
-  tokenPromise = new Promise(async (resolve, reject) => {
+  tokenPromise = new Promise((resolve, reject) => {
+    (async () => {
     try {
       // Check localStorage first (if available)
       if (typeof window !== 'undefined' && window.localStorage) {
@@ -71,6 +72,7 @@ export async function getCsrfToken(forceRefresh = false): Promise<string> {
       // Clear the promise so we can fetch again if needed
       tokenPromise = null;
     }
+    })();
   });
 
   return tokenPromise;

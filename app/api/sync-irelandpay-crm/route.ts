@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server'
-import { makeSupabaseServerClient } from '@lib/supabase-client'
+import { createSupabaseServiceClient } from '@/lib/supabase'
 import { executeWithResilience } from '@crm/resilience'
 import axios from 'axios'
 import { requireAdmin } from '@/middleware/admin-auth'
@@ -57,7 +57,7 @@ export async function POST(request: Request) {
   const adminError = await requireAdmin(request as any)
   if (adminError) return adminError
   
-  const supabase = makeSupabaseServerClient()
+  const supabase = createSupabaseServiceClient()
   
   try {
     // Validate request body against schema
@@ -169,7 +169,7 @@ export async function POST(request: Request) {
  * Get the status of sync operations
  */
 export async function GET(request: Request) {
-  const supabase = makeSupabaseServerClient()
+  const supabase = createSupabaseServiceClient()
   
   try {
     const { searchParams } = new URL(request.url)

@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
-import { createSupabaseServiceClient } from '@/lib/supabase/server'
+import { createSupabaseServiceClient } from '@/lib/supabase'
 
 export async function GET(request: Request) {
   // Verify cron secret for security

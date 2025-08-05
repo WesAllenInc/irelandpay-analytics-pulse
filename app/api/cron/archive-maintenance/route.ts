@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
-import { createSupabaseServiceClient } from '@/lib/supabase/server';
+import { createSupabaseServiceClient } from '@/lib/supabase';
 import { ArchiveManager } from '@/lib/archive/archive-manager';
 
 export async function GET(request: Request) {

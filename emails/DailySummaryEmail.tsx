@@ -13,10 +13,6 @@ import {
   Row,
   Section,
   Text,
-  Table,
-  Td,
-  Th,
-  Tr,
 } from '@react-email/components';
 import { format } from 'date-fns';
 
@@ -122,36 +118,36 @@ export const DailySummaryEmail = ({
             <Section style={syncsSection}>
               <Heading as="h2" style={h2}>Sync Details</Heading>
               
-              <Table style={table}>
-                <Tr style={tableHeader}>
-                  <Th style={th}>Time</Th>
-                  <Th style={th}>Type</Th>
-                  <Th style={th}>Status</Th>
-                  <Th style={th}>Merchants</Th>
-                  <Th style={th}>Transactions</Th>
-                  <Th style={th}>Duration</Th>
-                </Tr>
+              <table style={table}>
+                <tr style={tableHeader}>
+                  <th style={th}>Time</th>
+                  <th style={th}>Type</th>
+                  <th style={th}>Status</th>
+                  <th style={th}>Merchants</th>
+                  <th style={th}>Transactions</th>
+                  <th style={th}>Duration</th>
+                </tr>
                 {syncs.map((sync) => (
-                  <Tr key={sync.id} style={tableRow}>
-                    <Td style={td}>{format(sync.startTime, 'h:mm a')}</Td>
-                    <Td style={td}>{sync.type}</Td>
-                    <Td style={td}>
+                  <tr key={sync.id} style={tableRow}>
+                    <td style={td}>{format(sync.startTime, 'h:mm a')}</td>
+                    <td style={td}>{sync.type}</td>
+                    <td style={td}>
                       <Text style={getStatusStyle(sync.status)}>
                         {sync.status}
                       </Text>
-                    </Td>
-                    <Td style={td}>
+                    </td>
+                    <td style={td}>
                       {sync.merchantsNew + sync.merchantsUpdated}
-                    </Td>
-                    <Td style={td}>
+                    </td>
+                    <td style={td}>
                       {sync.transactionsCount.toLocaleString()}
-                    </Td>
-                    <Td style={td}>
+                    </td>
+                    <td style={td}>
                       {Math.round(sync.duration / 60000)}m
-                    </Td>
-                  </Tr>
+                    </td>
+                  </tr>
                 ))}
-              </Table>
+              </table>
             </Section>
           )}
 

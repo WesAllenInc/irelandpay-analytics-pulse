@@ -9,9 +9,9 @@ async function checkTableStructure() {
   try {
     console.log('🔍 Checking current table structure in Supabase...');
     
-    // Get environment variables
-    const supabaseUrl = process.env.ainmbbtycciukbjjdjtl_NEXT_PUBLIC_SUPABASE_URL;
-    const serviceRoleKey = process.env.ainmbbtycciukbjjdjtl_SUPABASE_SERVICE_ROLE_KEY;
+    // Get environment variables (standard names first, then prefixed)
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.ainmbbtycciukbjjdjtl_NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.ainmbbtycciukbjjdjtl_SUPABASE_SERVICE_ROLE_KEY;
     
     if (!supabaseUrl || !serviceRoleKey) {
       console.error('❌ Missing Supabase environment variables');

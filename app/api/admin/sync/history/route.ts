@@ -1,10 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAdminAuth, AdminContext } from '@/middleware/admin-auth';
-import { createClient } from '@/lib/supabase/server';
+import { createSupabaseServerClient } from '@/lib/supabase';
 
 async function getSyncHistory(req: NextRequest, { admin }: AdminContext) {
   try {
-    const supabase = createClient();
+    const supabase = createSupabaseServerClient();
 
     // Get sync history with pagination
     const { searchParams } = new URL(req.url);

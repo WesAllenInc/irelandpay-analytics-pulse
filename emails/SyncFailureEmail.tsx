@@ -13,8 +13,6 @@ import {
   Row,
   Section,
   Text,
-  Code,
-  Pre,
 } from '@react-email/components';
 import { format, formatDistanceToNow } from 'date-fns';
 
@@ -62,12 +60,12 @@ export const SyncFailureEmail = ({
 
           <Section style={errorSection}>
             <Heading as="h2" style={h2}>Error Details</Heading>
-            <Code style={errorCode}>{error.message}</Code>
+            <code style={errorCode}>{error.message}</code>
             
             {error.details && (
               <>
                 <Text style={errorLabel}>Additional Information:</Text>
-                <Pre style={errorDetails}>{JSON.stringify(error.details, null, 2)}</Pre>
+                <pre style={errorDetails}>{JSON.stringify(error.details, null, 2)}</pre>
               </>
             )}
           </Section>
@@ -98,9 +96,9 @@ export const SyncFailureEmail = ({
           {logs && logs.length > 0 && (
             <Section style={logsSection}>
               <Heading as="h3" style={h3}>Recent Logs</Heading>
-              <Pre style={logsContent}>
+              <pre style={logsContent}>
                 {logs.slice(-10).join('\n')}
-              </Pre>
+              </pre>
             </Section>
           )}
 

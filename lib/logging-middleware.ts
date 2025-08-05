@@ -104,7 +104,7 @@ export const withLogging = (
  * Use for App Router route handlers
  */
 export const withAppRouterLogging = (
-  handler: Function
+  handler: (...args: any[]) => Promise<any> | any
 ) => {
   return async (...args: any[]) => {
     const requestId = createId();

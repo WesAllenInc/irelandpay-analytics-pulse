@@ -107,7 +107,7 @@ function TradingViewWidgetComponent({
       let series: ISeriesApi<SeriesType> | null = null
       
       if (type === 'area') {
-        // @ts-ignore - Type definitions in lightweight-charts may be outdated
+        // @ts-expect-error - Type definitions in lightweight-charts may be outdated
         series = chart.addAreaSeries({
           lineColor: color,
           topColor: color,
@@ -124,7 +124,7 @@ function TradingViewWidgetComponent({
           },
         })
       } else if (type === 'line') {
-        // @ts-ignore - Type definitions in lightweight-charts may be outdated
+        // @ts-expect-error - Type definitions in lightweight-charts may be outdated
         series = chart.addLineSeries({
           color: color,
           lineWidth: 2,
@@ -148,7 +148,7 @@ function TradingViewWidgetComponent({
       
       // Initialize with default series if neither area nor line type was specified
       if (!series) {
-        // @ts-ignore - Type definitions in lightweight-charts may be outdated
+        // @ts-expect-error - Type definitions in lightweight-charts may be outdated
         series = chart.addAreaSeries({
           lineColor: color,
           topColor: color,
@@ -163,7 +163,7 @@ function TradingViewWidgetComponent({
 
       // Add volume if requested
       if (showVolume && data.some((d: ChartData) => d.volume !== undefined)) {
-        // @ts-ignore - Type definitions in lightweight-charts may be outdated
+        // @ts-expect-error - Type definitions in lightweight-charts may be outdated
         const volumeSeries = chart.addHistogramSeries({
           color: '#98971a', // Gruvbox green
           priceFormat: {

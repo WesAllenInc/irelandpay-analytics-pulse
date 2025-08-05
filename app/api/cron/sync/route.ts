@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { headers } from 'next/headers'
 import { performScheduledSync } from '@/lib/sync-manager'
-import { notifyAdmin } from '@/lib/email/notifications'
+// import { notifyAdmin } from '@/lib/email/notifications' // Temporarily disabled for deployment
 
 export async function GET(request: Request) {
   // Verify cron secret for security
@@ -35,14 +35,15 @@ export async function GET(request: Request) {
     console.error('Scheduled sync failed:', error)
     
     // Send notification to admin about the failure
-    try {
-      await notifyAdmin(
-        'Scheduled Sync Failed',
-        `The scheduled sync encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}`
-      )
-    } catch (notificationError) {
-      console.error('Failed to send notification:', notificationError)
-    }
+    // Temporarily disabled for deployment
+    // try {
+    //   await notifyAdmin(
+    //     'Scheduled Sync Failed',
+    //     `The scheduled sync encountered an error: ${error instanceof Error ? error.message : 'Unknown error'}`
+    //   )
+    // } catch (notificationError) {
+    //   console.error('Failed to send notification:', notificationError)
+    // }
     
     return NextResponse.json(
       { 

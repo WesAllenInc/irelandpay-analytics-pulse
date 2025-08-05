@@ -4,7 +4,7 @@ import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { createSupabaseBrowserClient } from '@/lib/supabase';
-import AuthCard from '@/components/Auth/AuthCard';
+import SimplifiedAuthCard from '@/components/Auth/SimplifiedAuthCard';
 import ScrambledText from '@/components/Auth/ScrambledText';
 
 // Dynamically import the ParticleBG component to avoid SSR issues
@@ -12,6 +12,12 @@ const ParticleBG = dynamic(() => import('@/components/Auth/ParticleBG'), {
   ssr: false,
   loading: () => <div className="absolute inset-0 bg-black/90" />
 });
+
+// Allowed users whitelist
+const ALLOWED_USERS = [
+  'wvazquez@irelandpay.com',
+  'jmarkey@irelandpay.com'
+];
 
 export default function AuthPage() {
   const [mounted, setMounted] = useState(false);
@@ -28,11 +34,18 @@ export default function AuthPage() {
       
       // Only redirect if user is truly authenticated
       if (session?.user?.email) {
+        // Check if user is in the allowed list
+        if (!ALLOWED_USERS.includes(session.user.email.toLowerCase())) {
+          console.error('[AUTH PAGE] Unauthorized user:', session.user.email);
+          await supabase.auth.signOut();
+          return;
+        }
+
         try {
-          // User is authenticated, fetch role and redirect
+          // User is authenticated and authorized, fetch role and redirect
           const { data: agentData, error: roleError } = await supabase
             .from('agents')
-            .select('*') // Select all columns to handle possible schema differences
+            .select('*')
             .eq('email', session.user.email)
             .single();
           
@@ -50,29 +63,26 @@ export default function AuthPage() {
           } else {
             // If no agent record exists but user is authenticated, create one
             try {
-              // Check if the table has a role column first
               const { error: insertError } = await supabase.from('agents').insert({
                 email: session.user.email,
                 agent_name: session.user?.user_metadata?.name || (session.user.email).split('@')[0],
-                // We'll exclude the role field if it causes issues
+                role: 'agent',
+                approval_status: 'approved' // Auto-approve whitelisted users
               });
               
               if (insertError) {
                 console.error('[AUTH PAGE] Error creating agent record:', insertError);
-                // Default redirect on error
                 router.push('/leaderboard'); 
               } else {
                 router.push('/leaderboard');
               }
             } catch (err) {
               console.error('[AUTH PAGE] Exception creating agent record:', err);
-              // Default redirect on exception
               router.push('/leaderboard');
             }
           }
         } catch (err) {
           console.error('[AUTH PAGE] Exception in auth flow:', err);
-          // Default redirect on any exception
           router.push('/leaderboard');
         }
       } else if (session) {
@@ -87,6 +97,13 @@ export default function AuthPage() {
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (event === 'SIGNED_IN' && session?.user?.email) {
+          // Check if user is in the allowed list
+          if (!ALLOWED_USERS.includes(session.user.email.toLowerCase())) {
+            console.error('[AUTH PAGE] Unauthorized user signed in:', session.user.email);
+            await supabase.auth.signOut();
+            return;
+          }
+
           // Redirect after sign in
           const { data } = await supabase
             .from('agents')
@@ -144,9 +161,9 @@ export default function AuthPage() {
           </div>
         </div>
         
-        {/* Auth Card */}
+        {/* Simplified Auth Card */}
         <div className="w-full max-w-md px-4">
-          <AuthCard className="bg-black/80 backdrop-blur-sm border-gray-800" />
+          <SimplifiedAuthCard className="bg-black/80 backdrop-blur-sm border-gray-800" />
         </div>
         
         {/* Footer */}

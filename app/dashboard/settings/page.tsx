@@ -7,6 +7,9 @@ import { Switch } from '@/components/ui/switch';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useState } from 'react';
 import { Label } from '@/components/ui/label';
+import { SyncProgressBar } from '@/components/sync/SyncProgressBar';
+import { IrelandPayCRMConfig } from '@/components/sync/IrelandPayCRMConfig';
+import { SyncHistory } from '@/components/sync/SyncHistory';
 import dynamic from 'next/dynamic';
 
 // Dynamically import the ParticleBG component to avoid SSR issues
@@ -101,94 +104,41 @@ const SettingsPage = () => {
 
         <TabsContent value="sync" className="space-y-6">
           <div className="space-y-8">
-            {/* Current Sync Status */}
+            {/* Ireland Pay CRM Configuration */}
             <div>
-              <h3 className="text-lg font-medium text-foreground mb-4">Current Sync Status</h3>
-              <div className="bg-card border-card-border rounded-lg p-4">
-                <p className="text-foreground">Sync status monitoring is being loaded...</p>
-                <div className="mt-4">
-                  <Button 
-                    onClick={() => console.log('Manual sync triggered')}
-                    className="bg-blue-600 hover:bg-blue-700"
-                  >
-                    Trigger Manual Sync
-                  </Button>
-                </div>
-              </div>
+              <h3 className="text-lg font-medium text-foreground mb-4">Ireland Pay CRM Configuration</h3>
+              <IrelandPayCRMConfig 
+                onConfigSave={(config) => {
+                  console.log('Configuration saved:', config);
+                  // Here you would typically save to your database
+                }}
+                onTestConnection={async (config) => {
+                  console.log('Testing connection with:', config);
+                  // Here you would typically test the actual API connection
+                  return true; // Simulate successful connection
+                }}
+              />
             </div>
             
-            {/* API Sync Settings */}
+            {/* Sync Progress & Monitoring */}
             <div>
-              <h3 className="text-lg font-medium text-foreground mb-4">API Configuration</h3>
-              <div className="bg-card border-card-border rounded-lg p-4">
-                <p className="text-foreground">API configuration settings are being loaded...</p>
-                <div className="mt-4 space-y-4">
-                  <div>
-                    <Label htmlFor="api-key" className="text-foreground-muted">API Key</Label>
-                    <Input
-                      id="api-key"
-                      type="password"
-                      placeholder="Enter your API key"
-                      className="bg-input border-input-border mt-1"
-                    />
-                  </div>
-                  <div>
-                    <Label htmlFor="base-url" className="text-foreground-muted">Base URL</Label>
-                    <Input
-                      id="base-url"
-                      placeholder="https://api.irelandpay.com"
-                      className="bg-input border-input-border mt-1"
-                    />
-                  </div>
-                  <Button className="bg-green-600 hover:bg-green-700">
-                    Test Connection
-                  </Button>
-                </div>
-              </div>
+              <h3 className="text-lg font-medium text-foreground mb-4">Sync Progress & Monitoring</h3>
+              <SyncProgressBar 
+                onSyncComplete={(result) => {
+                  console.log('Sync completed:', result);
+                  // Here you would typically update your database or show success message
+                }}
+                onSyncError={(error) => {
+                  console.error('Sync error:', error);
+                  // Here you would typically show error message or retry logic
+                }}
+              />
             </div>
             
-            {/* Sync Scheduler */}
+            {/* Sync History */}
             <div>
-              <h3 className="text-lg font-medium text-foreground mb-4">Sync Scheduling</h3>
-              <div className="bg-card border-card-border rounded-lg p-4">
-                <p className="text-foreground">Sync scheduling interface is being loaded...</p>
-                <div className="mt-4 space-y-4">
-                  <div className="flex items-center space-x-2">
-                    <Switch id="auto-sync" />
-                    <Label htmlFor="auto-sync" className="text-foreground">Enable Automatic Sync</Label>
-                  </div>
-                  <div>
-                    <Label htmlFor="sync-frequency" className="text-foreground-muted">Sync Frequency</Label>
-                    <select 
-                      id="sync-frequency"
-                      aria-label="Select sync frequency"
-                      className="bg-input border-input-border rounded-md px-3 py-2 mt-1 w-full"
-                    >
-                      <option value="daily">Daily</option>
-                      <option value="weekly">Weekly</option>
-                      <option value="monthly">Monthly</option>
-                    </select>
-                  </div>
-                </div>
-              </div>
-            </div>
-            
-            {/* Sync Analytics */}
-            <div>
-              <h3 className="text-lg font-medium text-foreground mb-4">Sync Analytics & Monitoring</h3>
-              <div className="bg-card border-card-border rounded-lg p-4">
-                <p className="text-foreground">Sync analytics dashboard is being loaded...</p>
-                <div className="mt-4 grid grid-cols-2 gap-4">
-                  <div className="bg-green-100 dark:bg-green-900 p-3 rounded">
-                    <p className="text-sm font-medium">Success Rate</p>
-                    <p className="text-2xl font-bold text-green-600">98%</p>
-                  </div>
-                  <div className="bg-blue-100 dark:bg-blue-900 p-3 rounded">
-                    <p className="text-sm font-medium">Last Sync</p>
-                    <p className="text-sm">2 hours ago</p>
-                  </div>
-                </div>
-              </div>
+              <h3 className="text-lg font-medium text-foreground mb-4">Sync History</h3>
+              <SyncHistory />
             </div>
           </div>
         </TabsContent>

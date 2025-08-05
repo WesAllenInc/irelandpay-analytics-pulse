@@ -55,9 +55,41 @@ export default function AuthCallbackPage() {
         console.log('✅ User authenticated successfully:', session.user.email);
         console.log('✅ User metadata:', session.user.user_metadata);
         
-        // Redirect to dashboard or homepage after successful login
-        console.log('🔄 Redirecting to dashboard...');
-        router.push('/');
+        // Get user role to determine redirect path
+        const { data: agentData, error: roleError } = await supabase
+          .from('agents')
+          .select('role')
+          .eq('email', session.user.email)
+          .single();
+        
+        if (roleError) {
+          console.log('⚠️ No agent record found, creating one...');
+          // Create agent record if it doesn't exist
+          const { error: insertError } = await supabase.from('agents').insert({
+            email: session.user.email,
+            agent_name: session.user?.user_metadata?.name || session.user.email.split('@')[0],
+            role: 'agent'
+          });
+          
+          if (insertError) {
+            console.error('❌ Error creating agent record:', insertError);
+            router.push('/leaderboard');
+            return;
+          }
+          
+          console.log('✅ Agent record created');
+          router.push('/leaderboard');
+          return;
+        }
+        
+        // Determine redirect path based on role
+        const userRole = agentData.role || 'agent';
+        const redirectPath = userRole === 'admin' ? '/dashboard' : '/leaderboard';
+        
+        console.log('✅ User role:', userRole);
+        console.log('🔄 Redirecting to:', redirectPath);
+        router.push(redirectPath);
+        
       } catch (err) {
         console.error('❌ Error in auth callback:', err);
         router.push('/auth?error=callback');

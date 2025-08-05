@@ -3,6 +3,7 @@
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 // Allowed users whitelist
 const ALLOWED_USERS = [
@@ -61,8 +62,10 @@ export default function AuthCallbackPage() {
         
         if (isExecutive) {
           console.log('✅ Executive user detected, redirecting to dashboard');
-          // Use window.location.href for server-side redirect to ensure session is established
-          window.location.href = '/dashboard';
+          // Use direct redirect with a delay to ensure session is established
+          setTimeout(() => {
+            window.location.href = '/dashboard';
+          }, 2000);
           return;
         }
         
@@ -84,12 +87,16 @@ export default function AuthCallbackPage() {
           
           if (insertError) {
             console.error('❌ Error creating agent record:', insertError);
-            window.location.href = '/leaderboard';
+            setTimeout(() => {
+              window.location.href = '/leaderboard';
+            }, 2000);
             return;
           }
           
           console.log('✅ Agent record created');
-          window.location.href = '/leaderboard';
+          setTimeout(() => {
+            window.location.href = '/leaderboard';
+          }, 2000);
           return;
         }
         
@@ -99,7 +106,9 @@ export default function AuthCallbackPage() {
         
         console.log('✅ User role:', userRole);
         console.log('🔄 Redirecting to:', redirectPath);
-        window.location.href = redirectPath;
+        setTimeout(() => {
+          window.location.href = redirectPath;
+        }, 2000);
         
       } catch (err) {
         console.error('❌ Error in auth callback:', err);
@@ -111,11 +120,12 @@ export default function AuthCallbackPage() {
   }, [router, supabase.auth]);
 
   return (
-    <div className="flex items-center justify-center min-h-screen">
+    <div className="flex items-center justify-center min-h-screen bg-black">
       <div className="text-center">
-        <h2 className="text-xl font-semibold">Logging you in...</h2>
-        <p className="mt-2">Please wait while we complete the authentication process.</p>
-        <p className="mt-2 text-sm text-gray-500">Check browser console for debugging info</p>
+        <LoadingSpinner size="lg" className="mx-auto mb-6" />
+        <h2 className="text-xl font-semibold text-white mb-2">Logging you in...</h2>
+        <p className="text-gray-300 mb-4">Please wait while we complete the authentication process.</p>
+        <p className="text-sm text-gray-500">Check browser console for debugging info</p>
       </div>
     </div>
   );

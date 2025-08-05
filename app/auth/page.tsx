@@ -6,6 +6,7 @@ import dynamic from 'next/dynamic';
 import { createSupabaseBrowserClient } from '@/lib/supabase';
 import SimplifiedAuthCard from '@/components/Auth/SimplifiedAuthCard';
 import ScrambledText from '@/components/Auth/ScrambledText';
+import LoadingSpinner from '@/components/ui/LoadingSpinner';
 
 // Dynamically import the ParticleBG component to avoid SSR issues
 const ParticleBG = dynamic(() => import('@/components/Auth/ParticleBG'), {
@@ -21,6 +22,7 @@ const ALLOWED_USERS = [
 
 export default function AuthPage() {
   const [mounted, setMounted] = useState(false);
+  const [isRedirecting, setIsRedirecting] = useState(false);
   const router = useRouter();
   const supabase = createSupabaseBrowserClient();
   
@@ -33,8 +35,8 @@ export default function AuthPage() {
       const { data: { session } } = await supabase.auth.getSession();
       console.log('[AUTH PAGE] Session:', session);
       
-      // Only redirect if user is truly authenticated
-      if (session?.user?.email) {
+      // Only redirect if user is truly authenticated and not already redirecting
+      if (session?.user?.email && !isRedirecting) {
         console.log('✅ User has session with email:', session.user.email);
         
         // Check if user is in the allowed list
@@ -54,8 +56,11 @@ export default function AuthPage() {
           if (isExecutive) {
             console.log('✅ Executive user detected, granting admin access');
             console.log('🔄 Redirecting executive to dashboard');
-            // Use window.location.href for server-side redirect
-            window.location.href = '/dashboard';
+            setIsRedirecting(true);
+            // Use direct redirect with delay to ensure session is established
+            setTimeout(() => {
+              window.location.href = '/dashboard';
+            }, 2000);
             return;
           }
           
@@ -79,8 +84,11 @@ export default function AuthPage() {
             // Redirect based on role
             const redirectPath = userRole === 'admin' ? '/dashboard' : '/leaderboard';
             console.log('🔄 Redirecting to:', redirectPath);
-            // Use window.location.href for server-side redirect
-            window.location.href = redirectPath;
+            setIsRedirecting(true);
+            // Use direct redirect with delay to ensure session is established
+            setTimeout(() => {
+              window.location.href = redirectPath;
+            }, 2000);
           } else {
             // If no agent record exists but user is authenticated, create one
             try {
@@ -93,19 +101,31 @@ export default function AuthPage() {
               
               if (insertError) {
                 console.error('[AUTH PAGE] Error creating agent record:', insertError);
-                window.location.href = '/leaderboard'; 
+                setIsRedirecting(true);
+                setTimeout(() => {
+                  window.location.href = '/leaderboard';
+                }, 2000);
               } else {
                 console.log('✅ Agent record created, redirecting to leaderboard');
-                window.location.href = '/leaderboard';
+                setIsRedirecting(true);
+                setTimeout(() => {
+                  window.location.href = '/leaderboard';
+                }, 2000);
               }
             } catch (err) {
               console.error('[AUTH PAGE] Exception creating agent record:', err);
-              window.location.href = '/leaderboard';
+              setIsRedirecting(true);
+              setTimeout(() => {
+                window.location.href = '/leaderboard';
+              }, 2000);
             }
           }
         } catch (err) {
           console.error('[AUTH PAGE] Exception in auth flow:', err);
-          window.location.href = '/leaderboard';
+          setIsRedirecting(true);
+          setTimeout(() => {
+            window.location.href = '/leaderboard';
+          }, 2000);
         }
       } else if (session) {
         // Session exists but no user, log warning
@@ -122,7 +142,7 @@ export default function AuthPage() {
       async (event, session) => {
         console.log('🔍 Auth state change event:', event, session?.user?.email);
         
-        if (event === 'SIGNED_IN' && session?.user?.email) {
+        if (event === 'SIGNED_IN' && session?.user?.email && !isRedirecting) {
           console.log('✅ SIGNED_IN event with email:', session.user.email);
           
           // Check if user is in the allowed list
@@ -138,7 +158,10 @@ export default function AuthPage() {
           
           if (isExecutive) {
             console.log('✅ Executive user signed in, redirecting to dashboard');
-            window.location.href = '/dashboard';
+            setIsRedirecting(true);
+            setTimeout(() => {
+              window.location.href = '/dashboard';
+            }, 2000);
             return;
           }
           
@@ -151,7 +174,10 @@ export default function AuthPage() {
           
           const redirectPath = data?.role === 'admin' ? '/dashboard' : '/leaderboard';
           console.log('🔄 Auth state change redirecting to:', redirectPath);
-          window.location.href = redirectPath;
+          setIsRedirecting(true);
+          setTimeout(() => {
+            window.location.href = redirectPath;
+          }, 2000);
         } else if (event === 'SIGNED_IN' && session) {
           // Session exists but no user, log warning
           console.warn('[AUTH PAGE] SIGNED_IN event but no user:', session);
@@ -168,6 +194,19 @@ export default function AuthPage() {
   const colors = ['#d79921', '#98971a', '#458588', '#b16286', '#689d6a', '#d65d0e'];
 
   if (!mounted) return null;
+
+  // Show loading spinner if redirecting
+  if (isRedirecting) {
+    return (
+      <main className="min-h-screen w-full flex flex-col justify-center items-center relative bg-black">
+        <div className="text-center">
+          <LoadingSpinner size="lg" className="mx-auto mb-6" />
+          <h2 className="text-xl font-semibold text-white mb-2">Redirecting...</h2>
+          <p className="text-gray-300">Please wait while we redirect you to your dashboard.</p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="min-h-screen w-full flex flex-col justify-center items-center relative bg-black">

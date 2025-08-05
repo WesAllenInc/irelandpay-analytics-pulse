@@ -1,4 +1,4 @@
-import { createSupabaseClient } from '@/lib/supabase';
+import { createSupabaseBrowserClient } from '@/lib/supabase';
 
 export interface AdminUser {
   user_id: string;
@@ -34,7 +34,7 @@ export interface AuditLogEntry {
 }
 
 export class AdminServiceClient {
-  private supabase = createClient();
+  private supabase = createSupabaseBrowserClient();
 
   /**
    * Check if a user is an admin

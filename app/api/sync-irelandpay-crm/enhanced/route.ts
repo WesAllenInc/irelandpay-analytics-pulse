@@ -2,14 +2,14 @@ import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/middleware/admin-auth';
 import { IrelandPaySyncManager } from '@/lib/sync/ireland-pay-sync-manager';
 import { DailySyncManager } from '@/lib/sync/daily-sync-manager';
-import { createServerClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase';
 
 export async function POST(request: Request) {
   // Check admin authorization
   const adminError = await requireAdmin(request as any);
   if (adminError) return adminError;
 
-  const supabase = createClient();
+  const supabase = createSupabaseServerClient();
 
   try {
     const body = await request.json();
@@ -149,7 +149,7 @@ export async function GET(request: Request) {
   const adminError = await requireAdmin(request as any);
   if (adminError) return adminError;
 
-  const supabase = createClient();
+  const supabase = createSupabaseServerClient();
   const { searchParams } = new URL(request.url);
   const syncId = searchParams.get('syncId');
 

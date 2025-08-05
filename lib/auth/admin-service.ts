@@ -1,4 +1,4 @@
-import { createServerClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase';
 import { headers } from 'next/headers';
 import crypto from 'crypto';
 
@@ -36,7 +36,7 @@ export interface AuditLogEntry {
 }
 
 export class AdminService {
-  private supabase = createClient();
+  private supabase = createSupabaseServerClient();
 
   /**
    * Check if a user is an admin

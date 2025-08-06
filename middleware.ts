@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { createSupabaseMiddlewareClient } from "./lib/supabase/middleware-client";
+import { createSupabaseServerClient } from "./lib/supabase";
 import { authRateLimiter } from "./lib/auth-rate-limiter";
 import { logRequest, debug, error as logError } from "./lib/edge-logging";
 import { validateCSRFToken, extractCSRFToken, refreshCSRFToken } from './lib/csrf';
 import { hasAdminAccess } from "./lib/auth/executive-check";
 
 // DEVELOPMENT/DEMO MODE: Set to true to bypass authentication temporarily
-const DEMO_MODE = false;
+const DEMO_MODE = true;
 
 // Define public routes that don't need authentication
 const publicRoutes = [
@@ -69,8 +69,8 @@ async function handleMiddleware(request: NextRequest) {
     return response;
   }
 
-  // Get Supabase middleware client with service role permissions
-  const supabase = createSupabaseMiddlewareClient();
+  // Get Supabase server client
+  const supabase = createSupabaseServerClient();
   const { data: { session } } = await supabase.auth.getSession();
   
   // Log request with safe metadata only

@@ -48,8 +48,9 @@ class IrelandPayCRMSync:
         self.supabase: Client = create_client(self.supabase_url, self.supabase_key)
         self.base_url = "https://crm.ireland-pay.com/api/v1"
         self.headers = {
-            'Authorization': f'Bearer {self.api_key}',
-            'Content-Type': 'application/json'
+            'X-API-KEY': self.api_key,
+            'Content-Type': 'application/json',
+            'Accept': 'application/json'
         }
         
         logger.info("Ireland Pay CRM Sync initialized")
@@ -171,9 +172,8 @@ class IrelandPayCRMSync:
         try:
             # Get residuals summary from Ireland Pay CRM
             response = requests.get(
-                f"{self.base_url}/residuals/summary",
+                f"{self.base_url}/residuals/reports/summary/{year}/{month}",
                 headers=self.headers,
-                params={'year': year, 'month': month},
                 timeout=30
             )
             

@@ -59,7 +59,7 @@ This document provides an overview of the different API integrations used in the
 | **Primary Use** | Analytics data source | Legacy system (deprecated) |
 | **Integration Status** | Fully integrated | Deprecated |
 | **Data Types** | Merchants, Residuals, Transactions | Merchants, Residuals, Transactions |
-| **Authentication** | Bearer token | X-API-KEY |
+| **Authentication** | X-API-KEY | X-API-KEY |
 | **Rate Limit** | 500 req/min | 500 req/min |
 | **Base URL** | `https://crm.ireland-pay.com/api/v1` | `https://iriscrm.com/api/v1` |
 

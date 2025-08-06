@@ -6,7 +6,7 @@ This document summarizes the migration from Iris CRM API to Ireland Pay CRM API 
 
 ### What Changed
 - **Primary API**: Migrated from `https://iriscrm.com/api/v1` to `https://crm.ireland-pay.com/api/v1`
-- **Authentication**: Changed from X-API-KEY to Bearer token authentication
+- **Authentication**: Maintained X-API-KEY header authentication (no change)
 - **Client Library**: Updated from `IRISCRMClient` to `IrelandPayCRMClient`
 - **Sync Manager**: Updated from `IRISCRMSyncManager` to `IrelandPayCRMSyncManager`
 - **UI Components**: Updated from `IRISCRMSync` to `IrelandPayCRMSync`

@@ -71,26 +71,30 @@
   body {
     @apply bg-background text-foreground font-sans;
     font-family: var(--font-sora), sans-serif;
+    background: linear-gradient(135deg, hsl(var(--background)) 0%, hsl(var(--background-secondary)) 100%);
+    min-height: 100vh;
   }
 }
 
-/* Custom scrollbar */
+/* Enhanced scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 10px;
+  height: 10px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #1d2021;
+  background: hsl(var(--background-secondary));
+  border-radius: 5px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #504945;
-  border-radius: 4px;
+  background: hsl(var(--border));
+  border-radius: 5px;
+  border: 2px solid hsl(var(--background-secondary));
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #665c54;
+  background: hsl(var(--muted-foreground));
 }
 
 /* Chart container styles */
@@ -98,7 +102,7 @@
   position: relative;
 }
 
-/* Loading animation */
+/* Enhanced loading animation */
 @keyframes pulse {
   0%, 100% {
     opacity: 1;
@@ -108,8 +112,23 @@
   }
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: -200px 0;
+  }
+  100% {
+    background-position: calc(200px + 100%) 0;
+  }
+}
+
 .animate-pulse {
   animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-shimmer {
+  animation: shimmer 2s infinite linear;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+  background-size: 200px 100%;
 }
 
 /* Chart legend color dots */
@@ -129,4 +148,122 @@
 
 .chart-tooltip:not(.tooltip-left) {
   transform: none;
+}
+
+/* Enhanced shadows */
+.shadow-2xl {
+  box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+}
+
+.shadow-3xl {
+  box-shadow: 0 35px 60px -12px rgba(0, 0, 0, 0.35);
+}
+
+/* Glass morphism effects */
+.glass {
+  background: rgba(255, 255, 255, 0.05);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-dark {
+  background: rgba(0, 0, 0, 0.2);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+/* Enhanced focus states */
+.focus-ring {
+  @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background;
+}
+
+/* Smooth transitions */
+.transition-all {
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+/* Enhanced button styles */
+.btn-primary {
+  @apply bg-primary text-primary-foreground hover:bg-primary/90 focus:ring-2 focus:ring-primary focus:ring-offset-2 transition-all duration-200;
+}
+
+.btn-secondary {
+  @apply bg-secondary text-secondary-foreground hover:bg-secondary/80 focus:ring-2 focus:ring-secondary focus:ring-offset-2 transition-all duration-200;
+}
+
+/* Card enhancements */
+.card-hover {
+  @apply transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:bg-card-hover;
+}
+
+/* Input enhancements */
+.input-enhanced {
+  @apply bg-input/50 border-input-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-200;
+}
+
+/* Badge enhancements */
+.badge-enhanced {
+  @apply px-2 py-1 text-xs font-medium rounded-full transition-all duration-200;
+}
+
+/* Progress bar enhancements */
+.progress-enhanced {
+  @apply h-3 bg-muted/50 rounded-full overflow-hidden;
+}
+
+.progress-enhanced .progress-fill {
+  @apply h-full bg-gradient-to-r from-primary to-primary/80 rounded-full transition-all duration-500 ease-out;
+}
+
+/* Animation utilities */
+.fade-in {
+  animation: fadeIn 0.5s ease-out;
+}
+
+.slide-up {
+  animation: slideUp 0.5s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* Responsive utilities */
+@media (max-width: 768px) {
+  .mobile-hidden {
+    display: none;
+  }
+  
+  .mobile-full {
+    width: 100%;
+  }
+}
+
+/* Print styles */
+@media print {
+  .no-print {
+    display: none !important;
+  }
+  
+  .print-break {
+    page-break-before: always;
+  }
 }

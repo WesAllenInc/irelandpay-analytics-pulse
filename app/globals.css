@@ -176,7 +176,7 @@
 
 /* Enhanced focus states */
 .focus-ring {
-  @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 focus:ring-offset-background;
+  @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
 }
 
 /* Smooth transitions */
@@ -195,12 +195,12 @@
 
 /* Card enhancements */
 .card-hover {
-  @apply transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:bg-card-hover;
+  @apply transition-all duration-300 hover:shadow-lg hover:scale-[1.02] hover:bg-muted/50;
 }
 
 /* Input enhancements */
 .input-enhanced {
-  @apply bg-input/50 border-input-border/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-200;
+  @apply bg-input/50 border-input/50 focus:border-primary/50 focus:ring-2 focus:ring-primary/20 transition-all duration-200;
 }
 
 /* Badge enhancements */

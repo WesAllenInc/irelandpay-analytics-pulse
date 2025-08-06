@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { createSupabaseMiddlewareClient } from "./lib/supabase/middleware";
+import { createSupabaseMiddlewareClient } from "./lib/supabase/middleware-client";
 import { authRateLimiter } from "./lib/auth-rate-limiter";
 import { logRequest, debug, error as logError } from "./lib/edge-logging";
 import { validateCSRFToken, extractCSRFToken, refreshCSRFToken } from './lib/csrf';

@@ -7,7 +7,7 @@ import { validateCSRFToken, extractCSRFToken, refreshCSRFToken } from './lib/csr
 import { hasAdminAccess } from "./lib/auth/executive-check";
 
 // DEVELOPMENT/DEMO MODE: Set to true to bypass authentication temporarily
-const DEMO_MODE = true;
+const DEMO_MODE = false;
 
 // Define public routes that don't need authentication
 const publicRoutes = [

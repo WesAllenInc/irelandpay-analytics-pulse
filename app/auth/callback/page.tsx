@@ -4,12 +4,7 @@ import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { createSupabaseBrowserClient } from '@/lib/supabase';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
-
-// Allowed users whitelist
-const ALLOWED_USERS = [
-  'wvazquez@irelandpay.com',
-  'jmarkey@irelandpay.com'
-];
+import { hasAdminAccess } from '@/lib/auth/executive-check';
 
 export default function AuthCallbackPage() {
   const router = useRouter();
@@ -44,32 +39,21 @@ export default function AuthCallbackPage() {
         }
 
         console.log('✅ User email found:', session.user.email);
-
-        // Check if user is in the allowed list
-        if (!ALLOWED_USERS.includes(session.user.email.toLowerCase())) {
-          console.error('❌ Unauthorized user attempted to sign in:', session.user.email);
-          await supabase.auth.signOut();
-          window.location.href = '/auth?error=unauthorized';
-          return;
-        }
-
         console.log('✅ User authenticated successfully:', session.user.email);
         console.log('✅ User metadata:', session.user.user_metadata);
         
-        // Check if user is an executive first
-        const { isExecutiveUser } = await import('@/lib/auth/executive-check');
-        const isExecutive = isExecutiveUser(session.user.email);
+        // Check if user has admin access
+        const isAdmin = await hasAdminAccess(session.user.email, supabase);
         
-        if (isExecutive) {
-          console.log('✅ Executive user detected, redirecting to dashboard');
-          // Use direct redirect with a delay to ensure session is established
+        if (isAdmin) {
+          console.log('✅ User has admin access, redirecting to dashboard');
           setTimeout(() => {
             window.location.href = '/dashboard';
           }, 2000);
           return;
         }
         
-        // Get user role to determine redirect path for non-executive users
+        // For non-admin users, check database role
         const { data: agentData, error: roleError } = await supabase
           .from('agents')
           .select('role')

@@ -189,9 +189,20 @@ class IrelandPayCRMSync:
             # Process residuals data
             for merchant_id, residual_info in residuals_data.items():
                 try:
+                    # Get the merchant UUID from the database
+                    merchant_result = self.supabase.table("merchants").select("id").eq("merchant_id", merchant_id).execute()
+                    
+                    if not merchant_result.data:
+                        logger.warning(f"Merchant {merchant_id} not found in database, skipping residual")
+                        results["residuals_failed"] += 1
+                        results["errors"].append(f"Merchant {merchant_id} not found in database")
+                        continue
+                    
+                    merchant_uuid = merchant_result.data[0]["id"]
+                    
                     # Transform residual data to match our schema
                     transformed_residual = self._transform_residual_data(
-                        merchant_id, residual_info, year, month
+                        merchant_uuid, residual_info, year, month
                     )
                     
                     # Upsert to database
@@ -305,14 +316,26 @@ class IrelandPayCRMSync:
                             total_volume += float(volume)
                             total_transactions += 1
                     
+                    # Get the merchant UUID from the database
+                    merchant_result = self.supabase.table("merchants").select("id").eq("merchant_id", merchant_id).execute()
+                    
+                    if not merchant_result.data:
+                        logger.warning(f"Merchant {merchant_id} not found in database, skipping volume")
+                        results["volumes_failed"] += 1
+                        results["errors"].append(f"Merchant {merchant_id} not found in database")
+                        continue
+                    
+                    merchant_uuid = merchant_result.data[0]["id"]
+                    
                     # Transform volume data to match our schema
                     transformed_volume = {
-                        "mid": merchant_id,
-                        "month": f"{year}-{month:02d}-01",
-                        "total_txns": total_transactions,
-                        "total_volume": total_volume,
-                        "source": "irelandpay_crm_api",
-                        "synced_at": datetime.now().isoformat()
+                        "merchant_id": merchant_uuid,
+                        "processing_month": f"{year}-{month:02d}-01",
+                        "gross_volume": total_volume,
+                        "transaction_count": total_transactions,
+                        "avg_ticket": total_volume / total_transactions if total_transactions > 0 else 0,
+                        "created_at": datetime.now().isoformat(),
+                        "updated_at": datetime.now().isoformat()
                     }
                     
                     # Upsert to database
@@ -353,20 +376,11 @@ class IrelandPayCRMSync:
             Transformed merchant data
         """
         return {
-            "mid": merchant.get("mid"),
-            "datasource": merchant.get("datasource", "irelandpay_crm"),
-            "merchant_dba": merchant.get("name"),
-            "opened": merchant.get("opened"),
-            "closed": merchant.get("closed"),
-            "status": merchant.get("status"),
-            "active": merchant.get("active"),
-            "group": merchant.get("group"),
+            "merchant_id": merchant.get("mid"),  # Map mid to merchant_id
+            "dba_name": merchant.get("name"),    # Map name to dba_name
             "processor": merchant.get("processor"),
-            "sic_code": merchant.get("sic_code"),
-            "vim": merchant.get("vim"),
-            "created": merchant.get("created"),
-            "modified": merchant.get("modified"),
-            "synced_at": datetime.now().isoformat()
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat()
         }
     
     def _transform_residual_data(self, merchant_id: str, residual_info: Dict, year: int, month: int) -> Dict:
@@ -382,19 +396,16 @@ class IrelandPayCRMSync:
             Transformed residual data
         """
         return {
-            "mid": merchant_id,
-            "merchant_dba": residual_info.get("merchant_name"),
-            "payout_month": f"{year}-{month:02d}-01",
-            "transactions": residual_info.get("transactions", 0),
-            "sales_amount": residual_info.get("sales_amount", 0),
-            "income": residual_info.get("income", 0),
-            "expenses": residual_info.get("expenses", 0),
-            "net_profit": residual_info.get("net_profit", 0),
-            "bps": residual_info.get("bps", 0),
-            "commission_pct": residual_info.get("commission_pct", 0),
-            "agent_net": residual_info.get("agent_net", 0),
-            "source": "irelandpay_crm_api",
-            "synced_at": datetime.now().isoformat()
+            "merchant_id": merchant_id,  # This will need to be the UUID from merchants table
+            "processing_month": f"{year}-{month:02d}-01",
+            "net_residual": residual_info.get("net_profit", 0),
+            "fees_deducted": residual_info.get("expenses", 0),
+            "final_residual": residual_info.get("income", 0),
+            "office_bps": residual_info.get("bps", 0),
+            "agent_bps": residual_info.get("agent_net", 0),
+            "processor_residual": residual_info.get("sales_amount", 0),
+            "created_at": datetime.now().isoformat(),
+            "updated_at": datetime.now().isoformat()
         }
     
     def _upsert_merchant(self, merchant_data: Dict) -> Dict:
@@ -408,11 +419,11 @@ class IrelandPayCRMSync:
         """
         try:
             # Check if merchant exists
-            existing = self.supabase.table("merchants").select("*").eq("mid", merchant_data["mid"]).execute()
+            existing = self.supabase.table("merchants").select("*").eq("merchant_id", merchant_data["merchant_id"]).execute()
             
             if existing.data:
                 # Update existing merchant
-                result = self.supabase.table("merchants").update(merchant_data).eq("mid", merchant_data["mid"]).execute()
+                result = self.supabase.table("merchants").update(merchant_data).eq("merchant_id", merchant_data["merchant_id"]).execute()
                 return {"success": True, "action": "updated"}
             else:
                 # Insert new merchant
@@ -434,15 +445,15 @@ class IrelandPayCRMSync:
         """
         try:
             # Check if residual exists
-            existing = self.supabase.table("residual_payouts").select("*").eq("mid", residual_data["mid"]).eq("payout_month", residual_data["payout_month"]).execute()
+            existing = self.supabase.table("residuals").select("*").eq("merchant_id", residual_data["merchant_id"]).eq("processing_month", residual_data["processing_month"]).execute()
             
             if existing.data:
                 # Update existing residual
-                result = self.supabase.table("residual_payouts").update(residual_data).eq("mid", residual_data["mid"]).eq("payout_month", residual_data["payout_month"]).execute()
+                result = self.supabase.table("residuals").update(residual_data).eq("merchant_id", residual_data["merchant_id"]).eq("processing_month", residual_data["processing_month"]).execute()
                 return {"success": True, "action": "updated"}
             else:
                 # Insert new residual
-                result = self.supabase.table("residual_payouts").insert(residual_data).execute()
+                result = self.supabase.table("residuals").insert(residual_data).execute()
                 return {"success": True, "action": "inserted"}
                 
         except Exception as e:
@@ -460,15 +471,15 @@ class IrelandPayCRMSync:
         """
         try:
             # Check if volume exists
-            existing = self.supabase.table("merchant_metrics").select("*").eq("mid", volume_data["mid"]).eq("month", volume_data["month"]).execute()
+            existing = self.supabase.table("merchant_processing_volumes").select("*").eq("merchant_id", volume_data["merchant_id"]).eq("processing_month", volume_data["processing_month"]).execute()
             
             if existing.data:
                 # Update existing volume
-                result = self.supabase.table("merchant_metrics").update(volume_data).eq("mid", volume_data["mid"]).eq("month", volume_data["month"]).execute()
+                result = self.supabase.table("merchant_processing_volumes").update(volume_data).eq("merchant_id", volume_data["merchant_id"]).eq("processing_month", volume_data["processing_month"]).execute()
                 return {"success": True, "action": "updated"}
             else:
                 # Insert new volume
-                result = self.supabase.table("merchant_metrics").insert(volume_data).execute()
+                result = self.supabase.table("merchant_processing_volumes").insert(volume_data).execute()
                 return {"success": True, "action": "inserted"}
                 
         except Exception as e:

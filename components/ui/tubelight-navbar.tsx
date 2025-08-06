@@ -43,6 +43,12 @@ export function NavBar({ items, className }: NavBarProps) {
   }, [])
 
   const getActiveItem = () => {
+    // Special handling for settings page
+    if (pathname.includes('/settings')) {
+      return items.find(item => item.name === 'Settings') || items[0]
+    }
+    
+    // For other pages, use the existing logic
     return items.find(item => pathname.startsWith(item.url)) || items[0]
   }
 

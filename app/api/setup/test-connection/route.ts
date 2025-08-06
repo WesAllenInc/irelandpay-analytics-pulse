@@ -16,8 +16,9 @@ export async function POST(request: Request) {
     const testResponse = await fetch(`${baseUrl}/merchants`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${apiKey}`,
-        'Content-Type': 'application/json'
+        'X-API-KEY': apiKey,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
       }
     })
 

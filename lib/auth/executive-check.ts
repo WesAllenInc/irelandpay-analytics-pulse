@@ -16,6 +16,36 @@ export function isExecutiveUser(email: string | null | undefined): email is Exec
 }
 
 /**
+ * Check if a user has admin access (either executive or database admin)
+ */
+export async function hasAdminAccess(email: string | null | undefined, supabase: any): Promise<boolean> {
+  if (!email) return false;
+  
+  // Executive users always have admin access
+  if (isExecutiveUser(email)) {
+    return true;
+  }
+  
+  // Check database for admin role
+  try {
+    const { data: agentData } = await supabase
+      .from('agents')
+      .select('role, agent_role, user_role, user_type')
+      .eq('email', email.toLowerCase())
+      .single();
+    
+    if (agentData) {
+      const role = agentData.role || agentData.agent_role || agentData.user_role || agentData.user_type;
+      return role === 'admin';
+    }
+  } catch (error) {
+    console.error('Error checking admin access:', error);
+  }
+  
+  return false;
+}
+
+/**
  * Get executive user details
  */
 export function getExecutiveUserDetails(email: ExecutiveEmail) {

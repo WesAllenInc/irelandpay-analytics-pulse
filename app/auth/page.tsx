@@ -7,18 +7,13 @@ import { createSupabaseBrowserClient } from '@/lib/supabase';
 import SimplifiedAuthCard from '@/components/Auth/SimplifiedAuthCard';
 import ScrambledText from '@/components/Auth/ScrambledText';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
+import { hasAdminAccess } from '@/lib/auth/executive-check';
 
 // Dynamically import the ParticleBG component to avoid SSR issues
 const ParticleBG = dynamic(() => import('@/components/Auth/ParticleBG'), {
   ssr: false,
   loading: () => <div className="absolute inset-0 bg-black/90" />
 });
-
-// Allowed users whitelist
-const ALLOWED_USERS = [
-  'wvazquez@irelandpay.com',
-  'jmarkey@irelandpay.com'
-];
 
 export default function AuthPage() {
   const [mounted, setMounted] = useState(false);
@@ -38,33 +33,21 @@ export default function AuthPage() {
       // Only redirect if user is truly authenticated and not already redirecting
       if (session?.user?.email && !isRedirecting) {
         console.log('✅ User has session with email:', session.user.email);
-        
-        // Check if user is in the allowed list
-        if (!ALLOWED_USERS.includes(session.user.email.toLowerCase())) {
-          console.error('[AUTH PAGE] Unauthorized user:', session.user.email);
-          await supabase.auth.signOut();
-          return;
-        }
-
-        console.log('✅ User is in allowed list');
 
         try {
-          // Executive users always get admin access
-          const { isExecutiveUser } = await import('@/lib/auth/executive-check');
-          const isExecutive = isExecutiveUser(session.user.email);
+          // Check if user has admin access
+          const isAdmin = await hasAdminAccess(session.user.email, supabase);
           
-          if (isExecutive) {
-            console.log('✅ Executive user detected, granting admin access');
-            console.log('🔄 Redirecting executive to dashboard');
+          if (isAdmin) {
+            console.log('✅ User has admin access, redirecting to dashboard');
             setIsRedirecting(true);
-            // Use direct redirect with delay to ensure session is established
             setTimeout(() => {
               window.location.href = '/dashboard';
             }, 2000);
             return;
           }
           
-          // For non-executive users, check database role
+          // For non-admin users, check database role
           const { data: agentData, error: roleError } = await supabase
             .from('agents')
             .select('*')
@@ -85,7 +68,6 @@ export default function AuthPage() {
             const redirectPath = userRole === 'admin' ? '/dashboard' : '/leaderboard';
             console.log('🔄 Redirecting to:', redirectPath);
             setIsRedirecting(true);
-            // Use direct redirect with delay to ensure session is established
             setTimeout(() => {
               window.location.href = redirectPath;
             }, 2000);
@@ -145,39 +127,39 @@ export default function AuthPage() {
         if (event === 'SIGNED_IN' && session?.user?.email && !isRedirecting) {
           console.log('✅ SIGNED_IN event with email:', session.user.email);
           
-          // Check if user is in the allowed list
-          if (!ALLOWED_USERS.includes(session.user.email.toLowerCase())) {
-            console.error('[AUTH PAGE] Unauthorized user signed in:', session.user.email);
-            await supabase.auth.signOut();
-            return;
-          }
-
-          // Executive users always get admin access
-          const { isExecutiveUser } = await import('@/lib/auth/executive-check');
-          const isExecutive = isExecutiveUser(session.user.email);
-          
-          if (isExecutive) {
-            console.log('✅ Executive user signed in, redirecting to dashboard');
+          try {
+            // Check if user has admin access
+            const isAdmin = await hasAdminAccess(session.user.email, supabase);
+            
+            if (isAdmin) {
+              console.log('✅ Admin user signed in, redirecting to dashboard');
+              setIsRedirecting(true);
+              setTimeout(() => {
+                window.location.href = '/dashboard';
+              }, 2000);
+              return;
+            }
+            
+            // For non-admin users, check database role
+            const { data } = await supabase
+              .from('agents')
+              .select('role')
+              .eq('email', session.user.email)
+              .single();
+            
+            const redirectPath = data?.role === 'admin' ? '/dashboard' : '/leaderboard';
+            console.log('🔄 Auth state change redirecting to:', redirectPath);
             setIsRedirecting(true);
             setTimeout(() => {
-              window.location.href = '/dashboard';
+              window.location.href = redirectPath;
             }, 2000);
-            return;
+          } catch (err) {
+            console.error('[AUTH PAGE] Exception in auth state change:', err);
+            setIsRedirecting(true);
+            setTimeout(() => {
+              window.location.href = '/leaderboard';
+            }, 2000);
           }
-          
-          // For non-executive users, check database role
-          const { data } = await supabase
-            .from('agents')
-            .select('role')
-            .eq('email', session.user.email)
-            .single();
-          
-          const redirectPath = data?.role === 'admin' ? '/dashboard' : '/leaderboard';
-          console.log('🔄 Auth state change redirecting to:', redirectPath);
-          setIsRedirecting(true);
-          setTimeout(() => {
-            window.location.href = redirectPath;
-          }, 2000);
         } else if (event === 'SIGNED_IN' && session) {
           // Session exists but no user, log warning
           console.warn('[AUTH PAGE] SIGNED_IN event but no user:', session);

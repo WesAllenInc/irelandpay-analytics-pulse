@@ -4,15 +4,10 @@ import { createSupabaseServerClient } from "./lib/supabase";
 import { authRateLimiter } from "./lib/auth-rate-limiter";
 import { logRequest, debug, error as logError } from "./lib/edge-logging";
 import { validateCSRFToken, extractCSRFToken, refreshCSRFToken } from './lib/csrf';
+import { hasAdminAccess } from "./lib/auth/executive-check";
 
 // DEVELOPMENT/DEMO MODE: Set to true to bypass authentication temporarily
-const DEMO_MODE = true;
-
-// Executive users whitelist - only these 2 executives have access
-const EXECUTIVE_USERS = [
-  'wvazquez@irelandpay.com',
-  'jmarkey@irelandpay.com'
-] as const;
+const DEMO_MODE = false;
 
 // Define public routes that don't need authentication
 const publicRoutes = [
@@ -97,28 +92,28 @@ async function handleMiddleware(request: NextRequest) {
     return NextResponse.redirect(new URL('/auth', request.url));
   }
 
-  // Check if user is an authorized executive
-  if (!EXECUTIVE_USERS.includes(session.user.email.toLowerCase() as any)) {
-    debug('Unauthorized user attempting to access executive-only application', { 
+  // Check if user has admin access (either executive or database admin)
+  const hasAdmin = await hasAdminAccess(session.user.email, supabase);
+  
+  if (!hasAdmin) {
+    debug('User does not have admin access', { 
       email: session.user.email, 
       pathname 
     });
-    return NextResponse.redirect(new URL('/unauthorized?error=executive-only', request.url));
+    return NextResponse.redirect(new URL('/unauthorized?error=admin-required', request.url));
   }
 
-  // Check if this is an admin route - only allow executives
+  // Check if this is an admin route - only allow admin users
   if (isAdminRoute(pathname)) {
-    // Check if user is an executive (admin)
-    const isExecutive = EXECUTIVE_USERS.includes(session.user.email.toLowerCase() as any);
-    if (!isExecutive) {
-      debug('Non-executive user attempting to access admin route', { 
+    if (!hasAdmin) {
+      debug('Non-admin user attempting to access admin route', { 
         email: session.user.email, 
         pathname 
       });
       return NextResponse.redirect(new URL('/unauthorized', request.url));
     }
-    // Executive users can access admin routes
-    debug('Executive user accessing admin route', { 
+    // Admin users can access admin routes
+    debug('Admin user accessing admin route', { 
       email: session.user.email, 
       pathname 
     });

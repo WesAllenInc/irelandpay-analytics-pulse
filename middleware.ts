@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import type { NextRequest } from "next/server";
-import { createSupabaseServerClient } from "./lib/supabase";
+import { createSupabaseMiddlewareClient } from "./lib/supabase/middleware";
 import { authRateLimiter } from "./lib/auth-rate-limiter";
 import { logRequest, debug, error as logError } from "./lib/edge-logging";
 import { validateCSRFToken, extractCSRFToken, refreshCSRFToken } from './lib/csrf';
@@ -69,8 +69,8 @@ async function handleMiddleware(request: NextRequest) {
     return response;
   }
 
-  // Get Supabase server client
-  const supabase = createSupabaseServerClient();
+  // Get Supabase middleware client with service role permissions
+  const supabase = createSupabaseMiddlewareClient();
   const { data: { session } } = await supabase.auth.getSession();
   
   // Log request with safe metadata only

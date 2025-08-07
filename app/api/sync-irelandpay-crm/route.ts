@@ -1,8 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createSupabaseServiceClient } from '@/lib/supabase'
-import { executeWithResilience } from '@crm/resilience'
-import axios from 'axios'
-import { requireAdmin } from '@/middleware/admin-auth'
+import { SyncLogger } from '@/lib/sync-logger'
 import {
   validateRequest,
   validateResponse,
@@ -53,16 +51,16 @@ export type { SyncRequest as SyncOptions, SyncResponse } from '@/lib/iriscrm-uti
  * Trigger a sync operation with Ireland Pay CRM API
  */
 export async function POST(request: Request) {
-  // Admin authorization temporarily disabled for hardcoded connection
-  // const adminError = await requireAdmin(request as any)
-  // if (adminError) return adminError
-  
   const supabase = createSupabaseServiceClient()
+  const logger = new SyncLogger()
   
   try {
+    await logger.info('Starting sync operation')
+    
     // Validate request body against schema
     const parsedBody = validateRequest(SyncRequestSchema, await request.json())
     if (!parsedBody) {
+      await logger.error('Invalid request format')
       return errorResponse('Invalid request format', 400)
     }
     
@@ -76,34 +74,46 @@ export async function POST(request: Request) {
     
     const { dataType, year, month, forceSync } = validatedData
     
+    await logger.info('Sync parameters validated', { dataType, year, month, forceSync })
+    
     // Database status check temporarily disabled for hardcoded connection
     // This bypasses the database connection issues
-    console.log('Proceeding with sync - database status check bypassed')
+    await logger.info('Proceeding with sync - database status check bypassed')
     
     // Call the edge function to start the sync (simplified for hardcoded connection)
-    console.log('Invoking sync-irelandpay-crm edge function...')
-    const { data: functionResult, error: functionError } = await supabase.functions.invoke('sync-irelandpay-crm', {
-      body: JSON.stringify({
-        dataType,
-        year,
-        month,
-        forceSync
-      })
-    })
+    await logger.info('Invoking sync-irelandpay-crm edge function...')
     
-    if (functionError) {
-      console.error('Error invoking sync-irelandpay-crm function:', functionError)
-      return errorResponse(`Error invoking sync function: ${functionError.message}`, 500)
+    let functionResult
+    try {
+      const { data, error: functionError } = await supabase.functions.invoke('sync-irelandpay-crm', {
+        body: JSON.stringify({
+          dataType,
+          year,
+          month,
+          forceSync
+        })
+      })
+      
+      if (functionError) {
+        await logger.error('Error invoking sync-irelandpay-crm function', { error: functionError })
+        return errorResponse(`Error invoking sync function: ${functionError.message}`, 500)
+      }
+      
+      functionResult = data
+      await logger.info('Edge function invoked successfully', { result: functionResult })
+    } catch (error) {
+      await logger.error('Exception during edge function invocation', { error })
+      return errorResponse(`Exception during sync function: ${error instanceof Error ? error.message : 'Unknown error'}`, 500)
     }
     
     // Check if we got an error response from the function
     if (functionResult && typeof functionResult === 'object' && 'success' in functionResult && !functionResult.success) {
-      console.error('Sync function returned error:', functionResult)
+      await logger.error('Sync function returned error', { result: functionResult })
       return errorResponse(`Sync function error: ${functionResult.error || 'Unknown error'}`, 500)
     }
     
     // Return success response (simplified for hardcoded connection)
-    console.log('Sync job started successfully:', functionResult)
+    await logger.info('Sync job started successfully', { result: functionResult })
     return successResponse({
       success: true,
       message: 'Sync job started successfully',

@@ -2,6 +2,7 @@ import React from 'react'
 import { Metadata } from 'next'
 import { SyncProgressBar } from '@/components/sync/SyncProgressBar'
 import { SyncHistory } from '@/components/sync/SyncHistory'
+import { SyncLogs } from '@/components/sync/SyncLogs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Clock, RefreshCw, CheckCircle } from 'lucide-react'
@@ -21,11 +22,12 @@ export default function SyncPage() {
         </p>
       </div>
 
-      <div className="grid gap-8 md:grid-cols-2">
-        <div className="space-y-6">
-          <SyncProgressBar />
-          <SyncHistory />
-        </div>
+                   <div className="grid gap-8 md:grid-cols-2">
+               <div className="space-y-6">
+                 <SyncProgressBar />
+                 <SyncHistory />
+                 <SyncLogs />
+               </div>
         
         <div className="space-y-8">
           <Card>

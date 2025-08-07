@@ -32,9 +32,10 @@ interface SyncProgress {
 interface SyncProgressBarProps {
   onSyncComplete?: (details: Record<string, any>) => void;
   onSyncError?: (error: string) => void;
+  onSyncIdChange?: (syncId: string | null) => void;
 }
 
-export function SyncProgressBar({ onSyncComplete, onSyncError }: SyncProgressBarProps) {
+export function SyncProgressBar({ onSyncComplete, onSyncError, onSyncIdChange }: SyncProgressBarProps) {
   const [syncProgress, setSyncProgress] = useState<SyncProgress>({
     status: 'idle',
     progress: 0,
@@ -46,6 +47,7 @@ export function SyncProgressBar({ onSyncComplete, onSyncError }: SyncProgressBar
   const [connectionError, setConnectionError] = useState<string | null>(null);
   const [testingConnection, setTestingConnection] = useState(false);
   const [syncing, setSyncing] = useState(false);
+  const [currentSyncId, setCurrentSyncId] = useState<string | null>(null);
   const supabase = createSupabaseBrowserClient();
 
   // Test connection to Ireland Pay CRM API
@@ -132,6 +134,10 @@ export function SyncProgressBar({ onSyncComplete, onSyncError }: SyncProgressBar
       const result = await response.json();
 
       if (result.success) {
+        const syncId = result.data?.syncId || result.job_id;
+        setCurrentSyncId(syncId);
+        onSyncIdChange?.(syncId);
+        
         setSyncProgress(prev => ({
           ...prev,
           status: 'syncing',
@@ -140,7 +146,7 @@ export function SyncProgressBar({ onSyncComplete, onSyncError }: SyncProgressBar
         }));
 
         // Monitor the sync progress
-        await monitorSyncProgress(result.data?.id);
+        await monitorSyncProgress(syncId);
       } else {
         throw new Error(result.error || 'Failed to start sync');
       }

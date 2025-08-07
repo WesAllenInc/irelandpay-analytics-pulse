@@ -17,7 +17,7 @@ import {
   ChevronUp,
   Loader2
 } from 'lucide-react';
-import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+import { createSupabaseBrowserClient } from '@/lib/supabase';
 
 interface SyncHistoryItem {
   id: string;

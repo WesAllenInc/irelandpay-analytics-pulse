@@ -17,7 +17,7 @@ import {
   Play,
   Pause
 } from 'lucide-react';
-import { createSupabaseBrowserClient } from '@/lib/supabase/client';
+import { createSupabaseBrowserClient } from '@/lib/supabase';
 
 interface SyncProgress {
   status: 'idle' | 'connecting' | 'syncing' | 'completed' | 'error';

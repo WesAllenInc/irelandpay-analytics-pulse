@@ -206,6 +206,10 @@ export class EmailService {
    * Send individual email
    */
   private async sendEmail(email: EmailQueueItem): Promise<void> {
+    if (!resend) {
+      throw new Error('Email service not configured - RESEND_API_KEY is missing');
+    }
+
     const { data, error } = await resend.emails.send({
       from: `${emailConfig.from.name} <${emailConfig.from.email}>`,
       to: email.to,

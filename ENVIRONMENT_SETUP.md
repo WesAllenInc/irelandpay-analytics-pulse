@@ -128,7 +128,7 @@ NEXT_PUBLIC_SUPABASE_ANON_KEY=your-anon-key
 ### 1. Test API Connectivity
 ```bash
 # Test the API connection
-curl -H "Authorization: Bearer YOUR_API_KEY" \
+curl -H "X-API-KEY: YOUR_API_KEY" \
      https://crm.ireland-pay.com/api/v1/merchants
 ```
 

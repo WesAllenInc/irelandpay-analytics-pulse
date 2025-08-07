@@ -14,7 +14,7 @@ export class IrelandPayCRMClient {
       baseURL: this.baseUrl,
       timeout: config.timeout || 30000,
       headers: {
-        'Authorization': `Bearer ${this.apiKey}`,
+        'X-API-KEY': this.apiKey,
         'Content-Type': 'application/json',
       },
     });
@@ -64,87 +64,80 @@ export class IrelandPayCRMClient {
   }
 
   async getMerchantTransactions(merchantId: string, params?: {
-    year?: number;
-    month?: number;
+    start_date?: string;
+    end_date?: string;
     page?: number;
     per_page?: number;
   }): Promise<AxiosResponse<any>> {
     return this.client.get(`/merchants/${merchantId}/transactions`, { params });
   }
 
-  // Residuals API methods
-  async getResiduals(params?: {
-    year?: number;
-    month?: number;
+  // Residuals API methods - using correct endpoints from API documentation
+  async getResidualsSummary(year: number, month: number): Promise<AxiosResponse<any>> {
+    return this.client.get(`/residuals/reports/summary/${year}/${month}`);
+  }
+
+  async getResidualsSummaryWithRows(processorId: string, year: number, month: number): Promise<AxiosResponse<any>> {
+    return this.client.get(`/residuals/reports/summary/rows/${processorId}/${year}/${month}`);
+  }
+
+  async getResidualsDetails(processorId: string, year: number, month: number): Promise<AxiosResponse<any>> {
+    return this.client.get(`/residuals/reports/details/${processorId}/${year}/${month}`);
+  }
+
+  async getResidualsLineItems(year: number, month: number): Promise<AxiosResponse<any>> {
+    return this.client.get(`/residuals/lineitems/${year}/${month}`);
+  }
+
+  async getResidualsTemplates(): Promise<AxiosResponse<any>> {
+    return this.client.get('/residuals/templates');
+  }
+
+  async getAssignedResidualsTemplates(year: number, month: number): Promise<AxiosResponse<any>> {
+    return this.client.get(`/residuals/templates/assigned/${year}/${month}`);
+  }
+
+  // Leads API methods
+  async getLeads(params?: {
     page?: number;
     per_page?: number;
+    search?: string;
   }): Promise<AxiosResponse<any>> {
-    return this.client.get('/residuals', { params });
+    return this.client.get('/leads', { params });
   }
 
-  async getMerchantResiduals(merchantId: string, params?: {
-    year?: number;
-    month?: number;
-  }): Promise<AxiosResponse<any>> {
-    return this.client.get(`/merchants/${merchantId}/residuals`, { params });
+  async getLead(leadId: string): Promise<AxiosResponse<any>> {
+    return this.client.get(`/leads/${leadId}`);
   }
 
-  // Volumes API methods
-  async getVolumes(params?: {
-    year?: number;
-    month?: number;
-    page?: number;
-    per_page?: number;
-  }): Promise<AxiosResponse<any>> {
-    return this.client.get('/volumes', { params });
-  }
-
-  async getMerchantVolumes(merchantId: string, params?: {
-    year?: number;
-    month?: number;
-  }): Promise<AxiosResponse<any>> {
-    return this.client.get(`/merchants/${merchantId}/volumes`, { params });
-  }
-
-  // Health check
-  async healthCheck(): Promise<AxiosResponse<any>> {
-    return this.client.get('/health');
-  }
-
-  // Test connection
+  // Test connection using a known endpoint
   async testConnection(): Promise<{ success: boolean; message: string }> {
     try {
-      const response = await this.healthCheck();
+      const response = await this.getMerchants({ per_page: 1 });
       return {
         success: true,
-        message: `Connection successful. API version: ${response.data?.version || 'unknown'}`
+        message: `Connection successful. API is accessible.`
       };
     } catch (error: any) {
       return {
         success: false,
-        message: error.response?.data?.message || error.message || 'Connection failed'
+        message: error.response?.data?.message || error.message || 'Connection test failed'
       };
     }
   }
 
-  // Get API limits/quotas
+  // Get API rate limit information
   async getApiLimits(): Promise<AxiosResponse<any>> {
-    return this.client.get('/limits');
+    // This would be available in response headers, not a separate endpoint
+    const response = await this.getMerchants({ per_page: 1 });
+    return response;
   }
 }
 
-// Factory function to create client from environment variables
 export function createIrelandPayCRMClient(): IrelandPayCRMClient {
-  const apiKey = process.env.IRELANDPAY_CRM_API_KEY;
-  if (!apiKey) {
-    throw new Error('IRELANDPAY_CRM_API_KEY environment variable is required');
-  }
-
   return new IrelandPayCRMClient({
-    apiKey,
+    apiKey: process.env.IRELANDPAY_CRM_API_KEY || '',
     baseUrl: process.env.IRELANDPAY_CRM_BASE_URL,
-    timeout: parseInt(process.env.IRELANDPAY_TIMEOUT_SECONDS || '30') * 1000,
-    maxRetries: parseInt(process.env.IRELANDPAY_MAX_RETRIES || '3'),
-    backoffBaseMs: parseInt(process.env.IRELANDPAY_BACKOFF_BASE_MS || '1000'),
+    timeout: 30000,
   });
 } 

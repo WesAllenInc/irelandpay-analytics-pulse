@@ -134,7 +134,7 @@ async function testIrelandPayCRMApi() {
     const response = await makeRequest(`${config.baseUrl}/merchants`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${config.apiKey}`,
+        'X-API-KEY': config.apiKey,
         'Content-Type': 'application/json'
       }
     });
@@ -280,6 +280,31 @@ async function testFrontendComponents() {
   } catch (error) {
     logError(`Failed to test frontend components: ${error.message}`);
     return false;
+  }
+}
+
+// Test direct API connection
+async function testDirectAPI() {
+  console.log('\n🔗 Testing direct API connection...');
+  
+  try {
+    const response = await makeRequest(`${config.baseUrl}/merchants`, {
+      method: 'GET',
+      headers: {
+        'X-API-KEY': config.apiKey,
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.statusCode === 200) {
+      console.log('✅ Direct API connection successful');
+      console.log(`📊 Found ${response.data?.data?.length || 0} merchants`);
+    } else {
+      console.log(`❌ Direct API connection failed: ${response.statusCode}`);
+      console.log('Response:', response.data);
+    }
+  } catch (error) {
+    console.log('❌ Direct API connection error:', error.message);
   }
 }
 

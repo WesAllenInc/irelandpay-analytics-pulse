@@ -119,21 +119,99 @@ export async function performScheduledSync(): Promise<SyncResult> {
 }
 
 async function syncMerchants(): Promise<{ added: number; updated: number }> {
-  // This would call your existing Ireland Pay CRM sync logic
-  // For now, return mock data
-  return { added: 5, updated: 12 }
+  try {
+    // Call the Ireland Pay CRM sync API
+    const response = await fetch('/api/sync-irelandpay-crm', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        dataType: 'merchants',
+        forceSync: true
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Sync failed: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(`Sync failed: ${result.error}`);
+    }
+
+    // Return actual sync results
+    return { added: result.data?.merchants_added || 0, updated: result.data?.merchants_updated || 0 };
+  } catch (error) {
+    console.error('Error syncing merchants:', error);
+    throw error;
+  }
 }
 
 async function syncTransactions(): Promise<{ count: number }> {
-  // This would call your existing transaction sync logic
-  // For now, return mock data
-  return { count: 150 }
+  try {
+    // Call the Ireland Pay CRM sync API for volumes/transactions
+    const response = await fetch('/api/sync-irelandpay-crm', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        dataType: 'volumes',
+        forceSync: true
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Volume sync failed: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(`Volume sync failed: ${result.error}`);
+    }
+
+    // Return actual sync results
+    return { count: result.data?.volumes_count || 0 };
+  } catch (error) {
+    console.error('Error syncing transactions:', error);
+    throw error;
+  }
 }
 
 async function syncResiduals(): Promise<{ count: number }> {
-  // This would call your existing residual sync logic
-  // For now, return mock data
-  return { count: 25 }
+  try {
+    // Call the Ireland Pay CRM sync API for residuals
+    const response = await fetch('/api/sync-irelandpay-crm', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        dataType: 'residuals',
+        forceSync: true
+      })
+    });
+
+    if (!response.ok) {
+      throw new Error(`Residual sync failed: ${response.statusText}`);
+    }
+
+    const result = await response.json();
+    
+    if (!result.success) {
+      throw new Error(`Residual sync failed: ${result.error}`);
+    }
+
+    // Return actual sync results
+    return { count: result.data?.residuals_count || 0 };
+  } catch (error) {
+    console.error('Error syncing residuals:', error);
+    throw error;
+  }
 }
 
 async function calculateResiduals(): Promise<void> {

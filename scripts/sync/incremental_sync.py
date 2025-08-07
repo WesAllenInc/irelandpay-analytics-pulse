@@ -148,7 +148,7 @@ class IncrementalSync:
             since_timestamp = self.last_sync_time.strftime("%Y-%m-%dT%H:%M:%S")
             
             # Make the API request
-            headers = {"Authorization": f"Bearer {IRELANDPAY_CRM_API_KEY}"}
+            headers = {"X-API-KEY": IRELANDPAY_CRM_API_KEY}
             params = {since_param: since_timestamp, "include_deleted": "true"}
             
             response = self.client.get(

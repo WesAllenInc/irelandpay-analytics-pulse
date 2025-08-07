@@ -170,7 +170,7 @@ async function checkIrelandPayCRMApi() {
     const response = await makeRequest(`${config.baseUrl}/merchants`, {
       method: 'GET',
       headers: {
-        'Authorization': `Bearer ${config.apiKey}`,
+        'X-API-KEY': config.apiKey,
         'Content-Type': 'application/json'
       }
     });

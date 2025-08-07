@@ -8,7 +8,6 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { useState, useEffect } from 'react';
 import { Label } from '@/components/ui/label';
 import { SyncProgressBar } from '@/components/sync/SyncProgressBar';
-import { IrelandPayCRMConfig } from '@/components/sync/IrelandPayCRMConfig';
 import { SyncHistory } from '@/components/sync/SyncHistory';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -209,29 +208,64 @@ const SettingsPage = () => {
               Active tab: {activeTab} | Current time: {new Date().toLocaleTimeString()}
             </div>
             
-            {/* Ireland Pay CRM Configuration */}
+            {/* Ireland Pay CRM Sync Overview */}
             <motion.div variants={itemVariants}>
               <div className="space-y-4">
                 <div className="flex items-center gap-3">
-                  <div className="p-2 bg-blue-500/10 rounded-lg">
-                    <Database className="h-5 w-5 text-blue-500" />
+                  <div className="p-2 bg-green-500/10 rounded-lg">
+                    <CheckCircle className="h-5 w-5 text-green-500" />
                   </div>
                   <div>
-                    <h3 className="text-xl font-semibold text-foreground">Ireland Pay CRM Configuration</h3>
-                    <p className="text-foreground/60">Configure your CRM integration settings</p>
+                    <h3 className="text-xl font-semibold text-foreground">Ireland Pay CRM Sync</h3>
+                    <p className="text-foreground/60">Automated data synchronization with Ireland Pay CRM</p>
                   </div>
                 </div>
-                <IrelandPayCRMConfig 
-                  onConfigSave={(config) => {
-                    console.log('Configuration saved:', config);
-                    // Here you would typically save to your database
-                  }}
-                  onTestConnection={async (config) => {
-                    console.log('Testing connection with:', config);
-                    // Here you would typically test the actual API connection
-                    return true; // Simulate successful connection
-                  }}
-                />
+                
+                <div className="bg-green-500/10 p-4 rounded-lg border border-green-500/20">
+                  <h4 className="font-medium text-green-600 flex items-center gap-2">
+                    <CheckCircle className="h-4 w-4" />
+                    Connection Configured
+                  </h4>
+                  <p className="text-green-600/80 text-sm mt-1">
+                    Your Ireland Pay CRM connection is pre-configured and ready to use. 
+                    No additional setup required.
+                  </p>
+                </div>
+                
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="p-4 bg-blue-500/10 rounded-lg border border-blue-500/20">
+                    <h4 className="font-medium text-blue-600">Merchants</h4>
+                    <p className="text-blue-600/80 text-sm">Basic merchant information including name and ID</p>
+                  </div>
+                  <div className="p-4 bg-green-500/10 rounded-lg border border-green-500/20">
+                    <h4 className="font-medium text-green-600">Residuals</h4>
+                    <p className="text-green-600/80 text-sm">Monthly residual data including processing volume and earnings</p>
+                  </div>
+                  <div className="p-4 bg-purple-500/10 rounded-lg border border-purple-500/20">
+                    <h4 className="font-medium text-purple-600">Volumes</h4>
+                    <p className="text-purple-600/80 text-sm">Detailed processing volume information</p>
+                  </div>
+                </div>
+                
+                <div className="space-y-3">
+                  <h4 className="font-medium text-foreground">Scheduled Syncs</h4>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <div className="flex items-center gap-3 p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                      <Clock className="h-4 w-4 text-green-600" />
+                      <div>
+                        <p className="font-medium text-green-600">Daily at 10:00 AM</p>
+                        <p className="text-sm text-green-600/80">Morning sync for fresh data</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-3 p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                      <Clock className="h-4 w-4 text-blue-600" />
+                      <div>
+                        <p className="font-medium text-blue-600">Daily at 8:00 PM</p>
+                        <p className="text-sm text-blue-600/80">Evening sync for end-of-day data</p>
+                      </div>
+                    </div>
+                  </div>
+                </div>
               </div>
             </motion.div>
             

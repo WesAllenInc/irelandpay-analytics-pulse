@@ -1,5 +1,6 @@
+'use client'
+
 import React from 'react'
-import { Metadata } from 'next'
 import { SyncProgressBar } from '@/components/sync/SyncProgressBar'
 import { DetailedSyncProgress } from '@/components/sync/DetailedSyncProgress'
 import { SyncHistory } from '@/components/sync/SyncHistory'
@@ -7,11 +8,6 @@ import { SyncLogs } from '@/components/sync/SyncLogs'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Clock, RefreshCw, CheckCircle } from 'lucide-react'
-
-export const metadata: Metadata = {
-  title: 'Ireland Pay CRM Sync | IrelandPay Analytics Pulse',
-  description: 'Synchronize merchant and residual data from Ireland Pay CRM',
-}
 
 export default function SyncPage() {
   const [currentSyncId, setCurrentSyncId] = React.useState<string | null>(null);

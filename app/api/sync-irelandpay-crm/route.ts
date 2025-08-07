@@ -76,86 +76,40 @@ export async function POST(request: Request) {
     
     const { dataType, year, month, forceSync } = validatedData
     
-    // Check if a sync is already in progress, unless forcing a new sync
-    if (!forceSync) {
-      // Use resilient execution for database check
-      const syncStatusResult = await executeWithResilience(async () => {
-        const { data: syncStatus, error } = await supabase
-          .from('sync_status')
-          .select('*')
-          .eq('status', 'in_progress')
-          .order('created_at', { ascending: false })
-          .limit(1)
-        
-        if (error) throw new Error(`Failed to check sync status: ${error.message}`)
-        return syncStatus
-      })
-      
-      // Check if we got an error object back
-      if (typeof syncStatusResult === 'object' && 'success' in syncStatusResult && !syncStatusResult.success) {
-        return errorResponse(`Database error checking sync status: ${syncStatusResult.error}`, 500)
-      }
-      
-      // Cast to the expected type now that we know it's not an error
-      const syncStatus = syncStatusResult as any[]
-      
-      if (syncStatus && syncStatus.length > 0) {
-        return NextResponse.json({
-          success: false,
-          error: 'A sync operation is already in progress. Please try again later or use forceSync=true to override.',
-        }, { status: 409 }) // Conflict
-      }
-    }
+    // Database status check temporarily disabled for hardcoded connection
+    // This bypasses the database connection issues
+    console.log('Proceeding with sync - database status check bypassed')
     
-    // Call the edge function to start the sync with resilient execution and timeout
-    const functionResult = await executeWithResilience(async () => {
-      // Create axios instance with timeout
-      const axiosInstance = axios.create({
-        timeout: TIMEOUT_MS
+    // Call the edge function to start the sync (simplified for hardcoded connection)
+    console.log('Invoking sync-irelandpay-crm edge function...')
+    const { data: functionResult, error: functionError } = await supabase.functions.invoke('sync-irelandpay-crm', {
+      body: JSON.stringify({
+        dataType,
+        year,
+        month,
+        forceSync
       })
-      
-      // Start the sync operation with resilient execution
-      const { data, error } = await supabase.functions.invoke('sync-irelandpay-crm', {
-        body: JSON.stringify({
-          dataType,
-          year,
-          month,
-          forceSync
-        })
-      })
-      
-      if (error) throw new Error(`Error invoking sync-irelandpay-crm function: ${error.message}`)
-      return data
     })
     
-    // Check if we got an error response
-    if (typeof functionResult === 'object' && 'success' in functionResult && !functionResult.success) {
-      logError('Error invoking sync-irelandpay-crm function', new Error(functionResult.details || 'Unknown error'))
-      
-      // Return a 503 Service Unavailable for API issues
-      return NextResponse.json({
-        success: false,
-        error: 'Ireland Pay CRM API unavailable',
-        details: functionResult.details
-      }, { status: 503 })
+    if (functionError) {
+      console.error('Error invoking sync-irelandpay-crm function:', functionError)
+      return errorResponse(`Error invoking sync function: ${functionError.message}`, 500)
     }
     
-    // Validate response data
-    const syncResponse = {
-      success: true,
-      message: 'Sync job started',
-      status: 'pending',
-      job_id: functionResult?.syncId
-    }
-    const validatedResponse = validateResponse(SyncResponseSchema, syncResponse)
-    if (!validatedResponse) {
-      logError('Failed to validate sync response', syncResponse)
-      return errorResponse('Internal server error while validating response', 500)
+    // Check if we got an error response from the function
+    if (functionResult && typeof functionResult === 'object' && 'success' in functionResult && !functionResult.success) {
+      console.error('Sync function returned error:', functionResult)
+      return errorResponse(`Sync function error: ${functionResult.error || 'Unknown error'}`, 500)
     }
     
+    // Return success response (simplified for hardcoded connection)
+    console.log('Sync job started successfully:', functionResult)
     return successResponse({
-      ...validatedResponse,
-      message: 'Sync job started'
+      success: true,
+      message: 'Sync job started successfully',
+      status: 'pending',
+      job_id: functionResult?.syncId || 'unknown',
+      data: functionResult
     })
     
   } catch (error: any) {

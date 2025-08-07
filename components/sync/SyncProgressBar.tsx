@@ -1,43 +1,36 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
-import { Progress } from '@/components/ui/progress';
+import { motion } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
+import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
+import { Button } from '@/components/ui/button';
 import { Alert, AlertDescription } from '@/components/ui/alert';
 import { 
-  RefreshCw, 
+  Database, 
+  Network, 
   CheckCircle, 
   AlertTriangle, 
-  Clock, 
-  Database,
-  Users,
-  FileText,
-  TrendingUp,
+  RefreshCw,
+  Loader2,
   Play,
-  Pause,
-  RotateCcw,
-  Network
+  Pause
 } from 'lucide-react';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 
 interface SyncProgress {
   status: 'idle' | 'connecting' | 'syncing' | 'completed' | 'error';
   progress: number;
   currentStep: string;
-  details: {
-    merchants?: { total: number; processed: number; failed: number };
-    residuals?: { total: number; processed: number; failed: number };
-    transactions?: { total: number; processed: number; failed: number };
-  };
-  error?: string;
+  details: Record<string, any>;
   startTime?: Date;
   endTime?: Date;
+  error?: string;
 }
 
 interface SyncProgressBarProps {
-  onSyncComplete?: (result: any) => void;
+  onSyncComplete?: (details: Record<string, any>) => void;
   onSyncError?: (error: string) => void;
 }
 
@@ -51,43 +44,67 @@ export function SyncProgressBar({ onSyncComplete, onSyncError }: SyncProgressBar
 
   const [isConnected, setIsConnected] = useState(false);
   const [connectionError, setConnectionError] = useState<string | null>(null);
+  const [testingConnection, setTestingConnection] = useState(false);
+  const [syncing, setSyncing] = useState(false);
+  const supabase = createSupabaseBrowserClient();
 
-  // Simulate connection test
+  // Test connection to Ireland Pay CRM API
   const testConnection = async () => {
-    setSyncProgress(prev => ({ ...prev, status: 'connecting', currentStep: 'Testing connection...' }));
+    setTestingConnection(true);
+    setConnectionError(null);
     
     try {
-      // Simulate API connection test
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      setSyncProgress(prev => ({ ...prev, status: 'connecting', currentStep: 'Testing connection...' }));
       
-      // Simulate successful connection
-      setIsConnected(true);
-      setConnectionError(null);
-      setSyncProgress(prev => ({ 
-        ...prev, 
-        status: 'idle', 
-        currentStep: 'Connection successful - Ready to sync',
-        progress: 0 
-      }));
+      // Test the API connection
+      const response = await fetch('/api/setup/test-connection', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          baseUrl: 'https://crm.ireland-pay.com/api/v1',
+          apiKey: process.env.NEXT_PUBLIC_IRELANDPAY_CRM_API_KEY || ''
+        })
+      });
+
+      const result = await response.json();
+      
+      if (response.ok && result.success) {
+        setIsConnected(true);
+        setConnectionError(null);
+        setSyncProgress(prev => ({ 
+          ...prev, 
+          status: 'idle', 
+          currentStep: 'Connection successful - Ready to sync',
+          progress: 0 
+        }));
+      } else {
+        throw new Error(result.error || 'Connection test failed');
+      }
     } catch (error) {
       setIsConnected(false);
-      setConnectionError('Failed to connect to Ireland Pay CRM API');
+      const errorMessage = error instanceof Error ? error.message : 'Failed to connect to Ireland Pay CRM API';
+      setConnectionError(errorMessage);
       setSyncProgress(prev => ({ 
         ...prev, 
         status: 'error', 
         currentStep: 'Connection failed',
-        error: 'Failed to connect to Ireland Pay CRM API'
+        error: errorMessage
       }));
+    } finally {
+      setTestingConnection(false);
     }
   };
 
-  // Simulate sync process
+  // Start a real sync operation
   const startSync = async () => {
     if (!isConnected) {
       setConnectionError('Please test connection first');
       return;
     }
 
+    setSyncing(true);
     setSyncProgress({
       status: 'syncing',
       progress: 0,
@@ -97,117 +114,121 @@ export function SyncProgressBar({ onSyncComplete, onSyncError }: SyncProgressBar
     });
 
     try {
-      // Step 1: Initialize (10%)
-      await simulateStep('Initializing sync...', 10, 1000);
-      
-      // Step 2: Fetch merchants (30%)
-      await simulateStep('Fetching merchants...', 30, 2000);
-      setSyncProgress(prev => ({
-        ...prev,
-        details: { ...prev.details, merchants: { total: 150, processed: 0, failed: 0 } }
-      }));
-      
-      // Step 3: Process merchants (60%)
-      await simulateStep('Processing merchants...', 60, 3000);
-      setSyncProgress(prev => ({
-        ...prev,
-        details: { 
-          ...prev.details, 
-          merchants: { total: 150, processed: 150, failed: 2 } 
-        }
-      }));
-      
-      // Step 4: Fetch residuals (80%)
-      await simulateStep('Fetching residuals...', 80, 2000);
-      setSyncProgress(prev => ({
-        ...prev,
-        details: { 
-          ...prev.details, 
-          residuals: { total: 500, processed: 0, failed: 0 } 
-        }
-      }));
-      
-      // Step 5: Process residuals (95%)
-      await simulateStep('Processing residuals...', 95, 3000);
-      setSyncProgress(prev => ({
-        ...prev,
-        details: { 
-          ...prev.details, 
-          residuals: { total: 500, processed: 500, failed: 5 } 
-        }
-      }));
-      
-      // Step 6: Complete (100%)
-      await simulateStep('Finalizing sync...', 100, 1000);
-      
-      setSyncProgress(prev => ({
-        ...prev,
-        status: 'completed',
-        currentStep: 'Sync completed successfully!',
-        endTime: new Date()
-      }));
+      // Start the sync via API
+      const response = await fetch('/api/sync-irelandpay-crm', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          dataType: 'all',
+          forceSync: false
+        })
+      });
 
-      onSyncComplete?.(syncProgress.details);
-      
+      const result = await response.json();
+
+      if (result.success) {
+        setSyncProgress(prev => ({
+          ...prev,
+          status: 'syncing',
+          currentStep: 'Sync started successfully',
+          progress: 10
+        }));
+
+        // Monitor the sync progress
+        await monitorSyncProgress(result.data?.id);
+      } else {
+        throw new Error(result.error || 'Failed to start sync');
+      }
     } catch (error) {
+      const errorMessage = error instanceof Error ? error.message : 'Failed to start sync';
       setSyncProgress(prev => ({
         ...prev,
         status: 'error',
         currentStep: 'Sync failed',
-        error: error instanceof Error ? error.message : 'Unknown error occurred'
+        error: errorMessage,
+        endTime: new Date()
       }));
-      onSyncError?.(syncProgress.error || 'Sync failed');
+      onSyncError?.(errorMessage);
+    } finally {
+      setSyncing(false);
     }
   };
 
-  const simulateStep = async (step: string, progress: number, duration: number) => {
-    setSyncProgress(prev => ({ ...prev, currentStep: step, progress }));
-    await new Promise(resolve => setTimeout(resolve, duration));
-  };
+  // Monitor sync progress
+  const monitorSyncProgress = async (syncId: string) => {
+    if (!syncId) return;
 
-  const resetSync = () => {
-    setSyncProgress({
-      status: 'idle',
-      progress: 0,
-      currentStep: 'Ready to sync',
-      details: {}
-    });
-  };
+    const checkProgress = async () => {
+      try {
+        const { data, error } = await supabase
+          .from('sync_progress')
+          .select('*')
+          .eq('sync_id', syncId)
+          .single();
 
-  const getStatusIcon = () => {
-    switch (syncProgress.status) {
-      case 'connecting':
-        return <RefreshCw className="h-4 w-4 animate-spin text-blue-500" />;
-      case 'syncing':
-        return <RefreshCw className="h-4 w-4 animate-spin text-green-500" />;
-      case 'completed':
-        return <CheckCircle className="h-4 w-4 text-green-500" />;
-      case 'error':
-        return <AlertTriangle className="h-4 w-4 text-red-500" />;
-      default:
-        return <Clock className="h-4 w-4 text-muted-foreground" />;
-    }
-  };
+        if (error && error.code !== 'PGRST116') {
+          throw error;
+        }
 
-  const getStatusColor = () => {
-    switch (syncProgress.status) {
-      case 'connecting':
-      case 'syncing':
-        return 'bg-blue-500';
-      case 'completed':
-        return 'bg-green-500';
-      case 'error':
-        return 'bg-red-500';
-      default:
-        return 'bg-gray-500';
-    }
-  };
+        if (data) {
+          setSyncProgress(prev => ({
+            ...prev,
+            progress: data.progress || 0,
+            currentStep: data.message || 'Syncing...',
+            details: data.details || {}
+          }));
 
-  const formatDuration = (startTime?: Date, endTime?: Date) => {
-    if (!startTime) return '';
-    const end = endTime || new Date();
-    const duration = Math.round((end.getTime() - startTime.getTime()) / 1000);
-    return `${duration}s`;
+          if (data.progress >= 100) {
+            setSyncProgress(prev => ({
+              ...prev,
+              status: 'completed',
+              currentStep: 'Sync completed successfully!',
+              endTime: new Date()
+            }));
+            onSyncComplete?.(data.details || {});
+            return;
+          }
+        }
+
+        // Check if sync is still running
+        const { data: syncStatus } = await supabase
+          .from('sync_status')
+          .select('status')
+          .eq('id', syncId)
+          .single();
+
+        if (syncStatus?.status === 'completed') {
+          setSyncProgress(prev => ({
+            ...prev,
+            status: 'completed',
+            progress: 100,
+            currentStep: 'Sync completed successfully!',
+            endTime: new Date()
+          }));
+          onSyncComplete?.(prev.details);
+          return;
+        } else if (syncStatus?.status === 'failed') {
+          throw new Error('Sync failed');
+        }
+
+        // Continue monitoring
+        setTimeout(checkProgress, 2000);
+      } catch (error) {
+        const errorMessage = error instanceof Error ? error.message : 'Sync monitoring failed';
+        setSyncProgress(prev => ({
+          ...prev,
+          status: 'error',
+          currentStep: 'Sync failed',
+          error: errorMessage,
+          endTime: new Date()
+        }));
+        onSyncError?.(errorMessage);
+      }
+    };
+
+    await checkProgress();
   };
 
   const containerVariants = {
@@ -263,12 +284,16 @@ export function SyncProgressBar({ onSyncComplete, onSyncError }: SyncProgressBar
               </div>
               <Button 
                 onClick={testConnection}
-                disabled={syncProgress.status === 'syncing'}
+                disabled={testingConnection || syncing}
                 variant="outline"
                 className="bg-card/50 border-border/50 hover:bg-card/70"
               >
-                <Network className="h-4 w-4 mr-2" />
-                Test Connection
+                {testingConnection ? (
+                  <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                  <Network className="h-4 w-4 mr-2" />
+                )}
+                {testingConnection ? 'Testing...' : 'Test Connection'}
               </Button>
             </div>
           </CardContent>
@@ -280,127 +305,125 @@ export function SyncProgressBar({ onSyncComplete, onSyncError }: SyncProgressBar
         <Card className="bg-card/50 backdrop-blur-sm border border-border/50 shadow-lg">
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              {getStatusIcon()}
+              <RefreshCw className={`h-5 w-5 ${syncProgress.status === 'syncing' ? 'animate-spin text-blue-500' : 'text-green-500'}`} />
               Sync Progress
             </CardTitle>
           </CardHeader>
           <CardContent className="space-y-6">
             {/* Progress Bar */}
-            <div className="space-y-3">
+            <div className="space-y-2">
               <div className="flex justify-between text-sm">
                 <span className="font-medium">{syncProgress.currentStep}</span>
-                <span className="text-muted-foreground">{syncProgress.progress}%</span>
+                <span className="text-muted-foreground">{Math.round(syncProgress.progress)}%</span>
               </div>
-              <div className="relative">
-                <Progress value={syncProgress.progress} className="h-3 bg-muted/50" />
-                <motion.div
-                  className="absolute inset-0 bg-gradient-to-r from-primary/20 to-primary/40 rounded-full"
-                  initial={{ width: 0 }}
-                  animate={{ width: `${syncProgress.progress}%` }}
-                  transition={{ duration: 0.5, ease: "easeOut" }}
-                />
-              </div>
+              <Progress 
+                value={syncProgress.progress} 
+                className="h-2"
+              />
             </div>
 
-            {/* Sync Details */}
-            <AnimatePresence>
-              {syncProgress.details.merchants && (
-                <motion.div 
-                  className="grid grid-cols-1 md:grid-cols-3 gap-4"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <div className="flex items-center gap-3 p-4 bg-blue-500/10 border border-blue-500/20 rounded-lg">
-                    <Users className="h-5 w-5 text-blue-500" />
-                    <div>
-                      <p className="text-sm font-medium text-blue-700 dark:text-blue-300">Merchants</p>
-                      <p className="text-xs text-blue-600 dark:text-blue-400">
-                        {syncProgress.details.merchants.processed}/{syncProgress.details.merchants.total}
-                        {syncProgress.details.merchants.failed > 0 && (
-                          <span className="text-red-500 ml-1">({syncProgress.details.merchants.failed} failed)</span>
-                        )}
-                      </p>
-                    </div>
-                  </div>
-                  
-                  {syncProgress.details.residuals && (
-                    <div className="flex items-center gap-3 p-4 bg-green-500/10 border border-green-500/20 rounded-lg">
-                      <FileText className="h-5 w-5 text-green-500" />
-                      <div>
-                        <p className="text-sm font-medium text-green-700 dark:text-green-300">Residuals</p>
-                        <p className="text-xs text-green-600 dark:text-green-400">
-                          {syncProgress.details.residuals.processed}/{syncProgress.details.residuals.total}
-                          {syncProgress.details.residuals.failed > 0 && (
-                            <span className="text-red-500 ml-1">({syncProgress.details.residuals.failed} failed)</span>
-                          )}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                  
-                  {syncProgress.startTime && (
-                    <div className="flex items-center gap-3 p-4 bg-purple-500/10 border border-purple-500/20 rounded-lg">
-                      <TrendingUp className="h-5 w-5 text-purple-500" />
-                      <div>
-                        <p className="text-sm font-medium text-purple-700 dark:text-purple-300">Duration</p>
-                        <p className="text-xs text-purple-600 dark:text-purple-400">
-                          {formatDuration(syncProgress.startTime, syncProgress.endTime)}
-                        </p>
-                      </div>
-                    </div>
-                  )}
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* Status Badge */}
+            <div className="flex items-center gap-2">
+              <Badge 
+                variant={
+                  syncProgress.status === 'completed' ? 'default' :
+                  syncProgress.status === 'error' ? 'destructive' :
+                  syncProgress.status === 'syncing' ? 'secondary' : 'outline'
+                }
+                className={
+                  syncProgress.status === 'completed' ? 'bg-green-500/10 text-green-700 dark:text-green-300 border-green-500/20' :
+                  syncProgress.status === 'error' ? 'bg-red-500/10 text-red-700 dark:text-red-300 border-red-500/20' :
+                  syncProgress.status === 'syncing' ? 'bg-blue-500/10 text-blue-700 dark:text-blue-300 border-blue-500/20' : ''
+                }
+              >
+                {syncProgress.status === 'completed' && <CheckCircle className="h-3 w-3 mr-1" />}
+                {syncProgress.status === 'error' && <AlertTriangle className="h-3 w-3 mr-1" />}
+                {syncProgress.status === 'syncing' && <Loader2 className="h-3 w-3 mr-1 animate-spin" />}
+                {syncProgress.status.charAt(0).toUpperCase() + syncProgress.status.slice(1)}
+              </Badge>
+            </div>
 
-            {/* Error Display */}
-            <AnimatePresence>
-              {syncProgress.error && (
-                <motion.div
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ duration: 0.3 }}
-                >
-                  <Alert variant="destructive" className="border-red-500/20 bg-red-500/10">
-                    <AlertTriangle className="h-4 w-4" />
-                    <AlertDescription className="text-red-700 dark:text-red-300">{syncProgress.error}</AlertDescription>
-                  </Alert>
-                </motion.div>
-              )}
-            </AnimatePresence>
+            {/* Error Message */}
+            {syncProgress.error && (
+              <Alert variant="destructive">
+                <AlertTriangle className="h-4 w-4" />
+                <AlertDescription>{syncProgress.error}</AlertDescription>
+              </Alert>
+            )}
+
+            {/* Sync Details */}
+            {Object.keys(syncProgress.details).length > 0 && (
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
+                {syncProgress.details.merchants && (
+                  <div className="text-center p-3 bg-blue-500/10 border border-blue-500/20 rounded-lg">
+                    <p className="font-medium text-blue-700 dark:text-blue-300">Merchants</p>
+                    <p className="text-lg font-bold text-blue-600 dark:text-blue-400">
+                      {syncProgress.details.merchants.total || 0}
+                    </p>
+                  </div>
+                )}
+                
+                {syncProgress.details.residuals && (
+                  <div className="text-center p-3 bg-green-500/10 border border-green-500/20 rounded-lg">
+                    <p className="font-medium text-green-700 dark:text-green-300">Residuals</p>
+                    <p className="text-lg font-bold text-green-600 dark:text-green-400">
+                      {syncProgress.details.residuals.total || 0}
+                    </p>
+                  </div>
+                )}
+                
+                {syncProgress.details.errors && syncProgress.details.errors > 0 && (
+                  <div className="text-center p-3 bg-red-500/10 border border-red-500/20 rounded-lg">
+                    <p className="font-medium text-red-700 dark:text-red-300">Errors</p>
+                    <p className="text-lg font-bold text-red-600 dark:text-red-400">
+                      {syncProgress.details.errors}
+                    </p>
+                  </div>
+                )}
+                
+                {syncProgress.details.processed_items && syncProgress.details.total_items && (
+                  <div className="text-center p-3 bg-purple-500/10 border border-purple-500/20 rounded-lg">
+                    <p className="font-medium text-purple-700 dark:text-purple-300">Progress</p>
+                    <p className="text-lg font-bold text-purple-600 dark:text-purple-400">
+                      {syncProgress.details.processed_items}/{syncProgress.details.total_items}
+                    </p>
+                  </div>
+                )}
+              </div>
+            )}
 
             {/* Action Buttons */}
             <div className="flex gap-3">
-              <Button 
+              <Button
                 onClick={startSync}
-                disabled={!isConnected || syncProgress.status === 'syncing'}
-                className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground"
-                size="lg"
+                disabled={!isConnected || syncing || syncProgress.status === 'syncing'}
+                className="flex-1"
               >
-                {syncProgress.status === 'syncing' ? (
+                {syncing ? (
                   <>
-                    <div className="animate-spin rounded-full h-4 w-4 border-b-2 border-white mr-2"></div>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                     Syncing...
                   </>
                 ) : (
                   <>
-                    <Play className="h-4 w-4 mr-2" />
+                    <Play className="mr-2 h-4 w-4" />
                     Start Sync
                   </>
                 )}
               </Button>
               
               {syncProgress.status === 'completed' && (
-                <Button 
-                  onClick={resetSync}
+                <Button
                   variant="outline"
-                  className="bg-card/50 border-border/50 hover:bg-card/70"
-                  size="lg"
+                  onClick={() => {
+                    setSyncProgress({
+                      status: 'idle',
+                      progress: 0,
+                      currentStep: 'Ready to sync',
+                      details: {}
+                    });
+                  }}
                 >
-                  <RotateCcw className="h-4 w-4 mr-2" />
                   Reset
                 </Button>
               )}

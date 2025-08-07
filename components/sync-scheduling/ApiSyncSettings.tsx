@@ -138,11 +138,11 @@ const ApiSyncSettings: React.FC = () => {
     }
   }
 
-  // Check IRIS CRM API connection status
+  // Check Ireland Pay CRM API connection status
   const checkApiStatus = async () => {
     setApiStatus('checking')
     try {
-      const response = await fetch('/api/sync-iriscrm/status')
+      const response = await fetch('/api/sync-irelandpay-crm')
       const data = await response.json()
       
       if (data.success) {
@@ -197,7 +197,7 @@ const ApiSyncSettings: React.FC = () => {
   const testSync = async () => {
     setTestSyncStatus('running')
     try {
-      const response = await fetch('/api/sync-iriscrm', {
+      const response = await fetch('/api/sync-irelandpay-crm', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({

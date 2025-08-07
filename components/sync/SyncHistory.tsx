@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
@@ -14,8 +14,10 @@ import {
   Calendar,
   TrendingUp,
   ChevronDown,
-  ChevronUp
+  ChevronUp,
+  Loader2
 } from 'lucide-react';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 
 interface SyncHistoryItem {
   id: string;
@@ -35,43 +37,68 @@ interface SyncHistoryProps {
 
 export function SyncHistory({ history = [] }: SyncHistoryProps) {
   const [showAll, setShowAll] = useState(false);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [syncHistory, setSyncHistory] = useState<SyncHistoryItem[]>([]);
+  const supabase = createSupabaseBrowserClient();
 
-  // Mock data for demonstration
-  const mockHistory: SyncHistoryItem[] = [
-    {
-      id: '1',
-      timestamp: new Date(Date.now() - 2 * 60 * 60 * 1000), // 2 hours ago
-      status: 'completed',
-      duration: 45,
-      merchantsProcessed: 150,
-      merchantsFailed: 2,
-      residualsProcessed: 500,
-      residualsFailed: 5
-    },
-    {
-      id: '2',
-      timestamp: new Date(Date.now() - 26 * 60 * 60 * 1000), // 26 hours ago
-      status: 'failed',
-      duration: 12,
-      merchantsProcessed: 45,
-      merchantsFailed: 15,
-      residualsProcessed: 120,
-      residualsFailed: 45,
-      error: 'API timeout - connection lost'
-    },
-    {
-      id: '3',
-      timestamp: new Date(Date.now() - 50 * 60 * 60 * 1000), // 50 hours ago
-      status: 'completed',
-      duration: 38,
-      merchantsProcessed: 148,
-      merchantsFailed: 1,
-      residualsProcessed: 495,
-      residualsFailed: 3
+  useEffect(() => {
+    fetchSyncHistory();
+  }, []);
+
+  const fetchSyncHistory = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+
+      // Fetch from sync_status table
+      const { data: syncStatusData, error: syncError } = await supabase
+        .from('sync_status')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(20);
+
+      if (syncError) {
+        console.error('Error fetching sync status:', syncError);
+        setError('Failed to fetch sync history');
+        return;
+      }
+
+      // Transform the data to match our interface
+      const transformedHistory: SyncHistoryItem[] = (syncStatusData || []).map((sync: any) => {
+        const startTime = new Date(sync.started_at);
+        const endTime = sync.completed_at ? new Date(sync.completed_at) : new Date();
+        const duration = Math.round((endTime.getTime() - startTime.getTime()) / 1000);
+
+        // Extract results from the JSONB field
+        const results = sync.results || {};
+        const merchants = results.merchants || {};
+        const residuals = results.residuals || {};
+
+        return {
+          id: sync.id,
+          timestamp: startTime,
+          status: sync.status === 'completed' ? 'completed' : 
+                 sync.status === 'failed' ? 'failed' : 'in_progress',
+          duration,
+          merchantsProcessed: merchants.total_merchants || 0,
+          merchantsFailed: merchants.merchants_failed || 0,
+          residualsProcessed: residuals.total_residuals || 0,
+          residualsFailed: residuals.residuals_failed || 0,
+          error: sync.error || undefined
+        };
+      });
+
+      setSyncHistory(transformedHistory);
+    } catch (err) {
+      console.error('Error fetching sync history:', err);
+      setError('Failed to fetch sync history');
+    } finally {
+      setLoading(false);
     }
-  ];
+  };
 
-  const displayHistory = showAll ? mockHistory : mockHistory.slice(0, 3);
+  const displayHistory = showAll ? syncHistory : syncHistory.slice(0, 3);
 
   const getStatusIcon = (status: SyncHistoryItem['status']) => {
     switch (status) {
@@ -148,6 +175,49 @@ export function SyncHistory({ history = [] }: SyncHistoryProps) {
     }
   };
 
+  if (loading) {
+    return (
+      <Card className="bg-card/50 backdrop-blur-sm border border-border/50 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <History className="h-5 w-5 text-purple-500" />
+            Sync History
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="flex items-center justify-center py-12">
+            <Loader2 className="h-8 w-8 animate-spin text-muted-foreground" />
+            <span className="ml-2 text-muted-foreground">Loading sync history...</span>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
+  if (error) {
+    return (
+      <Card className="bg-card/50 backdrop-blur-sm border border-border/50 shadow-lg">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <History className="h-5 w-5 text-purple-500" />
+            Sync History
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-6">
+          <div className="text-center py-12">
+            <AlertTriangle className="h-16 w-16 mx-auto mb-4 text-red-500" />
+            <p className="text-lg font-medium mb-2 text-red-600">Error Loading History</p>
+            <p className="text-sm text-muted-foreground mb-4">{error}</p>
+            <Button onClick={fetchSyncHistory} variant="outline">
+              <RefreshCw className="h-4 w-4 mr-2" />
+              Retry
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    );
+  }
+
   return (
     <motion.div
       variants={containerVariants}
@@ -156,10 +226,21 @@ export function SyncHistory({ history = [] }: SyncHistoryProps) {
     >
       <Card className="bg-card/50 backdrop-blur-sm border border-border/50 shadow-lg">
         <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <History className="h-5 w-5 text-purple-500" />
-            Sync History
-          </CardTitle>
+          <div className="flex items-center justify-between">
+            <CardTitle className="flex items-center gap-2">
+              <History className="h-5 w-5 text-purple-500" />
+              Sync History
+            </CardTitle>
+            <Button 
+              variant="outline" 
+              size="sm"
+              onClick={fetchSyncHistory}
+              disabled={loading}
+            >
+              <RefreshCw className={`h-4 w-4 mr-2 ${loading ? 'animate-spin' : ''}`} />
+              Refresh
+            </Button>
+          </div>
         </CardHeader>
         <CardContent className="space-y-6">
           {displayHistory.length === 0 ? (
@@ -265,7 +346,7 @@ export function SyncHistory({ history = [] }: SyncHistoryProps) {
               </div>
 
               {/* Show More/Less Button */}
-              {mockHistory.length > 3 && (
+              {syncHistory.length > 3 && (
                 <motion.div 
                   className="text-center pt-4"
                   initial={{ opacity: 0 }}
@@ -286,7 +367,7 @@ export function SyncHistory({ history = [] }: SyncHistoryProps) {
                     ) : (
                       <>
                         <ChevronDown className="h-4 w-4 mr-2" />
-                        Show {mockHistory.length - 3} More
+                        Show {syncHistory.length - 3} More
                       </>
                     )}
                   </Button>

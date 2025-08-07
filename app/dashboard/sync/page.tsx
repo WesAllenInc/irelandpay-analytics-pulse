@@ -1,37 +1,41 @@
 import React from 'react'
 import { Metadata } from 'next'
-import IrelandPayCRMSync from '@/components/IrelandPayCRMSync'
+import { SyncProgressBar } from '@/components/sync/SyncProgressBar'
+import { SyncHistory } from '@/components/sync/SyncHistory'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Badge } from '@/components/ui/badge'
+import { Clock, RefreshCw, CheckCircle } from 'lucide-react'
 
 export const metadata: Metadata = {
-  title: 'IRIS CRM Sync | IrelandPay Analytics Pulse',
-  description: 'Synchronize merchant and residual data from IRIS CRM',
+  title: 'Ireland Pay CRM Sync | IrelandPay Analytics Pulse',
+  description: 'Synchronize merchant and residual data from Ireland Pay CRM',
 }
 
 export default function SyncPage() {
   return (
     <div className="container py-10 space-y-8">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">IRIS CRM Sync Dashboard</h1>
+        <h1 className="text-3xl font-bold tracking-tight">Ireland Pay CRM Sync Dashboard</h1>
         <p className="text-muted-foreground mt-2">
-          Automate data synchronization between IRIS CRM and IrelandPay Analytics
+          Automate data synchronization between Ireland Pay CRM and IrelandPay Analytics
         </p>
       </div>
 
       <div className="grid gap-8 md:grid-cols-2">
-        <div>
-          <IrelandPayCRMSync />
+        <div className="space-y-6">
+          <SyncProgressBar />
+          <SyncHistory />
         </div>
         
         <div className="space-y-8">
           <Card>
             <CardHeader>
-              <CardTitle>About IRIS CRM Sync</CardTitle>
+              <CardTitle>About Ireland Pay CRM Sync</CardTitle>
               <CardDescription>How automated data synchronization works</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4">
               <p>
-                This dashboard allows you to synchronize merchant and residual data from IRIS CRM
+                This dashboard allows you to synchronize merchant and residual data from Ireland Pay CRM
                 directly into IrelandPay Analytics without the need for manual Excel file uploads.
               </p>
               
@@ -43,10 +47,35 @@ export default function SyncPage() {
                 <li><strong>All</strong> - Sync all data types in a single operation</li>
               </ul>
               
-              <h3 className="font-semibold mt-4">Sync Frequency</h3>
+              <h3 className="font-semibold mt-4">Scheduled Syncs</h3>
+              <div className="space-y-3">
+                <div className="flex items-center gap-3 p-3 bg-green-50 border border-green-200 rounded-lg">
+                  <Clock className="h-5 w-5 text-green-600" />
+                  <div>
+                    <p className="font-medium text-green-800">Daily at 10:00 AM</p>
+                    <p className="text-sm text-green-600">Morning sync for fresh data</p>
+                  </div>
+                  <Badge variant="outline" className="bg-green-100 text-green-700 border-green-300">
+                    Active
+                  </Badge>
+                </div>
+                
+                <div className="flex items-center gap-3 p-3 bg-blue-50 border border-blue-200 rounded-lg">
+                  <Clock className="h-5 w-5 text-blue-600" />
+                  <div>
+                    <p className="font-medium text-blue-800">Daily at 8:00 PM</p>
+                    <p className="text-sm text-blue-600">Evening sync for end-of-day data</p>
+                  </div>
+                  <Badge variant="outline" className="bg-blue-100 text-blue-700 border-blue-300">
+                    Active
+                  </Badge>
+                </div>
+              </div>
+              
+              <h3 className="font-semibold mt-4">Manual Sync</h3>
               <p>
-                Data is automatically synchronized daily from IRIS CRM, but you can also manually
-                trigger a sync for specific data types or date ranges using this interface.
+                You can also manually trigger a sync at any time using the "Start Sync" button.
+                This is useful for testing or when you need immediate data updates.
               </p>
               
               <div className="bg-blue-50 p-4 rounded-md mt-4">
@@ -66,17 +95,25 @@ export default function SyncPage() {
             </CardHeader>
             <CardContent className="space-y-2">
               <div>
+                <h3 className="font-semibold">Connection fails</h3>
+                <p className="text-sm text-muted-foreground">
+                  The connection is hardcoded and should work automatically. If you see connection errors,
+                  check that the Ireland Pay CRM API is accessible and contact support if needed.
+                </p>
+              </div>
+              
+              <div>
                 <h3 className="font-semibold">Sync fails with API errors</h3>
                 <p className="text-sm text-muted-foreground">
-                  Verify that your IRIS CRM API token is valid and has the required permissions.
-                  Contact your administrator if the issue persists.
+                  The API key is hardcoded and should work automatically. If you see API errors,
+                  the Ireland Pay CRM service may be temporarily unavailable. Try again later.
                 </p>
               </div>
               
               <div>
                 <h3 className="font-semibold">Missing merchant data</h3>
                 <p className="text-sm text-muted-foreground">
-                  Ensure that the merchant is active in IRIS CRM and try syncing again.
+                  Ensure that the merchant is active in Ireland Pay CRM and try syncing again.
                   Some merchants may not have data for the selected month.
                 </p>
               </div>

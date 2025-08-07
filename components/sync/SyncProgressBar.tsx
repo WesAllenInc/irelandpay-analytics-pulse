@@ -56,7 +56,7 @@ export function SyncProgressBar({ onSyncComplete, onSyncError }: SyncProgressBar
     try {
       setSyncProgress(prev => ({ ...prev, status: 'connecting', currentStep: 'Testing connection...' }));
       
-      // Test the API connection
+      // Test the API connection with hardcoded credentials
       const response = await fetch('/api/setup/test-connection', {
         method: 'POST',
         headers: {
@@ -64,7 +64,7 @@ export function SyncProgressBar({ onSyncComplete, onSyncError }: SyncProgressBar
         },
         body: JSON.stringify({
           baseUrl: 'https://crm.ireland-pay.com/api/v1',
-          apiKey: process.env.NEXT_PUBLIC_IRELANDPAY_CRM_API_KEY || ''
+          apiKey: 'c1jfpS4tI23CUZ4OCO4YNtYRtdXP9eT4PbdIUULIysGZyaD8gu' // Hardcoded API key
         })
       });
 
@@ -99,9 +99,12 @@ export function SyncProgressBar({ onSyncComplete, onSyncError }: SyncProgressBar
 
   // Start a real sync operation
   const startSync = async () => {
+    // Auto-connect if not already connected
     if (!isConnected) {
-      setConnectionError('Please test connection first');
-      return;
+      await testConnection();
+      if (!isConnected) {
+        return;
+      }
     }
 
     setSyncing(true);

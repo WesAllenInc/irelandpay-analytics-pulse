@@ -30,10 +30,10 @@ export async function performScheduledSync(): Promise<SyncResult> {
   try {
     console.log('Starting scheduled sync operation')
     
-    // Use the enhanced DailySyncManager
+    // Use the enhanced DailySyncManager with hardcoded API key
     const dailySyncManager = new DailySyncManager(
-      process.env.IRELANDPAY_CRM_API_KEY!,
-      process.env.IRELANDPAY_CRM_BASE_URL
+      'c1jfpS4tI23CUZ4OCO4YNtYRtdXP9eT4PbdIUULIysGZyaD8gu', // Hardcoded API key
+      'https://crm.ireland-pay.com/api/v1'
     )
     
     // Perform daily sync with enhanced monitoring

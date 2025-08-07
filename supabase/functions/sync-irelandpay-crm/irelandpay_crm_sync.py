@@ -34,13 +34,11 @@ class IrelandPayCRMSync:
     
     def __init__(self):
         """Initialize the sync manager with API credentials and database connection."""
-        # Get environment variables
-        self.api_key = os.environ.get('IRELANDPAY_CRM_API_KEY')
+        # Hardcoded API key for Ireland Pay CRM
+        self.api_key = 'c1jfpS4tI23CUZ4OCO4YNtYRtdXP9eT4PbdIUULIysGZyaD8gu'
         self.supabase_url = os.environ.get('SUPABASE_URL')
         self.supabase_key = os.environ.get('SUPABASE_SERVICE_ROLE_KEY')
         
-        if not self.api_key:
-            raise ValueError("IRELANDPAY_CRM_API_KEY environment variable not set")
         if not self.supabase_url or not self.supabase_key:
             raise ValueError("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY environment variables not set")
         

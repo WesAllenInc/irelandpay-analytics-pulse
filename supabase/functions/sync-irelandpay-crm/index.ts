@@ -20,12 +20,13 @@ interface QueuedJobResponse {
   estimatedStart?: string;
 }
 
-const IRELANDPAY_CRM_API_KEY = Deno.env.get('IRELANDPAY_CRM_API_KEY')
+// Hardcoded API key for Ireland Pay CRM
+const IRELANDPAY_CRM_API_KEY = 'c1jfpS4tI23CUZ4OCO4YNtYRtdXP9eT4PbdIUULIysGZyaD8gu'
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
-if (!IRELANDPAY_CRM_API_KEY) {
-  console.error('Missing IRELANDPAY_CRM_API_KEY environment variable')
+if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+  console.error('Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY environment variables')
 }
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {

@@ -165,65 +165,52 @@ export function SyncProgressBar({ onSyncComplete, onSyncError, onSyncIdChange }:
     }
   };
 
-  // Monitor sync progress
+  // Monitor sync progress using our new progress API
   const monitorSyncProgress = async (syncId: string) => {
     if (!syncId) return;
 
     const checkProgress = async () => {
       try {
-        const { data, error } = await supabase
-          .from('sync_progress')
-          .select('*')
-          .eq('sync_id', syncId)
-          .single();
+        // Use our new progress API endpoint
+        const response = await fetch(`/api/sync-irelandpay-crm/progress?syncId=${syncId}`);
+        const result = await response.json();
 
-        if (error && error.code !== 'PGRST116') {
-          throw error;
-        }
-
-        if (data) {
+        if (result.success && result.data) {
+          const progressData = result.data;
+          
           setSyncProgress(prev => ({
             ...prev,
-            progress: data.progress || 0,
-            currentStep: data.message || 'Syncing...',
-            details: data.details || {}
+            progress: progressData.overallProgress || 0,
+            currentStep: progressData.currentActivity || 'Syncing...',
+            details: {
+              merchants: progressData.phases?.find(p => p.name === 'merchants')?.details || {},
+              residuals: progressData.phases?.find(p => p.name === 'residuals')?.details || {},
+              volumes: progressData.phases?.find(p => p.name === 'volumes')?.details || {},
+              currentPhase: progressData.currentPhase,
+              totalPhases: progressData.totalPhases,
+              currentPhaseIndex: progressData.currentPhaseIndex
+            }
           }));
 
-          if (data.progress >= 100) {
+          if (progressData.status === 'completed') {
             setSyncProgress(prev => ({
               ...prev,
               status: 'completed',
+              progress: 100,
               currentStep: 'Sync completed successfully!',
               endTime: new Date()
             }));
-            onSyncComplete?.(data.details || {});
+            onSyncComplete?.(progressData);
             return;
+          } else if (progressData.status === 'failed') {
+            throw new Error('Sync failed');
           }
+
+          // Continue monitoring
+          setTimeout(checkProgress, 2000);
+        } else {
+          throw new Error(result.error || 'Failed to fetch progress');
         }
-
-        // Check if sync is still running
-        const { data: syncStatus } = await supabase
-          .from('sync_status')
-          .select('status')
-          .eq('id', syncId)
-          .single();
-
-        if (syncStatus?.status === 'completed') {
-          setSyncProgress(prev => ({
-            ...prev,
-            status: 'completed',
-            progress: 100,
-            currentStep: 'Sync completed successfully!',
-            endTime: new Date()
-          }));
-          onSyncComplete?.(prev.details);
-          return;
-        } else if (syncStatus?.status === 'failed') {
-          throw new Error('Sync failed');
-        }
-
-        // Continue monitoring
-        setTimeout(checkProgress, 2000);
       } catch (error) {
         const errorMessage = error instanceof Error ? error.message : 'Sync monitoring failed';
         setSyncProgress(prev => ({

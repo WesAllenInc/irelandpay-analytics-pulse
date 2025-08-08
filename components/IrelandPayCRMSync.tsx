@@ -83,7 +83,7 @@ const IrelandPayCRMSync: React.FC = () => {
   // Fetch sync status
   const fetchSyncStatus = async () => {
     try {
-      const response = await fetch('/api/sync-irelandpay-crm')
+      const response = await fetch('/api/sync-irelandpay-crm/enhanced')
       const data = await response.json()
       
       if (data.success && data.data) {
@@ -138,12 +138,12 @@ const IrelandPayCRMSync: React.FC = () => {
         }
       );
 
-      const response = await fetch('/api/sync-irelandpay-crm', {
+      const response = await fetch('/api/sync-irelandpay-crm/enhanced', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(syncOptions),
+        body: JSON.stringify({ syncType: 'initial' }),
       })
       
       const data = await response.json()

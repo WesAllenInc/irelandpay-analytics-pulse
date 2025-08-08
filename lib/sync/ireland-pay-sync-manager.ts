@@ -208,33 +208,54 @@ export class IrelandPaySyncManager {
    * Sync transactions for a specific month
    */
   private async syncMonthlyTransactions(syncId: string, year: number, month: number): Promise<{ count: number }> {
+    // The Ireland Pay CRM API exposes transactions per-merchant.
+    // Strategy: list merchants, then fetch transactions for the period per merchant.
     let totalCount = 0;
-    let page = 1;
-    let hasMore = true;
+    let merchantPage = 1;
+    let moreMerchants = true;
 
-    while (hasMore) {
-      try {
-        const response = await executeWithCircuitBreaker(() =>
-          this.client.getVolumes({ year, month, page, per_page: 100 })
-        );
+    while (moreMerchants) {
+      const merchantsResp = await executeWithCircuitBreaker(() =>
+        this.client.getMerchants({ page: merchantPage, per_page: 100 })
+      );
 
-        if (!response.data || response.data.length === 0) {
-          hasMore = false;
-          break;
-        }
-
-        for (const transaction of response.data) {
-          await this.upsertTransaction(transaction, year, month);
-          totalCount++;
-        }
-
-        page++;
-        hasMore = response.data.length === 100;
-
-      } catch (error) {
-        console.error(`Error syncing transactions for ${year}-${month}, page ${page}:`, error);
-        throw error;
+      const merchants = merchantsResp.data || [];
+      if (merchants.length === 0) {
+        moreMerchants = false;
+        break;
       }
+
+      for (const m of merchants) {
+        let txPage = 1;
+        let moreTx = true;
+        while (moreTx) {
+          const txResp = await executeWithCircuitBreaker(() =>
+            this.client.getMerchantTransactions(m.merchant_number, {
+              start_date: `${year}-${String(month).padStart(2, '0')}-01`,
+              end_date: `${year}-${String(month).padStart(2, '0')}-31`,
+              page: txPage,
+              per_page: 100
+            })
+          );
+
+          const txs = txResp.data || [];
+          if (txs.length === 0) {
+            moreTx = false;
+            break;
+          }
+
+          for (const transaction of txs) {
+            await this.upsertTransaction(transaction, year, month);
+            totalCount++;
+          }
+
+          txPage++;
+          moreTx = txs.length === 100;
+        }
+      }
+
+      merchantPage++;
+      moreMerchants = merchants.length === 100;
     }
 
     return { count: totalCount };
@@ -244,35 +265,16 @@ export class IrelandPaySyncManager {
    * Sync residuals for a specific month
    */
   private async syncMonthlyResiduals(syncId: string, year: number, month: number): Promise<{ count: number }> {
+    // The API exposes residuals via specific endpoints; we can use line items as a generic dataset.
+    const response = await executeWithCircuitBreaker(() =>
+      this.client.getResidualsLineItems(year, month)
+    );
+    const items = response.data || [];
     let totalCount = 0;
-    let page = 1;
-    let hasMore = true;
-
-    while (hasMore) {
-      try {
-        const response = await executeWithCircuitBreaker(() =>
-          this.client.getResiduals({ year, month, page, per_page: 100 })
-        );
-
-        if (!response.data || response.data.length === 0) {
-          hasMore = false;
-          break;
-        }
-
-        for (const residual of response.data) {
-          await this.upsertResidual(residual, year, month);
-          totalCount++;
-        }
-
-        page++;
-        hasMore = response.data.length === 100;
-
-      } catch (error) {
-        console.error(`Error syncing residuals for ${year}-${month}, page ${page}:`, error);
-        throw error;
-      }
+    for (const residual of items) {
+      await this.upsertResidual(residual, year, month);
+      totalCount++;
     }
-
     return { count: totalCount };
   }
 

@@ -142,7 +142,7 @@ const ApiSyncSettings: React.FC = () => {
   const checkApiStatus = async () => {
     setApiStatus('checking')
     try {
-      const response = await fetch('/api/sync-irelandpay-crm')
+      const response = await fetch('/api/sync-irelandpay-crm/enhanced')
       const data = await response.json()
       
       if (data.success) {
@@ -197,13 +197,10 @@ const ApiSyncSettings: React.FC = () => {
   const testSync = async () => {
     setTestSyncStatus('running')
     try {
-      const response = await fetch('/api/sync-irelandpay-crm', {
+      const response = await fetch('/api/sync-irelandpay-crm/enhanced', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          dataType: 'merchants',
-          forceSync: false
-        })
+        body: JSON.stringify({ syncType: 'initial' })
       })
 
       const data = await response.json()

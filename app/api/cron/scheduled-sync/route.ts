@@ -20,17 +20,14 @@ export async function GET(request: Request) {
   try {
     console.log('Starting scheduled sync at', new Date().toISOString())
     
-    // Trigger the sync via the main sync endpoint
-    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/sync-irelandpay-crm`, {
+    // Trigger the sync via the enhanced sync endpoint (server reads API key from env)
+    const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/sync-irelandpay-crm/enhanced`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${cronSecret}` // Use cron secret for internal auth
       },
-      body: JSON.stringify({
-        dataType: 'all',
-        forceSync: false
-      })
+      body: JSON.stringify({ syncType: 'daily' })
     })
     
     const result = await response.json()

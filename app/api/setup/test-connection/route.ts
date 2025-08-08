@@ -3,11 +3,12 @@ import { createSupabaseServerClient } from '@/lib/supabase'
 
 export async function POST(request: Request) {
   try {
-    const { baseUrl, apiKey } = await request.json()
+    const { baseUrl } = await request.json()
+    const apiKey = process.env.IRELANDPAY_CRM_API_KEY
 
     if (!baseUrl || !apiKey) {
       return NextResponse.json(
-        { error: 'Base URL and API key are required' },
+        { error: 'Base URL is required and server API key must be configured' },
         { status: 400 }
       )
     }

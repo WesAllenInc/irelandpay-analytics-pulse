@@ -30,10 +30,10 @@ export async function performScheduledSync(): Promise<SyncResult> {
   try {
     console.log('Starting scheduled sync operation')
     
-    // Use the enhanced DailySyncManager with hardcoded API key
+    // Use the enhanced DailySyncManager with server-configured API key
     const dailySyncManager = new DailySyncManager(
-      'c1jfpS4tI23CUZ4OCO4YNtYRtdXP9eT4PbdIUULIysGZyaD8gu', // Hardcoded API key
-      'https://crm.ireland-pay.com/api/v1'
+      process.env.IRELANDPAY_CRM_API_KEY || '',
+      process.env.IRELANDPAY_CRM_BASE_URL || 'https://crm.ireland-pay.com/api/v1'
     )
     
     // Perform daily sync with enhanced monitoring
@@ -121,15 +121,12 @@ export async function performScheduledSync(): Promise<SyncResult> {
 async function syncMerchants(): Promise<{ added: number; updated: number }> {
   try {
     // Call the Ireland Pay CRM sync API
-    const response = await fetch('/api/sync-irelandpay-crm', {
+    const response = await fetch('/api/sync-irelandpay-crm/enhanced', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        dataType: 'merchants',
-        forceSync: true
-      })
+      body: JSON.stringify({ syncType: 'initial' })
     });
 
     if (!response.ok) {
@@ -153,15 +150,12 @@ async function syncMerchants(): Promise<{ added: number; updated: number }> {
 async function syncTransactions(): Promise<{ count: number }> {
   try {
     // Call the Ireland Pay CRM sync API for volumes/transactions
-    const response = await fetch('/api/sync-irelandpay-crm', {
+    const response = await fetch('/api/sync-irelandpay-crm/enhanced', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        dataType: 'volumes',
-        forceSync: true
-      })
+      body: JSON.stringify({ syncType: 'initial' })
     });
 
     if (!response.ok) {
@@ -185,15 +179,12 @@ async function syncTransactions(): Promise<{ count: number }> {
 async function syncResiduals(): Promise<{ count: number }> {
   try {
     // Call the Ireland Pay CRM sync API for residuals
-    const response = await fetch('/api/sync-irelandpay-crm', {
+    const response = await fetch('/api/sync-irelandpay-crm/enhanced', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
       },
-      body: JSON.stringify({
-        dataType: 'residuals',
-        forceSync: true
-      })
+      body: JSON.stringify({ syncType: 'initial' })
     });
 
     if (!response.ok) {

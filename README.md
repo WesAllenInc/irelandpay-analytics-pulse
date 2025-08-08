@@ -47,6 +47,10 @@ A comprehensive analytics and CRM integration platform for Ireland Pay, providin
 - `IRELANDPAY_CRM_API_KEY` - Ireland Pay CRM API key
 - `IRELANDPAY_CRM_BASE_URL` - Ireland Pay CRM base URL
 
+### Sync API usage
+- Start sync: `POST /api/sync-irelandpay-crm/enhanced` (reads API key from server env)
+- Check status: `GET /api/sync-irelandpay-crm/enhanced?syncId=UUID`
+
 ### Optional Variables
 - `NEXT_PUBLIC_APP_URL` - Your application URL
 - `CSRF_SECRET` - CSRF protection secret

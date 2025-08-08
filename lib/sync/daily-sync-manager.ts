@@ -193,48 +193,63 @@ export class DailySyncManager extends IrelandPaySyncManager {
 
     let count = 0;
     let errors = 0;
-    let page = 1;
-    let hasMore = true;
     let totalProcessed = 0;
 
-    while (hasMore) {
-      try {
-        const response = await executeWithCircuitBreaker(() =>
-          this.client.getVolumes({ 
-            year, 
-            month, 
-            page, 
-            per_page: 100 
-          })
-        );
+    // Iterate merchants and fetch per-merchant transactions using date range
+    let merchantPage = 1;
+    let moreMerchants = true;
+    while (moreMerchants) {
+      const merchantsResp = await executeWithCircuitBreaker(() =>
+        this.client.getMerchants({ page: merchantPage, per_page: 100 })
+      );
+      const merchants = merchantsResp.data || [];
+      if (merchants.length === 0) {
+        moreMerchants = false;
+        break;
+      }
 
-        if (!response.data || response.data.length === 0) {
-          hasMore = false;
-          break;
-        }
-
-        for (const transaction of response.data) {
+      for (const m of merchants) {
+        let txPage = 1;
+        let moreTx = true;
+        while (moreTx) {
           try {
-            await this.upsertTransaction(transaction, year, month);
-            count++;
-            totalProcessed++;
+            const txResp = await executeWithCircuitBreaker(() =>
+              this.client.getMerchantTransactions(m.merchant_number, {
+                start_date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+                end_date: `${year}-${String(month).padStart(2, '0')}-${String(day).padStart(2, '0')}`,
+                page: txPage,
+                per_page: 100
+              })
+            );
+            const txs = txResp.data || [];
+            if (txs.length === 0) {
+              moreTx = false;
+              break;
+            }
+            for (const transaction of txs) {
+              try {
+                await this.upsertTransaction(transaction, year, month);
+                count++;
+                totalProcessed++;
+              } catch (error) {
+                errors++;
+                console.error(`Error processing transaction for merchant ${transaction.merchant_number}:`, error);
+              }
+            }
+            // Update progress
+            await this.progressTracker.updateItemProgress(syncId, 'transactions_daily', totalProcessed, -1);
+            txPage++;
+            moreTx = txs.length === 100;
           } catch (error) {
             errors++;
-            console.error(`Error processing transaction for merchant ${transaction.merchant_number}:`, error);
+            console.error(`Error syncing transactions for merchant ${m.merchant_number} page ${txPage}:`, error);
+            moreTx = false;
           }
         }
-
-        // Update progress
-        await this.progressTracker.updateItemProgress(syncId, 'transactions_daily', totalProcessed, -1);
-
-        page++;
-        hasMore = response.data.length === 100;
-
-      } catch (error) {
-        errors++;
-        console.error(`Error syncing transactions page ${page}:`, error);
-        hasMore = false;
       }
+
+      merchantPage++;
+      moreMerchants = merchants.length === 100;
     }
 
     return { count, errors };
@@ -255,48 +270,28 @@ export class DailySyncManager extends IrelandPaySyncManager {
 
     let count = 0;
     let errors = 0;
-    let page = 1;
-    let hasMore = true;
     let totalProcessed = 0;
 
-    while (hasMore) {
-      try {
-        const response = await executeWithCircuitBreaker(() =>
-          this.client.getResiduals({ 
-            year, 
-            month, 
-            page, 
-            per_page: 100 
-          })
-        );
-
-        if (!response.data || response.data.length === 0) {
-          hasMore = false;
-          break;
+    try {
+      const response = await executeWithCircuitBreaker(() =>
+        this.client.getResidualsLineItems(year, month)
+      );
+      const items = response.data || [];
+      for (const residual of items) {
+        try {
+          await this.upsertResidual(residual, year, month);
+          count++;
+          totalProcessed++;
+        } catch (error) {
+          errors++;
+          console.error(`Error processing residual for merchant ${residual.merchant_number}:`, error);
         }
-
-        for (const residual of response.data) {
-          try {
-            await this.upsertResidual(residual, year, month);
-            count++;
-            totalProcessed++;
-          } catch (error) {
-            errors++;
-            console.error(`Error processing residual for merchant ${residual.merchant_number}:`, error);
-          }
-        }
-
-        // Update progress
-        await this.progressTracker.updateItemProgress(syncId, 'residuals_check', totalProcessed, -1);
-
-        page++;
-        hasMore = response.data.length === 100;
-
-      } catch (error) {
-        errors++;
-        console.error(`Error syncing residuals page ${page}:`, error);
-        hasMore = false;
       }
+      // Update progress
+      await this.progressTracker.updateItemProgress(syncId, 'residuals_check', totalProcessed, -1);
+    } catch (error) {
+      errors++;
+      console.error(`Error syncing residuals for ${year}-${month}:`, error);
     }
 
     return { count, errors };

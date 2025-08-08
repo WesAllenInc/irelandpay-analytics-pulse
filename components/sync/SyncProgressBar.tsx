@@ -58,15 +58,14 @@ export function SyncProgressBar({ onSyncComplete, onSyncError, onSyncIdChange }:
     try {
       setSyncProgress(prev => ({ ...prev, status: 'connecting', currentStep: 'Testing connection...' }));
       
-      // Test the API connection with hardcoded credentials
+      // Test the API connection using server-held credentials (no key in browser)
       const response = await fetch('/api/setup/test-connection', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          baseUrl: 'https://crm.ireland-pay.com/api/v1',
-          apiKey: 'c1jfpS4tI23CUZ4OCO4YNtYRtdXP9eT4PbdIUULIysGZyaD8gu' // Hardcoded API key
+          baseUrl: 'https://crm.ireland-pay.com/api/v1'
         })
       });
 
@@ -119,16 +118,13 @@ export function SyncProgressBar({ onSyncComplete, onSyncError, onSyncIdChange }:
     });
 
     try {
-      // Start the sync via API
-      const response = await fetch('/api/sync-irelandpay-crm', {
+      // Start the sync via enhanced API (server reads API key)
+      const response = await fetch('/api/sync-irelandpay-crm/enhanced', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          dataType: 'all',
-          forceSync: false
-        })
+        body: JSON.stringify({ syncType: 'initial' })
       });
 
       const result = await response.json();
@@ -171,8 +167,8 @@ export function SyncProgressBar({ onSyncComplete, onSyncError, onSyncIdChange }:
 
     const checkProgress = async () => {
       try {
-        // Use our new progress API endpoint
-        const response = await fetch(`/api/sync-irelandpay-crm/progress?syncId=${syncId}`);
+        // Poll enhanced status API (returns sync_jobs and sync_progress)
+        const response = await fetch(`/api/sync-irelandpay-crm/enhanced?syncId=${syncId}`);
         const result = await response.json();
 
         if (result.success && result.data) {

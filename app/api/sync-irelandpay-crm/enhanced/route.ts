@@ -12,14 +12,23 @@ export async function POST(request: Request) {
   const supabase = createSupabaseServerClient();
 
   try {
-    const body = await request.json();
-    const { syncType, apiKey, baseUrl } = body;
+    // Body is optional; prefer server env for secrets
+    let body: any = {};
+    try {
+      body = await request.json();
+    } catch {
+      // no body provided
+    }
+    const { syncType } = body || {};
+
+    const apiKey = (body?.apiKey as string) || process.env.IRELANDPAY_CRM_API_KEY;
+    const baseUrl = (body?.baseUrl as string) || process.env.IRELANDPAY_CRM_BASE_URL;
 
     if (!apiKey) {
       return NextResponse.json({
         success: false,
-        error: 'API key is required'
-      }, { status: 400 });
+        error: 'Ireland Pay CRM API key not configured on server'
+      }, { status: 500 });
     }
 
     // Check if a sync is already in progress
@@ -141,6 +150,48 @@ export async function POST(request: Request) {
       success: false,
       error: error instanceof Error ? error.message : 'Unknown error'
     }, { status: 500 });
+  }
+}
+
+export async function GET(request: Request) {
+  const supabase = createSupabaseServerClient();
+  const { searchParams } = new URL(request.url);
+  const syncId = searchParams.get('syncId');
+
+  try {
+    if (syncId) {
+      // Return a single job with its progress
+      const { data: syncJob, error } = await supabase
+        .from('sync_jobs')
+        .select(`
+          *,
+          sync_progress (*)
+        `)
+        .eq('id', syncId)
+        .single();
+
+      if (error) {
+        return NextResponse.json({ success: false, error: 'Sync job not found' }, { status: 404 });
+      }
+
+      return NextResponse.json({ success: true, data: syncJob });
+    } else {
+      // Return recent jobs
+      const { data: syncJobs, error } = await supabase
+        .from('sync_jobs')
+        .select('*')
+        .order('started_at', { ascending: false })
+        .limit(50);
+
+      if (error) {
+        return NextResponse.json({ success: false, error: 'Failed to fetch sync jobs' }, { status: 500 });
+      }
+
+      return NextResponse.json({ success: true, data: syncJobs });
+    }
+  } catch (error) {
+    console.error('Failed to fetch sync data:', error);
+    return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'Unknown error' }, { status: 500 });
   }
 }
 

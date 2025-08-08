@@ -14,6 +14,13 @@ export async function createClient() {
     throw new Error('Missing Supabase URL or ANON_KEY environment variables');
   }
 
+  // Enforce expected project
+  const expectedHost = 'ainmbbtycciukbjjdjtl.supabase.co';
+  const host = new URL(url).host;
+  if (host !== expectedHost) {
+    throw new Error(`Supabase URL host mismatch. Expected ${expectedHost}, received ${host}`);
+  }
+
   return createServerClient<Database>(url, key, {
     cookies: {
       get(name: string) {
@@ -36,6 +43,13 @@ export function createSupabaseServiceClient() {
   
   if (!url || !serviceKey) {
     throw new Error('Missing Supabase URL or SERVICE_ROLE_KEY environment variables');
+  }
+
+  // Enforce expected project
+  const expectedHost = 'ainmbbtycciukbjjdjtl.supabase.co';
+  const host = new URL(url).host;
+  if (host !== expectedHost) {
+    throw new Error(`Supabase URL host mismatch. Expected ${expectedHost}, received ${host}`);
   }
 
   return createSupabaseClient<Database>(url, serviceKey, {

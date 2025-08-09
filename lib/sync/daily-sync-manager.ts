@@ -1,5 +1,5 @@
 import { IrelandPaySyncManager } from './ireland-pay-sync-manager';
-import { createSupabaseServerClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getGlobalProgressTracker } from './progress-tracker';
 import { executeWithCircuitBreaker } from './circuit-breaker';
 import { 

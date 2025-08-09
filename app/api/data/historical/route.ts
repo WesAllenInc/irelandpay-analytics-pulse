@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createSupabaseServiceClient } from '@/lib/supabase';
+import { createSupabaseServiceClient } from '@/lib/supabase/server';
 import { ArchiveManager } from '@/lib/archive/archive-manager';
 
 export async function POST(request: NextRequest) {

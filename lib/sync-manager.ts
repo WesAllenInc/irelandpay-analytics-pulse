@@ -1,4 +1,4 @@
-import { createSupabaseServiceClient } from '@/lib/supabase'
+import { createSupabaseServiceClient } from '@/lib/supabase/server'
 import { emailService } from '@/lib/email/email-service'
 import { DailySyncManager } from './sync/daily-sync-manager'
 import { createIrelandPayCRMClient } from './irelandpay-crm-client'

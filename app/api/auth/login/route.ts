@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createSupabaseServerClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { resetRateLimitForIP } from '@/lib/auth-rate-limiter';
 import { logRequest, logError } from '@/lib/logging';
 import { z } from 'zod';

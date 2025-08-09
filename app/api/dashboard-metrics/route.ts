@@ -7,7 +7,7 @@ import {
   getPortfolioBPSAvg, 
   getAgentPayoutAvg 
 } from '@/lib/queries/dashboardMetrics';
-import { createSupabaseServerClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { getMerchantSummary, getMerchantSummaryWithRange } from '@/lib/queries/merchantData';
 
 export async function GET(request: NextRequest) {

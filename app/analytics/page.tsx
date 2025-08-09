@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { MerchantChart } from '@/components/analytics/MerchantChart';
 import { MerchantTable } from '@/components/analytics/MerchantTable';
 import React from 'react';

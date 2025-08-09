@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { createSupabaseServiceClient } from '@/lib/supabase';
+import { createSupabaseServiceClient } from '@/lib/supabase/server';
 
 // Executive users configuration
 const EXECUTIVE_USERS = [

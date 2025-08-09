@@ -1,4 +1,4 @@
-import { createSupabaseServiceClient } from '@/lib/supabase';
+import { createSupabaseServiceClient } from '@/lib/supabase/server';
 import fs from 'fs';
 import path from 'path';
 

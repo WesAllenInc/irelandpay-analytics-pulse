@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 // Simple in-memory cache
 const cache: Record<string, { data: any; ts: number }> = {};

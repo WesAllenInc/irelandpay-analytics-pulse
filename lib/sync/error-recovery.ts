@@ -1,5 +1,5 @@
 import { FailedSyncItem, RecoveryResult, ItemType } from '@/types/sync';
-import { createSupabaseServerClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export class SyncErrorRecovery {
   private maxRetries = 3;

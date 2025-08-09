@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { withAdminAuth, AdminContext } from '@/middleware/admin-auth';
-import { createSupabaseServerClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 async function getSyncStatus(req: NextRequest, { admin }: AdminContext) {
   try {

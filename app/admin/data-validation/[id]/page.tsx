@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/lib/supabase';  
+import { createSupabaseServerClient } from '@/lib/supabase/server';  
 import { cookies } from 'next/headers';
 import { ValidationIssuesList } from '@/components/data-validation';
 import { ArrowLeft } from 'lucide-react';

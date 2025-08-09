@@ -1,5 +1,5 @@
 import { emailService } from '@/lib/email/email-service';
-import { createSupabaseServiceClient } from '@/lib/supabase';
+import { createSupabaseServiceClient } from '@/lib/supabase/server';
 import { format } from 'date-fns';
 
 export interface SyncStats {

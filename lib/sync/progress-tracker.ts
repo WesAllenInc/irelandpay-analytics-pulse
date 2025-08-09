@@ -1,5 +1,5 @@
 import { SyncProgressUpdate, SyncProgressDetails } from '@/types/sync';
-import { createSupabaseServerClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export class SyncProgressTracker {
   private progress = new Map<string, SyncProgressUpdate>();

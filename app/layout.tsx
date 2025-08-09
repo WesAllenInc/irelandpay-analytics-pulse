@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { createSupabaseServerClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 import { Sora, Roboto_Mono } from 'next/font/google';
 import Link from 'next/link';
 import { Analytics } from "@vercel/analytics/next";

@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import { requireAdmin } from '@/middleware/admin-auth';
 import { IrelandPaySyncManager } from '@/lib/sync/ireland-pay-sync-manager';
 import { DailySyncManager } from '@/lib/sync/daily-sync-manager';
-import { createSupabaseServerClient } from '@/lib/supabase';
+import { createSupabaseServerClient } from '@/lib/supabase/server';
 
 export async function POST(request: Request) {
   // Admin authorization temporarily disabled for hardcoded connection

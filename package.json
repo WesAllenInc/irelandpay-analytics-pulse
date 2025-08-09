@@ -8,6 +8,7 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
+    "types:db": "supabase gen types typescript --project-id=\"$SUPABASE_PROJECT_ID\" --schema public > types/database.ts",
     "test": "cross-env NODE_ENV=test node --no-warnings --experimental-vm-modules node_modules/vitest/vitest.mjs run --config vitest.config.mjs",
     "test:coverage": "cross-env NODE_ENV=test vitest run --coverage",
     "coverage:upload": "bash <(curl -Ls https://coverage.codacy.com/get.sh)",

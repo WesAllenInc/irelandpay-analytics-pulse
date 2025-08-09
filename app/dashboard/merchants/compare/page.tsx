@@ -4,7 +4,7 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { useStore } from '@/lib/store'
 import { createClientComponentClient } from "@/lib/supabase-compat"
-import { Database } from '@/types/database.types'
+import { Database } from '@/types/database'
 import Link from 'next/link'
 
 import { InteractiveChart } from '@/components/charts/interactive-chart'

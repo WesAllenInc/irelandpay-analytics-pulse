@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react'
 import { useStore } from '@/lib/store'
-import { Database } from '@/types/database.types'
+import { Database } from '@/types/database'
 
 type MasterData = Database['public']['Tables']['master_data_mv']['Row']
 type ChartData = { time: string; value: number; [key: string]: any }

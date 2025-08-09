@@ -1,7 +1,7 @@
 
 import { useState, useEffect } from 'react';
 import { createClientComponentClient } from '@/lib/supabase-compat';
-import type { Database } from '@/types/database.types';
+import type { Database } from '@/types/database';
 
 interface Merchant {
   mid: string;

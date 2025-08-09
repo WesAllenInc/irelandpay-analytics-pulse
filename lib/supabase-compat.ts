@@ -6,7 +6,7 @@
 
 import { createBrowserClient } from '@supabase/ssr'
 import { createClient } from '@supabase/supabase-js'
-import type { Database } from '@/types/database.types'
+import type { Database } from '@/types/database'
 
 // Singleton pattern to avoid multiple client instances
 let browserClient: ReturnType<typeof createBrowserClient<Database>> | null = null

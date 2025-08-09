@@ -1,6 +1,6 @@
 import { create } from 'zustand'
 import { devtools, persist } from 'zustand/middleware'
-import { Database } from '@/types/database.types'
+import { Database } from '@/types/database'
 
 type MerchantData = Database['public']['Tables']['merchant_data']['Row'];
 type ResidualData = Database['public']['Tables']['residual_data']['Row'];

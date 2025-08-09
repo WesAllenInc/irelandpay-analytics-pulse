@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { createSupabaseBrowserClient } from '@/lib/supabase'
-import type { Database } from '@/types/database.types'
+import type { Database } from '@/types/database'
 
 type MerchantData = Database['public']['Tables']['master_data_mv']['Row']
 

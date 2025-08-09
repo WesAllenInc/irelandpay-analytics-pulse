@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import type { Database } from '@/types/database.types'
+import type { Database } from '@/types/database'
 
 // Server-only env access
 const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL as string

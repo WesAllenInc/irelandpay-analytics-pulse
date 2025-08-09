@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { useStore } from '@/lib/store'
-import { Database } from '@/types/database.types'
+import { Database } from '@/types/database'
 
 type MasterData = Database['public']['Tables']['master_data_mv']['Row']
 

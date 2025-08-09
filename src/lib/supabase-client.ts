@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import type { Database } from '@/types/database.types';
+import type { Database } from '@/types/database';
 
 /**
  * Factory function to create a Supabase client with proper error handling.

@@ -5,9 +5,9 @@
 DROP VIEW IF EXISTS public.merchant_data CASCADE;
 CREATE VIEW public.merchant_data AS
 SELECT 
-  m.mid as merchant_id,
-  m.merchant_dba as name,
-  m.datasource,
+  m.merchant_id as merchant_id,
+  m.dba_name as name,
+  'ireland_pay_crm' as datasource,
   COALESCE(SUM(r.sales_amount), 0) as total_volume,
   COALESCE(SUM(r.transactions), 0) as total_txns,
   COALESCE(SUM(r.net_profit), 0) as net_profit,
@@ -16,8 +16,8 @@ SELECT
   m.created_at,
   m.updated_at
 FROM merchants m
-LEFT JOIN residual_payouts r ON m.mid = r.mid
-GROUP BY m.mid, m.merchant_dba, m.datasource, r.payout_month, m.created_at, m.updated_at;
+LEFT JOIN residual_payouts r ON m.merchant_id = r.mid
+GROUP BY m.merchant_id, m.dba_name, r.payout_month, m.created_at, m.updated_at;
 
 -- 2. Create residual_data view to match code expectations
 DROP VIEW IF EXISTS public.residual_data CASCADE;
@@ -41,8 +41,8 @@ FROM residual_payouts r;
 DROP VIEW IF EXISTS public.master_data CASCADE;
 CREATE VIEW public.master_data AS
 SELECT
-  m.mid as merchant_id,
-  m.merchant_dba as name,
+  m.merchant_id as merchant_id,
+  m.dba_name as name,
   r.payout_month as volume_month,
   r.sales_amount as merchant_volume,
   r.net_profit,
@@ -54,7 +54,7 @@ SELECT
   EXTRACT(YEAR FROM r.payout_month) as year,
   EXTRACT(MONTH FROM r.payout_month) as month_num
 FROM merchants m
-JOIN residual_payouts r ON m.mid = r.mid;
+JOIN residual_payouts r ON m.merchant_id = r.mid;
 
 -- 4. Create merchant_volume view
 DROP VIEW IF EXISTS public.merchant_volume CASCADE;
@@ -75,13 +75,13 @@ GROUP BY volume_date;
 DROP VIEW IF EXISTS public.estimated_net_profit CASCADE;
 CREATE VIEW public.estimated_net_profit AS
 SELECT
-  m.mid as merchant_id,
-  m.merchant_dba as name,
+  m.merchant_id as merchant_id,
+  m.dba_name as name,
   COALESCE(r.bps, 0) as bps_last_month,
   r.sales_amount as projected_volume_this_month,
   r.net_profit as estimated_profit
 FROM merchants m
-LEFT JOIN residual_payouts r ON m.mid = r.mid
+LEFT JOIN residual_payouts r ON m.merchant_id = r.mid
 WHERE r.payout_month = (SELECT MAX(payout_month) FROM residual_payouts);
 
 -- Grant appropriate permissions on views to authenticated users
@@ -92,6 +92,7 @@ GRANT SELECT ON public.merchant_volume TO authenticated;
 GRANT SELECT ON public.estimated_net_profit TO authenticated;
 
 -- Create indexes for better performance
-CREATE INDEX IF NOT EXISTS idx_merchants_mid ON public.merchants(mid);
+-- merchants now keyed by id and merchant_id; create appropriate index
+CREATE INDEX IF NOT EXISTS idx_merchants_merchant_id ON public.merchants(merchant_id);
 CREATE INDEX IF NOT EXISTS idx_residual_payouts_mid ON public.residual_payouts(mid);
 CREATE INDEX IF NOT EXISTS idx_residual_payouts_payout_month ON public.residual_payouts(payout_month); 

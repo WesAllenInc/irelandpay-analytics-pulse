@@ -88,6 +88,7 @@ DECLARE
 BEGIN
     IF TG_OP = 'INSERT' THEN
         -- For inserts, log the new data
+        SELECT array_agg(key)::TEXT[] INTO changed_field_list FROM jsonb_object_keys(to_jsonb(NEW)) key;
         INSERT INTO public.change_log (
             table_name, 
             record_id, 
@@ -101,7 +102,7 @@ BEGIN
             'INSERT',
             NULL,
             to_jsonb(NEW),
-            array_agg(key)::TEXT[] FROM jsonb_object_keys(to_jsonb(NEW)) key
+            changed_field_list
         );
         RETURN NEW;
     ELSIF TG_OP = 'UPDATE' THEN
@@ -140,6 +141,7 @@ BEGIN
         RETURN NEW;
     ELSIF TG_OP = 'DELETE' THEN
         -- For deletes, log the old data
+        SELECT array_agg(key)::TEXT[] INTO changed_field_list FROM jsonb_object_keys(to_jsonb(OLD)) key;
         INSERT INTO public.change_log (
             table_name, 
             record_id, 
@@ -153,7 +155,7 @@ BEGIN
             'DELETE',
             to_jsonb(OLD),
             NULL,
-            array_agg(key)::TEXT[] FROM jsonb_object_keys(to_jsonb(OLD)) key
+            changed_field_list
         );
         RETURN OLD;
     END IF;
@@ -251,7 +253,7 @@ BEGIN
         p_sync_scope,
         p_record_count
     )
-    ON CONFLICT (data_type, COALESCE(sync_scope, ''))
+    ON CONFLICT (data_type, sync_scope)
     DO UPDATE SET 
         last_sync_timestamp = p_timestamp,
         record_count = p_record_count,

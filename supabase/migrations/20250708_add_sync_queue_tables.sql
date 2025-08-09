@@ -163,7 +163,9 @@ CREATE POLICY "Authenticated users can read sync queue"
 -- Only allow service role to insert/update/delete
 CREATE POLICY "Service role can manage sync queue"
   ON public.sync_queue
-  USING (auth.role() = 'service_role');
+  TO service_role
+  USING (true)
+  WITH CHECK (true);
 
 -- Grant permissions
 GRANT SELECT ON public.sync_queue TO authenticated;

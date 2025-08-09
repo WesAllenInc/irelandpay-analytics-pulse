@@ -4,30 +4,30 @@
 -- 1. Drop and recreate master_data view (if it exists as a view, not materialized view)
 DROP VIEW IF EXISTS public.master_data CASCADE;
 CREATE VIEW public.master_data AS
-SELECT
-  m.mid as merchant_id,
-  m.merchant_dba as name,
+SELECT 
+  m.merchant_id as merchant_id,
+  m.dba_name as name,
   r.payout_month as volume_month,
   r.sales_amount as merchant_volume,
   r.net_profit
 FROM merchants m
-JOIN residual_payouts r ON m.mid = r.mid;
+JOIN residual_payouts r ON m.merchant_id = r.mid;
 
 -- 2. Drop and recreate merchant_data view with proper structure
 DROP VIEW IF EXISTS public.merchant_data CASCADE;
 CREATE VIEW public.merchant_data AS
 SELECT 
-  m.mid,
-  m.merchant_dba,
-  m.datasource,
+  m.merchant_id,
+  m.dba_name,
+  'ireland_pay_crm' as datasource,
   COALESCE(SUM(r.transactions), 0) as total_txns,
   COALESCE(SUM(r.sales_amount), 0) as total_volume,
   r.payout_month as month,
   m.created_at,
   m.updated_at
 FROM merchants m
-LEFT JOIN residual_payouts r ON m.mid = r.mid
-GROUP BY m.mid, m.merchant_dba, m.datasource, r.payout_month, m.created_at, m.updated_at;
+LEFT JOIN residual_payouts r ON m.merchant_id = r.mid
+GROUP BY m.merchant_id, m.dba_name, r.payout_month, m.created_at, m.updated_at;
 
 -- 3. Create residual_data view to match code expectations
 DROP VIEW IF EXISTS public.residual_data CASCADE;
@@ -66,13 +66,13 @@ GROUP BY volume_date;
 DROP VIEW IF EXISTS public.estimated_net_profit CASCADE;
 CREATE VIEW public.estimated_net_profit AS
 SELECT
-  m.mid as merchant_id,
-  m.merchant_dba as name,
+  m.merchant_id as merchant_id,
+  m.dba_name as name,
   COALESCE(r.bps, 0) as bps_last_month,
   r.sales_amount as projected_volume_this_month,
   r.net_profit as estimated_profit
 FROM merchants m
-LEFT JOIN residual_payouts r ON m.mid = r.mid
+LEFT JOIN residual_payouts r ON m.merchant_id = r.mid
 WHERE r.payout_month = (SELECT MAX(payout_month) FROM residual_payouts);
 
 -- Enable RLS on residual_payouts table
@@ -102,13 +102,14 @@ CREATE POLICY "Allow authenticated users to update residual_payouts"
   ON public.residual_payouts
   FOR UPDATE
   TO authenticated
-  USING ((SELECT auth.role()) = 'authenticated');
+  USING (true)
+  WITH CHECK (true);
 
 CREATE POLICY "Allow authenticated users to delete from residual_payouts"
   ON public.residual_payouts
   FOR DELETE
   TO authenticated
-  USING ((SELECT auth.role()) = 'authenticated');
+  USING (true);
 
 -- Grant appropriate permissions on views to authenticated users
 GRANT SELECT ON public.master_data TO authenticated;

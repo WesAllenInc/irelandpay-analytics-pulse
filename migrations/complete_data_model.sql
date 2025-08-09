@@ -48,7 +48,7 @@ CREATE TABLE IF NOT EXISTS agent_forecasts (
 -- Create merchant_forecasts table for merchant-level forecasting
 CREATE TABLE IF NOT EXISTS merchant_forecasts (
   id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
-  mid TEXT NOT NULL REFERENCES merchants(mid),
+  mid TEXT NOT NULL REFERENCES merchants(merchant_id),
   forecast_month DATE NOT NULL,
   forecasted_volume DECIMAL NOT NULL DEFAULT 0,
   forecasted_residual DECIMAL NOT NULL DEFAULT 0,

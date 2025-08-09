@@ -1,13 +1,7 @@
--- Standard SQL Settings
-SET ANSI_NULLS ON;
-SET QUOTED_IDENTIFIER ON;
-SET NOCOUNT ON;
-SET TRANSACTION ISOLATION LEVEL READ UNCOMMITTED;
-
 -- Create residual_payouts table
 CREATE TABLE IF NOT EXISTS public.residual_payouts (
   id BIGSERIAL PRIMARY KEY,
-  mid TEXT NOT NULL REFERENCES public.merchants(mid),
+  mid TEXT NOT NULL REFERENCES public.merchants(merchant_id),
   merchant_dba TEXT NOT NULL,
   payout_month DATE NOT NULL,
   transactions INTEGER NOT NULL DEFAULT 0,
@@ -45,10 +39,11 @@ CREATE POLICY "Allow authenticated users to update residual_payouts"
   ON public.residual_payouts
   FOR UPDATE
   TO authenticated
-  USING (auth.role() = 'authenticated');
+  USING (true)
+  WITH CHECK (true);
 
 CREATE POLICY "Allow authenticated users to delete from residual_payouts"
   ON public.residual_payouts
   FOR DELETE
   TO authenticated
-  USING (auth.role() = 'authenticated');
+  USING (true);

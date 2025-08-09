@@ -1,6 +1,16 @@
 -- Schema setup for Ireland Pay Analytics Pulse
 -- This SQL creates all the necessary tables for the application
 
+-- Create agents table (create before merchants to satisfy FK)
+CREATE TABLE IF NOT EXISTS public.agents (
+  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  agent_name text NOT NULL,
+  email text,
+  role text DEFAULT 'agent',
+  created_at timestamptz DEFAULT now(),
+  updated_at timestamptz DEFAULT now()
+);
+
 -- Create merchants table
 CREATE TABLE IF NOT EXISTS public.merchants (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -8,16 +18,6 @@ CREATE TABLE IF NOT EXISTS public.merchants (
   dba_name text NOT NULL,
   processor text,
   agent_id uuid REFERENCES public.agents(id),
-  created_at timestamptz DEFAULT now(),
-  updated_at timestamptz DEFAULT now()
-);
-
--- Create agents table
-CREATE TABLE IF NOT EXISTS public.agents (
-  id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
-  agent_name text NOT NULL,
-  email text,
-  role text DEFAULT 'agent',
   created_at timestamptz DEFAULT now(),
   updated_at timestamptz DEFAULT now()
 );
@@ -88,7 +88,7 @@ CREATE TABLE IF NOT EXISTS public.profit_leakage (
   updated_at timestamptz DEFAULT now()
 );
 
--- Create users table for authentication and role management
+-- Create users table for role mapping
 CREATE TABLE IF NOT EXISTS public.users (
   id uuid PRIMARY KEY REFERENCES auth.users ON DELETE CASCADE,
   email text UNIQUE NOT NULL,
@@ -98,9 +98,11 @@ CREATE TABLE IF NOT EXISTS public.users (
   updated_at timestamptz DEFAULT now()
 );
 
--- Create index for faster lookups
+-- Indexes
 CREATE INDEX IF NOT EXISTS merchants_agent_id_idx ON public.merchants(agent_id);
 CREATE INDEX IF NOT EXISTS residuals_merchant_id_idx ON public.residuals(merchant_id);
 CREATE INDEX IF NOT EXISTS residuals_processing_month_idx ON public.residuals(processing_month);
 CREATE INDEX IF NOT EXISTS volumes_merchant_id_idx ON public.merchant_processing_volumes(merchant_id);
 CREATE INDEX IF NOT EXISTS volumes_processing_month_idx ON public.merchant_processing_volumes(processing_month);
+
+

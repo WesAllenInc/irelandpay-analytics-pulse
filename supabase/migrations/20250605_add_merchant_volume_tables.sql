@@ -8,7 +8,7 @@ CREATE TABLE IF NOT EXISTS merchant_volume (
   
   CONSTRAINT fk_merchant_id
     FOREIGN KEY (merchant_id)
-    REFERENCES merchant_data(mid)
+    REFERENCES merchants(merchant_id)
     ON DELETE CASCADE
 );
 
@@ -26,7 +26,7 @@ CREATE TABLE IF NOT EXISTS merchant_profitability (
   
   CONSTRAINT fk_merchant_profitability
     FOREIGN KEY (merchant_id)
-    REFERENCES merchant_data(mid)
+    REFERENCES merchants(merchant_id)
     ON DELETE CASCADE
 );
 

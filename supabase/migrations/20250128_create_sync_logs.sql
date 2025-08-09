@@ -21,7 +21,7 @@ ALTER TABLE sync_logs ENABLE ROW LEVEL SECURITY;
 
 -- Allow authenticated users to view logs
 CREATE POLICY "Users can view sync logs" ON sync_logs
-  FOR SELECT USING (auth.role() = 'authenticated');
+  FOR SELECT USING (true);
 
 -- Allow service role to insert logs
 CREATE POLICY "Service can insert sync logs" ON sync_logs
@@ -32,5 +32,5 @@ CREATE POLICY "Service can delete old sync logs" ON sync_logs
   FOR DELETE USING (true);
 
 -- Grant permissions
-GRANT SELECT, INSERT, DELETE ON sync_logs TO authenticated;
+GRANT SELECT ON sync_logs TO authenticated;
 GRANT SELECT, INSERT, DELETE ON sync_logs TO service_role;

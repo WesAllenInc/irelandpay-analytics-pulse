@@ -44,7 +44,7 @@ interface IrelandPayCRMConfigProps {
 export function IrelandPayCRMConfig({ onConfigSave, onTestConnection }: IrelandPayCRMConfigProps) {
   const [config, setConfig] = useState<CRMConfig>({
     apiKey: '',
-    baseUrl: 'https://crm.ireland-pay.com/api/v1',
+    baseUrl: process.env.NEXT_PUBLIC_IRELANDPAY_CRM_BASE_URL || 'https://crm.ireland-pay.com/api/v1',
     timeout: 30000,
     retryAttempts: 3,
     enableSSL: true,

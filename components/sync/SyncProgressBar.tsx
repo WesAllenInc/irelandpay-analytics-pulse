@@ -64,9 +64,7 @@ export function SyncProgressBar({ onSyncComplete, onSyncError, onSyncIdChange }:
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify({
-          baseUrl: 'https://crm.ireland-pay.com/api/v1'
-        })
+        // no body required; server uses IRELANDPAY_CRM_BASE_URL
       });
 
       const result = await response.json();

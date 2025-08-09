@@ -3,18 +3,26 @@ import { createSupabaseServerClient } from '@/lib/supabase'
 
 export async function POST(request: Request) {
   try {
-    const { baseUrl } = await request.json()
-    const apiKey = process.env.IRELANDPAY_CRM_API_KEY
+    let baseUrl: string | undefined
+    try {
+      const body = await request.json()
+      baseUrl = body?.baseUrl
+    } catch {
+      // no body provided
+    }
 
-    if (!baseUrl || !apiKey) {
+    const apiKey = process.env.IRELANDPAY_CRM_API_KEY
+    const resolvedBaseUrl = baseUrl || process.env.IRELANDPAY_CRM_BASE_URL
+
+    if (!resolvedBaseUrl || !apiKey) {
       return NextResponse.json(
-        { error: 'Base URL is required and server API key must be configured' },
+        { error: 'Ireland Pay CRM base URL and server API key must be configured' },
         { status: 400 }
       )
     }
 
     // Test the connection by making a simple API call
-    const testResponse = await fetch(`${baseUrl}/merchants`, {
+    const testResponse = await fetch(`${resolvedBaseUrl}/merchants`, {
       method: 'GET',
       headers: {
         'X-API-KEY': apiKey,

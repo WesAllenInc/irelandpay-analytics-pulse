@@ -77,7 +77,7 @@ export function SetupWizard() {
     adminEmail: '',
     adminName: '',
     apiKey: '',
-    baseUrl: 'https://crm.ireland-pay.com/api/v1',
+    baseUrl: process.env.NEXT_PUBLIC_IRELANDPAY_CRM_BASE_URL || 'https://crm.ireland-pay.com/api/v1',
     historicalStartDate: '2024-04-01',
     historicalEndDate: new Date().toISOString().split('T')[0],
     syncSchedule: {

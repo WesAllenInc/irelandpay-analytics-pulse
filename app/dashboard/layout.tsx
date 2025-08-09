@@ -5,7 +5,7 @@ import { useRealtimeData } from '@/hooks/use-realtime-data'
 import { useMerchantData } from '@/hooks/use-merchant-data'
 import { useStore } from '@/lib/store'
 import { useEffect } from 'react'
-import type { Database } from '@/types/database'
+import type { Database } from '@/types/database.types'
 import { motion } from 'framer-motion'
 
 import { Home, Users, BarChart3, Settings } from 'lucide-react'

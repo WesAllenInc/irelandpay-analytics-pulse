@@ -3,4 +3,4 @@ export { createClient, createSupabaseClient, createSupabaseBrowserClient } from 
 export { createClient as createServerClient, createSupabaseServerClient, createSupabaseServiceClient } from './server';
 
 // Export types
-export type { Database } from '@/types/database'; 
+export type { Database } from '@/types/database.types'; 

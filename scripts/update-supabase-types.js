@@ -21,7 +21,7 @@ try {
   // Run the type generation command
   // Note: This requires SUPABASE_URL and SUPABASE_ANON_KEY environment variables
   execSync(
-    'npx supabase gen types typescript --project-id "$SUPABASE_PROJECT_ID" --schema public > types/database.ts',
+    'npx supabase gen types typescript --project-id "$SUPABASE_PROJECT_ID" --schema public > types/database.types.ts',
     { 
       stdio: 'inherit',
       env: { 
@@ -33,7 +33,7 @@ try {
   );
   
   console.log('✅ Types successfully generated!');
-  console.log('📝 Generated types saved to types/database.ts');
+  console.log('📝 Generated types saved to types/database.types.ts');
   console.log('⚠️ Important: Review the generated types and update your Database interface if needed');
   
 } catch (error) {
@@ -41,6 +41,6 @@ try {
   console.log('\nAlternative method:');
   console.log('1. Install Supabase CLI: https://supabase.com/docs/guides/cli');
   console.log('2. Login to Supabase: supabase login');
-  console.log('3. Generate types: supabase gen types typescript --project-id YOUR_PROJECT_ID --schema public > types/database.ts');
+  console.log('3. Generate types: supabase gen types typescript --project-id YOUR_PROJECT_ID --schema public > types/database.types.ts');
   process.exit(1);
 }

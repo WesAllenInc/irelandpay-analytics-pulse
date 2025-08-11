@@ -50,6 +50,9 @@ const nextConfig = {
       '@lib/supabase': path.join(__dirname, 'lib', 'supabase'),
       '@lib/supabase/client': path.join(__dirname, 'lib', 'supabase', 'client.ts'),
       '@lib/supabase/server': path.join(__dirname, 'lib', 'supabase', 'server.ts'),
+      // Fix the main alias to match actual imports
+      '@/lib/supabase/client': path.join(__dirname, 'lib', 'supabase', 'client.ts'),
+      '@/lib/supabase/server': path.join(__dirname, 'lib', 'supabase', 'server.ts'),
       // Alias all Supabase auth helpers to our compatibility layer with proper absolute path
       '@supabase/auth-helpers-nextjs': path.join(__dirname, 'lib/supabase-compat.ts'),
     };

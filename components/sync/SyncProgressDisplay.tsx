@@ -5,7 +5,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Progress } from '@/components/ui/progress';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
-import { createSupabaseBrowserClient } from '@lib/supabase/client';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { SyncProgressUpdate, SyncProgressDetails } from '@/types/sync';
 import { formatDistanceToNow } from 'date-fns';
 

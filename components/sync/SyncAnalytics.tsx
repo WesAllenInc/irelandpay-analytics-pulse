@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { createSupabaseBrowserClient } from '@lib/supabase/client';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { 
   LineChart, 
   Line, 

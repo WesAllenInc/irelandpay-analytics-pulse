@@ -11,8 +11,8 @@ async function runSQLDirectly() {
     console.log('🚀 Running SQL directly against Supabase...');
     
     // Get environment variables
-    const supabaseUrl = process.env.ainmbbtycciukbjjdjtl_NEXT_PUBLIC_SUPABASE_URL;
-    const serviceRoleKey = process.env.ainmbbtycciukbjjdjtl_SUPABASE_SERVICE_ROLE_KEY;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     
     if (!supabaseUrl || !serviceRoleKey) {
       console.error('❌ Missing Supabase environment variables');

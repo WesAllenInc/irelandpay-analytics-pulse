@@ -9,13 +9,11 @@ console.log('🔍 Debugging Supabase connection...');
 // Check all possible environment variables
 const possibleUrls = [
   'NEXT_PUBLIC_SUPABASE_URL',
-  'ainmbbtycciukbjjdjtl_NEXT_PUBLIC_SUPABASE_URL',
   'SUPABASE_URL'
 ];
 
 const possibleKeys = [
   'NEXT_PUBLIC_SUPABASE_ANON_KEY',
-  'ainmbbtycciukbjjdjtl_NEXT_PUBLIC_SUPABASE_ANON_KEY',
   'SUPABASE_ANON_KEY'
 ];
 
@@ -33,12 +31,12 @@ possibleKeys.forEach(varName => {
 });
 
 // Check service role key
-const serviceRoleKey = process.env.ainmbbtycciukbjjdjtl_SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SERVICE_ROLE_KEY;
+const serviceRoleKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 console.log(`\nService Role Key: ${serviceRoleKey ? serviceRoleKey.substring(0, 20) + '...' : 'NOT SET'}`);
 
 // Show which URL we'll use
-const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.ainmbbtycciukbjjdjtl_NEXT_PUBLIC_SUPABASE_URL;
-const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.ainmbbtycciukbjjdjtl_NEXT_PUBLIC_SUPABASE_ANON_KEY;
+const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
 
 console.log(`\n🎯 Will connect to: ${url || 'NO URL FOUND'}`);
 console.log(`🔑 Using key: ${key ? key.substring(0, 20) + '...' : 'NO KEY FOUND'}`); 

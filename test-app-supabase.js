@@ -11,8 +11,8 @@ async function testAppSupabase() {
     console.log('Testing application Supabase client...');
     
     // Get environment variables (standard names first, then prefixed)
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.ainmbbtycciukbjjdjtl_NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.ainmbbtycciukbjjdjtl_NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
     
     if (!supabaseUrl || !supabaseKey) {
       console.error('❌ Missing Supabase environment variables');

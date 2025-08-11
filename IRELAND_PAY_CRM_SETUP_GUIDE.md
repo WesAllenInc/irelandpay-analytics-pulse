@@ -197,9 +197,10 @@ Ireland Pay CRM API → IrelandPayCRMClient → Supabase Database → Analytics 
 ### Environment Variables
 
 Required variables (already configured):
-- `ainmbbtycciukbjjdjtl_NEXT_PUBLIC_SUPABASE_URL`
-- `ainmbbtycciukbjjdjtl_NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- `ainmbbtycciukbjjdjtl_SUPABASE_SERVICE_ROLE_KEY`
+Use only standard env names:
+- `NEXT_PUBLIC_SUPABASE_URL`
+- `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- `SUPABASE_SERVICE_ROLE_KEY`
 
 Ireland Pay CRM variables:
 - `IRIS_CRM_API_KEY` - Your Ireland Pay CRM API key

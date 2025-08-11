@@ -10,9 +10,9 @@ export function createClient() {
     set: (options: { name: string; value: string } & import('@supabase/ssr').CookieOptions) => void
   };
   
-  // Use standard environment variables first, then fall back to prefixed names
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.ainmbbtycciukbjjdjtl_NEXT_PUBLIC_SUPABASE_URL;
-  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || process.env.ainmbbtycciukbjjdjtl_NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  // Use standard environment variables only
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
   
   if (!url || !key) {
     throw new Error('Missing Supabase URL or ANON_KEY environment variables');
@@ -42,8 +42,8 @@ export function createClient() {
 
 // Create a proper service client with functions support
 export function createSupabaseServiceClient() {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.ainmbbtycciukbjjdjtl_NEXT_PUBLIC_SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.ainmbbtycciukbjjdjtl_SUPABASE_SERVICE_ROLE_KEY;
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
   
   if (!url || !serviceKey) {
     throw new Error('Missing Supabase URL or SERVICE_ROLE_KEY environment variables');

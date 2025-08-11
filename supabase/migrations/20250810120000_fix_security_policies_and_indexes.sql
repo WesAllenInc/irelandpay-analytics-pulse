@@ -3,6 +3,11 @@
 
 BEGIN;
 
+-- Pre-drop dependent policies before replacing is_admin()
+DROP POLICY IF EXISTS "Admins can create pipeline runs" ON public.pipeline_runs;
+DROP POLICY IF EXISTS "Admins can see all pipeline runs" ON public.pipeline_runs;
+DROP POLICY IF EXISTS "Admins can update pipeline runs" ON public.pipeline_runs;
+
 -- 1) Replace is_admin() with stable search_path and user_roles lookup
 DROP FUNCTION IF EXISTS public.is_admin();
 CREATE FUNCTION public.is_admin()

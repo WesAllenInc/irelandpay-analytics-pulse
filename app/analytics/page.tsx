@@ -3,6 +3,9 @@ import { MerchantChart } from '@/components/analytics/MerchantChart';
 import { MerchantTable } from '@/components/analytics/MerchantTable';
 import React from 'react';
 
+// Force dynamic rendering to prevent cookie issues during static generation
+export const dynamic = 'force-dynamic'
+
 // Demo data for when Supabase is not available
 const demoMerchants = [
   { merchant_id: 'demo-1', name: 'Demo Merchant 1', total_volume: 1250000, net_profit: 12500, bps: 100 },

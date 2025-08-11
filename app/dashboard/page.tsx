@@ -12,6 +12,9 @@ import {
 } from '@/lib/queries/dashboardMetrics';
 import { getMerchantSummary } from '@/lib/queries/merchantData';
 
+// Force dynamic rendering to prevent cookie issues during static generation
+export const dynamic = 'force-dynamic'
+
   // Demo data for when Supabase is not available
   const demoMerchantStats = [
     { merchant_id: 'demo-1', name: 'Demo Merchant 1', volume: 1250000, profit: 12500, bps: 100, processor: 'Stripe' },

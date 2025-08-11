@@ -4,6 +4,9 @@ import { MerchantChart } from '@/components/analytics/MerchantChart';
 import { TimeframeSelector, type Timeframe } from '@/components/analytics/TimeframeSelector';
 import { getMerchantHistory } from '@/lib/queries/merchantData';
 
+// Force dynamic rendering to prevent cookie issues during static generation
+export const dynamic = 'force-dynamic'
+
 interface Props {
   params: Promise<{ merchantId: string }>;
 }

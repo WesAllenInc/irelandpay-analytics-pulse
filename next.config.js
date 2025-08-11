@@ -39,7 +39,7 @@ const nextConfig = {
   // Disable static generation for problematic pages
   trailingSlash: false,
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
-    // Add path aliases to webpack
+    // Add path aliases to webpack - match tsconfig.json exactly
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': path.resolve(__dirname),
@@ -47,14 +47,11 @@ const nextConfig = {
       '@crm': path.resolve(__dirname, 'src/crm'),
       '@api': path.resolve(__dirname, 'src/api'),
       '@lib': path.resolve(__dirname, 'lib'),
-      '@lib/supabase': path.resolve(__dirname, 'lib', 'supabase'),
-      '@lib/supabase/client': path.resolve(__dirname, 'lib', 'supabase', 'client.ts'),
-      '@lib/supabase/server': path.resolve(__dirname, 'lib', 'supabase', 'server.ts'),
-      // Fix the main alias to match actual imports
-      '@/lib/supabase/client': path.resolve(__dirname, 'lib', 'supabase', 'client.ts'),
-      '@/lib/supabase/server': path.resolve(__dirname, 'lib', 'supabase', 'server.ts'),
-      // Alias all Supabase auth helpers to our compatibility layer with proper absolute path
-      '@supabase/auth-helpers-nextjs': path.resolve(__dirname, 'lib/supabase-compat.ts'),
+      '@lib/supabase': path.resolve(__dirname, 'lib/supabase'),
+      '@lib/supabase/client': path.resolve(__dirname, 'lib/supabase/client.ts'),
+      '@lib/supabase/server': path.resolve(__dirname, 'lib/supabase/server.ts'),
+      '@/lib/supabase/client': path.resolve(__dirname, 'lib/supabase/client.ts'),
+      '@/lib/supabase/server': path.resolve(__dirname, 'lib/supabase/server.ts'),
     };
     
     // Add more stable compilation options for Node.js v20

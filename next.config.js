@@ -1,7 +1,6 @@
 // Use CJS for maximum compatibility on Vercel builders
 /** @type {import('next').NextConfig} */
 const path = require('path');
-const __dirname = __dirname;
 
 const nextConfig = {
   eslint: {

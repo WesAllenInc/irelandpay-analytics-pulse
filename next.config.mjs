@@ -33,6 +33,8 @@ const nextConfig = {
       '@api': path.join(__dirname, 'src/api'),
       '@lib': path.join(__dirname, 'lib'),
       '@lib/supabase': path.join(__dirname, 'lib', 'supabase'),
+      '@lib/supabase/client': path.join(__dirname, 'lib', 'supabase', 'client.ts'),
+      '@lib/supabase/server': path.join(__dirname, 'lib', 'supabase', 'server.ts'),
       '@supabase/auth-helpers-nextjs': path.join(
         __dirname,
         'lib/supabase-compat.ts'

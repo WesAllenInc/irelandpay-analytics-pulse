@@ -25,7 +25,9 @@
       "@crm/*": ["src/crm/*"],
       "@api/*": ["src/api/*"],
       "@lib/*": ["lib/*"],
-      "@lib/supabase/*": ["lib/supabase/*"]
+      "@lib/supabase/*": ["lib/supabase/*"],
+      "@lib/supabase/client": ["lib/supabase/client"],
+      "@lib/supabase/server": ["lib/supabase/server"]
     },
     "forceConsistentCasingInFileNames": true
   },

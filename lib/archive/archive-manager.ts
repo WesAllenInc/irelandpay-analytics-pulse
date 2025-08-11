@@ -1,4 +1,4 @@
-import { createSupabaseServerClient } from '@/lib/supabase/server';
+import { createSupabaseClient } from '@/lib/supabase/client';
 import { addMonths, format, startOfMonth } from 'date-fns';
 
 export interface ArchiveResult {
@@ -62,7 +62,7 @@ export interface QueryPlan {
 }
 
 export class ArchiveManager {
-  private supabase = createSupabaseServerClient();
+  private supabase = createSupabaseClient();
 
   /**
    * Archive data older than the active window
@@ -321,7 +321,7 @@ export class ArchiveManager {
    * Create query execution plan
    */
   static async analyzeQuery(query: string): Promise<QueryPlan> {
-    const supabase = createSupabaseServerClient();
+    const supabase = createSupabaseClient();
     const { data } = await supabase.rpc('explain_query', { 
       query_text: query 
     });

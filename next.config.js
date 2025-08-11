@@ -38,23 +38,23 @@ const nextConfig = {
   output: 'standalone',
   // Disable static generation for problematic pages
   trailingSlash: false,
-  webpack: (config) => {
+  webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
     // Add path aliases to webpack
     config.resolve.alias = {
       ...config.resolve.alias,
-      '@': path.join(__dirname),
-      '@backend': path.join(__dirname, 'src/backend'),
-      '@crm': path.join(__dirname, 'src/crm'),
-      '@api': path.join(__dirname, 'src/api'),
-      '@lib': path.join(__dirname, 'lib'),
-      '@lib/supabase': path.join(__dirname, 'lib', 'supabase'),
-      '@lib/supabase/client': path.join(__dirname, 'lib', 'supabase', 'client.ts'),
-      '@lib/supabase/server': path.join(__dirname, 'lib', 'supabase', 'server.ts'),
+      '@': path.resolve(__dirname),
+      '@backend': path.resolve(__dirname, 'src/backend'),
+      '@crm': path.resolve(__dirname, 'src/crm'),
+      '@api': path.resolve(__dirname, 'src/api'),
+      '@lib': path.resolve(__dirname, 'lib'),
+      '@lib/supabase': path.resolve(__dirname, 'lib', 'supabase'),
+      '@lib/supabase/client': path.resolve(__dirname, 'lib', 'supabase', 'client.ts'),
+      '@lib/supabase/server': path.resolve(__dirname, 'lib', 'supabase', 'server.ts'),
       // Fix the main alias to match actual imports
-      '@/lib/supabase/client': path.join(__dirname, 'lib', 'supabase', 'client.ts'),
-      '@/lib/supabase/server': path.join(__dirname, 'lib', 'supabase', 'server.ts'),
+      '@/lib/supabase/client': path.resolve(__dirname, 'lib', 'supabase', 'client.ts'),
+      '@/lib/supabase/server': path.resolve(__dirname, 'lib', 'supabase', 'server.ts'),
       // Alias all Supabase auth helpers to our compatibility layer with proper absolute path
-      '@supabase/auth-helpers-nextjs': path.join(__dirname, 'lib/supabase-compat.ts'),
+      '@supabase/auth-helpers-nextjs': path.resolve(__dirname, 'lib/supabase-compat.ts'),
     };
     
     // Add more stable compilation options for Node.js v20

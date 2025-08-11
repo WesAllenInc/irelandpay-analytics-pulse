@@ -45,6 +45,7 @@ const nextConfig = {
       '@crm': path.join(__dirname, 'src/crm'),
       '@api': path.join(__dirname, 'src/api'),
       '@lib': path.join(__dirname, 'lib'),
+      '@lib/supabase': path.join(__dirname, 'lib', 'supabase'),
       // Alias all Supabase auth helpers to our compatibility layer with proper absolute path
       '@supabase/auth-helpers-nextjs': path.join(__dirname, 'lib/supabase-compat.ts'),
     };

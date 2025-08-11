@@ -32,6 +32,7 @@ const nextConfig = {
       '@crm': path.join(__dirname, 'src/crm'),
       '@api': path.join(__dirname, 'src/api'),
       '@lib': path.join(__dirname, 'lib'),
+      '@lib/supabase': path.join(__dirname, 'lib', 'supabase'),
       '@supabase/auth-helpers-nextjs': path.join(
         __dirname,
         'lib/supabase-compat.ts'

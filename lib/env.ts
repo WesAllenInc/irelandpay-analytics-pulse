@@ -44,9 +44,9 @@ function validateEnv(): ServerEnv | ClientEnv {
 
     const rawEnv = {
       NEXT_PUBLIC_SUPABASE_URL:
-        process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.supabase_url,
+        process.env.SUPABASE_URL ?? process.env.NEXT_PUBLIC_SUPABASE_URL ?? process.env.supabase_url,
       NEXT_PUBLIC_SUPABASE_ANON_KEY:
-        process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.supabase_anon_key,
+        process.env.SUPABASE_ANON_KEY ?? process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY ?? process.env.supabase_anon_key,
       NODE_ENV: process.env.NODE_ENV,
       NEXT_PUBLIC_APP_URL:
         process.env.NEXT_PUBLIC_APP_URL ?? process.env.app_url,

@@ -208,7 +208,7 @@ try {
 To receive client-side logs on the server, create this API route:
 
 ```typescript
-// pages/api/client-logs.ts
+// app/api/client-logs/route.ts
 import { withLogging } from '@/lib/logging-middleware';
 import logger from '@/lib/logging';
 

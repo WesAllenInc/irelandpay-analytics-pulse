@@ -214,7 +214,8 @@ describe('Merchant Ingestion Function', () => {
 export const apiRouteTestExample = `
 import { createMocks } from 'node-mocks-http';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import agentDashboardHandler from '@/pages/api/agents/[agentId]/dashboard';
+// Note: This example references an old Pages Router API route
+// In the current App Router structure, this would be: app/api/agents/[agentId]/dashboard/route.ts
 import logger from '@/lib/logging';
 
 describe('Agent Dashboard API', () => {

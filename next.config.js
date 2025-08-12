@@ -58,6 +58,9 @@ const nextConfig = {
       // Add index file for easier imports
       '@/lib/supabase': path.resolve(__dirname, 'lib/supabase/index.ts'),
       '@lib/supabase/index': path.resolve(__dirname, 'lib/supabase/index.ts'),
+      // Add more explicit aliases
+      '@/lib/supabase/index.ts': path.resolve(__dirname, 'lib/supabase/index.ts'),
+      '@/lib/supabase/index': path.resolve(__dirname, 'lib/supabase/index.ts'),
     };
     
     // Add more stable compilation options for Node.js v20

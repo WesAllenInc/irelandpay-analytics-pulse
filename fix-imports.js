@@ -1,56 +1,60 @@
 import fs from 'fs';
 import path from 'path';
 
-// Files that need to be updated
+// Files that need to be updated with their correct relative paths
 const filesToUpdate = [
-  'app/admin/agent-payouts/page.tsx',
-  'app/admin/dashboard/page.tsx',
-  'app/admin/user-management/page.tsx',
-  'app/auth/callback/page.tsx',
-  'app/auth/login/page.tsx',
-  'app/auth/page.tsx',
-  'app/page.tsx',
-  'components/Auth/AuthCard.tsx',
-  'components/Auth/OAuthButton.tsx',
-  'components/Auth/SimplifiedAuthCard.tsx',
-  'components/admin/AdminAgentTable.tsx',
-  'components/admin/AgentDetailView.tsx',
-  'components/admin/BatchPayoutApproval.tsx',
-  'components/admin/BulkPayoutExport.tsx',
-  'components/dashboard/merchant-summary.tsx',
-  'components/sync/SyncAnalytics.tsx',
-  'components/sync/SyncHistory.tsx',
-  'components/sync/SyncProgressBar.tsx',
-  'components/sync/SyncProgressDisplay.tsx',
-  'hooks/use-realtime-data.ts',
-  'hooks/useAgentDashboard.ts',
-  'hooks/use-merchant-data.ts',
-  'hooks/useAuth.tsx',
-  'hooks/useAuth.ts.new',
-  'lib/auth/admin-service-client.ts',
-  'lib/archive/archive-manager.ts',
-  'utils/supabaseClient.ts'
+  { file: 'app/admin/agent-payouts/page.tsx', path: '../../../lib/supabase/client' },
+  { file: 'app/admin/dashboard/page.tsx', path: '../../../lib/supabase/client' },
+  { file: 'app/admin/user-management/page.tsx', path: '../../../lib/supabase/client' },
+  { file: 'app/auth/callback/page.tsx', path: '../../../lib/supabase/client' },
+  { file: 'app/auth/login/page.tsx', path: '../../../lib/supabase/client' },
+  { file: 'app/auth/page.tsx', path: '../../lib/supabase/client' },
+  { file: 'app/page.tsx', path: '../lib/supabase/client' },
+  { file: 'components/Auth/AuthCard.tsx', path: '../../lib/supabase/client' },
+  { file: 'components/Auth/OAuthButton.tsx', path: '../../lib/supabase/client' },
+  { file: 'components/Auth/SimplifiedAuthCard.tsx', path: '../../lib/supabase/client' },
+  { file: 'components/admin/AdminAgentTable.tsx', path: '../../lib/supabase/client' },
+  { file: 'components/admin/AgentDetailView.tsx', path: '../../lib/supabase/client' },
+  { file: 'components/admin/BatchPayoutApproval.tsx', path: '../../lib/supabase/client' },
+  { file: 'components/admin/BulkPayoutExport.tsx', path: '../../lib/supabase/client' },
+  { file: 'components/dashboard/merchant-summary.tsx', path: '../../lib/supabase/client' },
+  { file: 'components/sync/SyncAnalytics.tsx', path: '../../lib/supabase/client' },
+  { file: 'components/sync/SyncHistory.tsx', path: '../../lib/supabase/client' },
+  { file: 'components/sync/SyncProgressBar.tsx', path: '../../lib/supabase/client' },
+  { file: 'components/sync/SyncProgressDisplay.tsx', path: '../../lib/supabase/client' },
+  { file: 'hooks/use-realtime-data.ts', path: '../lib/supabase/client' },
+  { file: 'hooks/useAgentDashboard.ts', path: '../lib/supabase/client' },
+  { file: 'hooks/use-merchant-data.ts', path: '../lib/supabase/client' },
+  { file: 'hooks/useAuth.tsx', path: '../lib/supabase/client' },
+  { file: 'hooks/useAuth.ts.new', path: '../lib/supabase/client' },
+  { file: 'lib/auth/admin-service-client.ts', path: '../supabase/client' },
+  { file: 'lib/archive/archive-manager.ts', path: '../supabase/client' },
+  { file: 'utils/supabaseClient.ts', path: '../lib/supabase/client' }
 ];
 
 // Update each file
-filesToUpdate.forEach(filePath => {
+filesToUpdate.forEach(({ file: filePath, path: importPath }) => {
   try {
     const fullPath = path.join(process.cwd(), filePath);
     if (fs.existsSync(fullPath)) {
       let content = fs.readFileSync(fullPath, 'utf8');
       
-      // Replace both the problematic imports
+      // Replace all the problematic imports with the correct relative path
       content = content.replace(
         /from ['"]@\/lib\/supabase\/client['"]/g,
-        "from '@/lib/supabase'"
+        `from '${importPath}'`
       );
       content = content.replace(
         /from ['"]\.\.\/\.\.\/\.\.\/lib\/supabase\/client['"]/g,
-        "from '@/lib/supabase'"
+        `from '${importPath}'`
+      );
+      content = content.replace(
+        /from ['"]@\/lib\/supabase['"]/g,
+        `from '${importPath}'`
       );
       
       fs.writeFileSync(fullPath, content);
-      console.log(`✅ Updated ${filePath}`);
+      console.log(`✅ Updated ${filePath} with ${importPath}`);
     } else {
       console.log(`⚠️  File not found: ${filePath}`);
     }

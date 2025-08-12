@@ -1,4 +1,4 @@
-import { createSupabaseBrowserClient } from '@/lib/supabase';
+import { createSupabaseBrowserClient } from '../supabase/client';
 
 export interface AdminUser {
   user_id: string;

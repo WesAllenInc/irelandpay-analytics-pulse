@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createSupabaseBrowserClient } from '@/lib/supabase'
+import { createSupabaseBrowserClient } from '../lib/supabase/client'
 import type { Database } from '@/types/database'
 
 type MerchantData = Database['public']['Tables']['master_data_mv']['Row']

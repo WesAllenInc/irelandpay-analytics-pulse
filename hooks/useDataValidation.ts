@@ -1,5 +1,5 @@
 import { useState, useCallback } from "react"
-import { createSupabaseBrowserClient } from "../lib/supabase-browser"
+import { createSupabaseBrowserClient } from "../lib/supabase/client"
 import { toast } from "../components/ui/use-toast"
 
 type DataType = "merchants" | "residuals" | "agents"

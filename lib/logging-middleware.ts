@@ -5,7 +5,7 @@
 import { type NextApiRequest, type NextApiResponse } from 'next';
 import logger from './logging';
 import { createId } from '@paralleldrive/cuid2';
-import { createServerComponentClient } from './supabase-compat';
+import { createSupabaseServerClient } from './supabase/server';
 
 export interface ExtendedNextApiRequest extends NextApiRequest {
   userId?: string;
@@ -35,7 +35,7 @@ export const withLogging = (
     // Try to extract userId from auth session
     try {
       // Create server client and get session
-      const supabase = createServerComponentClient();
+      const supabase = createSupabaseServerClient();
       
       const { data: { session } } = await supabase.auth.getSession();
       if (session?.user) {

@@ -3,20 +3,24 @@ import { createClient as createSupabaseJSClient } from '@supabase/supabase-js'
 import { cookies } from 'next/headers'
 import type { Database } from '@/types/database'
 
-// Environment validation
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
+// Environment validation - only run at runtime, not during build
+function validateEnvironment() {
+  const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
+  const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables')
-}
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables')
+  }
 
-// Enforce expected project (prevents accidental cross-project usage)
-const expectedHost = 'ainmbbtycciukbjjdjtl.supabase.co'
-const host = new URL(SUPABASE_URL).host
-if (host !== expectedHost) {
-  throw new Error(`Supabase URL host mismatch. Expected ${expectedHost}, received ${host}`)
+  // Enforce expected project (prevents accidental cross-project usage)
+  const expectedHost = 'ainmbbtycciukbjjdjtl.supabase.co'
+  const host = new URL(SUPABASE_URL).host
+  if (host !== expectedHost) {
+    throw new Error(`Supabase URL host mismatch. Expected ${expectedHost}, received ${host}`)
+  }
+
+  return { SUPABASE_URL, SUPABASE_ANON_KEY, SUPABASE_SERVICE_ROLE_KEY }
 }
 
 // Singleton instances to prevent multiple client creation
@@ -29,6 +33,8 @@ let serviceClient: ReturnType<typeof createSupabaseJSClient> | undefined
  */
 export function createServerClient() {
   if (!serverClient) {
+    const { SUPABASE_URL, SUPABASE_ANON_KEY } = validateEnvironment()
+    
     // Work around Next typings variance across versions by casting
     const getCookies = cookies as unknown as () => {
       get: (name: string) => { value?: string } | undefined
@@ -57,11 +63,13 @@ export function createServerClient() {
  * Uses service role key for operations that require elevated permissions
  */
 export function createServiceClient() {
-  if (!SUPABASE_SERVICE_ROLE_KEY) {
-    throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable')
-  }
-
   if (!serviceClient) {
+    const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = validateEnvironment()
+    
+    if (!SUPABASE_SERVICE_ROLE_KEY) {
+      throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable')
+    }
+
     serviceClient = createSupabaseJSClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
       auth: {
         autoRefreshToken: false,

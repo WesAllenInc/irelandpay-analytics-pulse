@@ -2,19 +2,23 @@
 import { createBrowserClient as ssrCreateBrowserClient } from '@supabase/ssr'
 import type { Database } from '@/types/database'
 
-// Environment validation
-const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL!
-const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+// Environment validation - only run at runtime, not during build
+function validateEnvironment() {
+  const SUPABASE_URL = process.env.NEXT_PUBLIC_SUPABASE_URL
+  const SUPABASE_ANON_KEY = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
 
-if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
-  throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables')
-}
+  if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+    throw new Error('Missing NEXT_PUBLIC_SUPABASE_URL or NEXT_PUBLIC_SUPABASE_ANON_KEY environment variables')
+  }
 
-// Enforce expected project (prevents accidental cross-project usage)
-const expectedHost = 'ainmbbtycciukbjjdjtl.supabase.co'
-const host = new URL(SUPABASE_URL).host
-if (host !== expectedHost) {
-  throw new Error(`Supabase URL host mismatch. Expected ${expectedHost}, received ${host}`)
+  // Enforce expected project (prevents accidental cross-project usage)
+  const expectedHost = 'ainmbbtycciukbjjdjtl.supabase.co'
+  const host = new URL(SUPABASE_URL).host
+  if (host !== expectedHost) {
+    throw new Error(`Supabase URL host mismatch. Expected ${expectedHost}, received ${host}`)
+  }
+
+  return { SUPABASE_URL, SUPABASE_ANON_KEY }
 }
 
 // Singleton instance to prevent multiple client creation
@@ -26,6 +30,7 @@ let browserClient: ReturnType<typeof ssrCreateBrowserClient> | undefined
  */
 export function createBrowserClient() {
   if (!browserClient) {
+    const { SUPABASE_URL, SUPABASE_ANON_KEY } = validateEnvironment()
     browserClient = ssrCreateBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY)
   }
   return browserClient

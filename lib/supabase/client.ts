@@ -1,3 +1,4 @@
+// Vercel deployment fix - ensure fresh build cache
 import { createBrowserClient as ssrCreateBrowserClient } from '@supabase/ssr'
 import type { Database } from '@/types/database'
 

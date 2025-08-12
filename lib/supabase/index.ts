@@ -1,8 +1,8 @@
-// Re-export only client functions for client-side components
+// Re-export client functions for client-side components
 export { createClient, createSupabaseClient, createSupabaseBrowserClient } from './client';
 
-// Don't export server functions from the main index to avoid conflicts
-// Server functions should be imported directly from './server' when needed
+// Re-export server functions for server-side components
+export { createClient as createSupabaseServerClient, createSupabaseServiceClient } from './server';
 
 // Export types
 export type { Database } from '@/types/database'; 

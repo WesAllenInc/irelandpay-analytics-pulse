@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { createSupabaseBrowserClient } from 'lib/supabase/client'
+import { createSupabaseBrowserClient } from '@/lib/supabase/client'
 import type { RealtimeChannel } from '@supabase/supabase-js'
 
 export function useRealtimeData<T extends { id?: string }>(  

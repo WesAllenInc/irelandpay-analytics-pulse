@@ -1,6 +1,6 @@
 import React from 'react';
 import { Button } from '@/components/ui/button';
-import { createSupabaseBrowserClient } from 'lib/supabase/client';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { SquareUserRound } from 'lucide-react';
 
 interface OAuthButtonProps {

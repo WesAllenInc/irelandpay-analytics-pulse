@@ -1,7 +1,7 @@
 import fs from 'fs';
 import path from 'path';
 
-// Files that need to be updated with absolute paths from root
+// Files that need to be updated with @/ alias
 const filesToUpdate = [
   'app/admin/agent-payouts/page.tsx',
   'app/admin/dashboard/page.tsx',
@@ -39,34 +39,38 @@ filesToUpdate.forEach(filePath => {
     if (fs.existsSync(fullPath)) {
       let content = fs.readFileSync(fullPath, 'utf8');
       
-      // Replace all the problematic imports with absolute path from root
+      // Replace all the problematic imports with @/ alias
       content = content.replace(
         /from ['"]@\/lib\/supabase\/client['"]/g,
-        "from 'lib/supabase/client'"
+        "from '@/lib/supabase/client'"
       );
       content = content.replace(
         /from ['"]\.\.\/\.\.\/\.\.\/lib\/supabase\/client['"]/g,
-        "from 'lib/supabase/client'"
+        "from '@/lib/supabase/client'"
       );
       content = content.replace(
         /from ['"]@\/lib\/supabase['"]/g,
-        "from 'lib/supabase/client'"
+        "from '@/lib/supabase/client'"
       );
       content = content.replace(
         /from ['"]\.\.\/\.\.\/lib\/supabase\/client['"]/g,
-        "from 'lib/supabase/client'"
+        "from '@/lib/supabase/client'"
       );
       content = content.replace(
         /from ['"]\.\.\/lib\/supabase\/client['"]/g,
-        "from 'lib/supabase/client'"
+        "from '@/lib/supabase/client'"
       );
       content = content.replace(
         /from ['"]\.\.\/supabase\/client['"]/g,
-        "from 'lib/supabase/client'"
+        "from '@/lib/supabase/client'"
+      );
+      content = content.replace(
+        /from ['"]lib\/supabase\/client['"]/g,
+        "from '@/lib/supabase/client'"
       );
       
       fs.writeFileSync(fullPath, content);
-      console.log(`✅ Updated ${filePath} with absolute path`);
+      console.log(`✅ Updated ${filePath} with @/ alias`);
     } else {
       console.log(`⚠️  File not found: ${filePath}`);
     }

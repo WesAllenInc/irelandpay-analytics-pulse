@@ -2,7 +2,7 @@
 
 import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { createSupabaseBrowserClient } from '../../../lib/supabase/client';
+import { createSupabaseBrowserClient } from 'lib/supabase/client';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';
 import { hasAdminAccess } from '@/lib/auth/executive-check';
 

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { createSupabaseBrowserClient } from '../lib/supabase/client';
+import { createSupabaseBrowserClient } from 'lib/supabase/client';
 import { format } from 'date-fns';
 
 // Types

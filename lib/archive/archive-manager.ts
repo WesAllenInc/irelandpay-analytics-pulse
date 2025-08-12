@@ -1,4 +1,4 @@
-import { createSupabaseClient } from '../supabase/client';
+import { createSupabaseClient } from 'lib/supabase/client';
 import { addMonths, format, startOfMonth } from 'date-fns';
 
 export interface ArchiveResult {

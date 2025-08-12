@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import dynamic from 'next/dynamic';
-import { createSupabaseBrowserClient } from '../../lib/supabase/client';
+import { createSupabaseBrowserClient } from 'lib/supabase/client';
 import SimplifiedAuthCard from '@/components/Auth/SimplifiedAuthCard';
 import ScrambledText from '@/components/Auth/ScrambledText';
 import LoadingSpinner from '@/components/ui/LoadingSpinner';

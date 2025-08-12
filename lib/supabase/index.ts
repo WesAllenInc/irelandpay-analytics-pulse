@@ -1,8 +1,6 @@
-// Re-export client functions
+// Re-export client and server functions for easier imports
 export { createClient, createSupabaseClient, createSupabaseBrowserClient } from './client';
-
-// Re-export server functions
-export { createClient as createServerClient, createSupabaseServerClient, createSupabaseServiceClient } from './server';
+export { createClient as createServerClient, createSupabaseServiceClient, createSupabaseServerClient } from './server';
 
 // Export types
 export type { Database } from '@/types/database'; 

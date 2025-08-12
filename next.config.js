@@ -55,6 +55,9 @@ const nextConfig = {
       // Add explicit file extensions for better resolution
       '@/lib/supabase/client.ts': path.resolve(__dirname, 'lib/supabase/client.ts'),
       '@/lib/supabase/server.ts': path.resolve(__dirname, 'lib/supabase/server.ts'),
+      // Add index file for easier imports
+      '@/lib/supabase': path.resolve(__dirname, 'lib/supabase/index.ts'),
+      '@lib/supabase/index': path.resolve(__dirname, 'lib/supabase/index.ts'),
     };
     
     // Add more stable compilation options for Node.js v20

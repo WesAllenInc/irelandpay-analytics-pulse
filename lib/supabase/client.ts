@@ -5,6 +5,14 @@ import type { Database } from '@/types/database'
 // Environment validation - only run at runtime, not during build
 // Supports both Vercel-Supabase integration variables and standard Next.js variables
 function validateEnvironment() {
+  // Only validate at runtime, not during build
+  if (typeof window === 'undefined' && !process.env.NEXT_PHASE) {
+    return {
+      SUPABASE_URL: process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || ''
+    }
+  }
+
   // Try Vercel-Supabase integration variables first, then fall back to standard names
   const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
   const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -33,7 +41,14 @@ let browserClient: ReturnType<typeof ssrCreateBrowserClient> | undefined
 export function createBrowserClient() {
   if (!browserClient) {
     const { SUPABASE_URL, SUPABASE_ANON_KEY } = validateEnvironment()
-    browserClient = ssrCreateBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    
+    // Only create client if we have valid environment variables
+    if (SUPABASE_URL && SUPABASE_ANON_KEY) {
+      browserClient = ssrCreateBrowserClient(SUPABASE_URL, SUPABASE_ANON_KEY)
+    } else {
+      // Return a mock client for build time
+      return {} as any
+    }
   }
   return browserClient
 }

@@ -6,6 +6,15 @@ import type { Database } from '@/types/database'
 // Environment validation - only run at runtime, not during build
 // Supports both Vercel-Supabase integration variables and standard Next.js variables
 function validateEnvironment() {
+  // Only validate at runtime, not during build
+  if (typeof window === 'undefined' && !process.env.NEXT_PHASE) {
+    return {
+      SUPABASE_URL: process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || '',
+      SUPABASE_ANON_KEY: process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
+      SUPABASE_SERVICE_ROLE_KEY: process.env.SUPABASE_SERVICE_ROLE_KEY || ''
+    }
+  }
+
   // Try Vercel-Supabase integration variables first, then fall back to standard names
   const SUPABASE_URL = process.env.SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL
   const SUPABASE_ANON_KEY = process.env.SUPABASE_ANON_KEY || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY
@@ -36,6 +45,11 @@ let serviceClient: ReturnType<typeof createSupabaseJSClient> | undefined
 export function createServerClient() {
   if (!serverClient) {
     const { SUPABASE_URL, SUPABASE_ANON_KEY } = validateEnvironment()
+    
+    // Only create client if we have valid environment variables
+    if (!SUPABASE_URL || !SUPABASE_ANON_KEY) {
+      return {} as any
+    }
     
     // Work around Next typings variance across versions by casting
     const getCookies = cookies as unknown as () => {
@@ -68,8 +82,9 @@ export function createServiceClient() {
   if (!serviceClient) {
     const { SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY } = validateEnvironment()
     
-    if (!SUPABASE_SERVICE_ROLE_KEY) {
-      throw new Error('Missing SUPABASE_SERVICE_ROLE_KEY environment variable')
+    // Only create client if we have valid environment variables
+    if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
+      return {} as any
     }
 
     serviceClient = createSupabaseJSClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {

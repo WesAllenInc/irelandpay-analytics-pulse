@@ -39,28 +39,10 @@ const nextConfig = {
   // Disable static generation for problematic pages
   trailingSlash: false,
   webpack: (config, { buildId, dev, isServer, defaultLoaders, webpack }) => {
-    // Add path aliases to webpack - match tsconfig.json exactly
+    // Simplified path aliases - just use the basic @ alias
     config.resolve.alias = {
       ...config.resolve.alias,
       '@': path.resolve(__dirname),
-      '@backend': path.resolve(__dirname, 'src/backend'),
-      '@crm': path.resolve(__dirname, 'src/crm'),
-      '@api': path.resolve(__dirname, 'src/api'),
-      '@lib': path.resolve(__dirname, 'lib'),
-      '@lib/supabase': path.resolve(__dirname, 'lib/supabase'),
-      '@lib/supabase/client': path.resolve(__dirname, 'lib/supabase/client.ts'),
-      '@lib/supabase/server': path.resolve(__dirname, 'lib/supabase/server.ts'),
-      '@/lib/supabase/client': path.resolve(__dirname, 'lib/supabase/client.ts'),
-      '@/lib/supabase/server': path.resolve(__dirname, 'lib/supabase/server.ts'),
-      // Add explicit file extensions for better resolution
-      '@/lib/supabase/client.ts': path.resolve(__dirname, 'lib/supabase/client.ts'),
-      '@/lib/supabase/server.ts': path.resolve(__dirname, 'lib/supabase/server.ts'),
-      // Add index file for easier imports
-      '@/lib/supabase': path.resolve(__dirname, 'lib/supabase/index.ts'),
-      '@lib/supabase/index': path.resolve(__dirname, 'lib/supabase/index.ts'),
-      // Add more explicit aliases
-      '@/lib/supabase/index.ts': path.resolve(__dirname, 'lib/supabase/index.ts'),
-      '@/lib/supabase/index': path.resolve(__dirname, 'lib/supabase/index.ts'),
     };
     
     // Add more stable compilation options for Node.js v20

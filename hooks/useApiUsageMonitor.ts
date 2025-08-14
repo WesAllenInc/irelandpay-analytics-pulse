@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@/lib/supabase-compat';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import useInterval from '@/hooks/useInterval';
 
 export interface ApiRateLimit {
@@ -44,7 +44,7 @@ export function useApiUsageMonitor(
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<Error | null>(null);
 
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowserClient();
 
   const fetchApiUsage = async (): Promise<void> => {
     try {

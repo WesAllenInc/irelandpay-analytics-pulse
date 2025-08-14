@@ -1,6 +1,6 @@
 
 import React, { useState, useEffect } from 'react';
-import { createClientComponentClient } from '@/lib/supabase-compat';
+import { createSupabaseBrowserClient } from '@/lib/supabase/client';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Check, ChevronsUpDown } from 'lucide-react';
@@ -29,7 +29,7 @@ interface MerchantSelectorProps {
 }
 
 export function MerchantSelector({ onMerchantSelect, selectedMerchant }: MerchantSelectorProps) {
-  const supabase = createClientComponentClient();
+  const supabase = createSupabaseBrowserClient();
   const [merchants, setMerchants] = useState<Merchant[]>([]);
   const [open, setOpen] = useState(false);
   const [loading, setLoading] = useState(false);

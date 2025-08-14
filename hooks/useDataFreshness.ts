@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { createSupabaseBrowserClient } from "../lib/supabase-browser"
+import { createSupabaseBrowserClient } from "@/lib/supabase/client"
 import useInterval from "./useInterval"
 
 export interface FreshnessData {
